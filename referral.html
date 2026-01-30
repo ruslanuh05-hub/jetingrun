@@ -74,13 +74,19 @@
         .referral-header-icon {
             width: 80px;
             height: 80px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            border-radius: 50%;
+            background: #0a0a0a;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
-            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+            overflow: hidden;
+        }
+        
+        .referral-header-icon img {
+            width: 65%;
+            height: 65%;
+            object-fit: contain;
         }
         
         .referral-header-icon i {
@@ -580,10 +586,10 @@
         <!-- Заголовок -->
         <div class="referral-header-section">
             <div class="referral-header-icon">
-                <i class="fas fa-users"></i>
+                <img src="assets/jet-logo.png" alt="JET">
             </div>
-            <h2 class="referral-header-title">Пригласи друга</h2>
-            <p class="referral-header-subtitle">Получай <strong>4%</strong> от каждой покупки друга</p>
+            <h2 class="referral-header-title">🎁 Присоединяйся к JET!</h2>
+            <p class="referral-header-subtitle">⚡ Покупай и управляй цифровыми товарами прямо в Telegram.</p>
         </div>
         
         <!-- Статистика приглашенных друзей -->
@@ -622,7 +628,7 @@
         <!-- Реферальная ссылка -->
         <div class="referral-link-section">
             <h3 class="referral-link-title">Твоя реферальная ссылка</h3>
-            <div class="referral-link-input" id="referralLinkText">https://t.me/JetStoreApp_bot?start=ref_000000</div>
+            <div class="referral-link-input" id="referralLinkText">https://t.me/JetSold_bot?start=ref_000000</div>
             <div class="referral-link-buttons">
                 <button class="referral-link-btn copy" onclick="copyReferralLink()">
                     <i class="fas fa-copy"></i>
@@ -775,7 +781,7 @@
             
             // Реферальная ссылка
             const userId = userData.id || '000000';
-            const botUsername = window.JET_BOT_USERNAME || 'JetStoreApp_bot';
+            const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
             const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
             document.getElementById('referralLinkText').textContent = referralLink;
             

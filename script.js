@@ -320,10 +320,10 @@ function updateStoreDisplay() {
     }
     window.userData.currencies.RUB = currentBalance;
     
-    // Логотип в шапке магазина (анимированная ракета)
+    // Логотип в шапке магазина
     const storeAvatar = document.getElementById('storeUserAvatar');
     if (storeAvatar) {
-        storeAvatar.innerHTML = `<i class="fas fa-rocket"></i>`;
+        storeAvatar.innerHTML = `<img src="assets/jet-logo.png" alt="JET" style="width:100%;height:100%;object-fit:contain;">`;
     }
     
     // Имя пользователя
@@ -2141,11 +2141,7 @@ function showPaymentWaiting() {
     const primaryBtn = document.getElementById('paymentWaitingPrimaryBtn');
     if (primaryBtn) {
         primaryBtn.disabled = false;
-        if (data.purchase?.type === 'steam') {
-            primaryBtn.textContent = 'Запустить пополнение Steam';
-        } else {
-            primaryBtn.textContent = 'Перейти на страницу оплаты';
-        }
+        primaryBtn.textContent = 'Перейти на страницу оплаты';
     }
 
     // Обновляем данные на экране
@@ -2180,28 +2176,69 @@ function closePaymentWaiting() {
     currentPurchase = { type: null, amount: 0, login: null, productId: null, productName: null };
 }
 
-// Открыть страницу оплаты
-function openPaymentPage() {
+// Подтвердить оплату: проверка платёжки, при успехе — выдача товара (Steam = DonateHub, звёзды/премиум — позже)
+function confirmPayment() {
     if (!window.paymentData) return;
-    
-    const data = window.paymentData;
-    const statusEl = document.getElementById('paymentDetailStatus');
-    const primaryBtn = document.getElementById('paymentWaitingPrimaryBtn');
+    var data = window.paymentData;
+    var statusEl = document.getElementById('paymentDetailStatus');
+    var confirmBtn = document.getElementById('paymentWaitingConfirmBtn');
+    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) {
+        if (typeof showStoreNotification === 'function') showStoreNotification('API не настроен', 'error');
+        return;
+    }
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Проверяем...';
+    }
+    if (statusEl) statusEl.textContent = 'Проверка оплаты...';
 
-    // Steam: выполняем автоматическое пополнение через DonateHub
-    if (data.purchase?.type === 'steam') {
-        const apiBase =
-            window.JET_API_BASE ||
-            localStorage.getItem('jet_api_base') ||
-            '';
+    fetch(apiBase + '/api/payment/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            method: data.method,
+            totalAmount: data.totalAmount,
+            baseAmount: data.baseAmount,
+            purchase: data.purchase || {}
+        })
+    })
+        .then(function(r) { return r.json().catch(function() { return {}; }); })
+        .then(function(res) {
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Подтвердить оплату';
+            }
+            if (res.paid === true) {
+                if (statusEl) statusEl.textContent = 'Оплата подтверждена. Выдача...';
+                runDeliveryAfterPayment(data);
+            } else {
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (typeof showStoreNotification === 'function') {
+                    showStoreNotification('Не видим ваш платёж. Повторите снова.', 'error');
+                }
+            }
+        })
+        .catch(function(err) {
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Подтвердить оплату';
+            }
+            if (statusEl) statusEl.textContent = 'Ожидание...';
+            if (typeof showStoreNotification === 'function') {
+                showStoreNotification('Не видим ваш платёж. Повторите снова.', 'error');
+            }
+        });
+}
 
-        if (primaryBtn) {
-            primaryBtn.disabled = true;
-            primaryBtn.textContent = 'Создаём заказ...';
-        }
-        if (statusEl) statusEl.textContent = 'Создаём заказ...';
+// Выдача товара после подтверждённой оплаты (Steam = DonateHub API, звёзды/премиум — заглушка)
+function runDeliveryAfterPayment(data) {
+    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var statusEl = document.getElementById('paymentDetailStatus');
 
-        fetch(`${apiBase}/api/donatehub/steam/topup`, {
+    if (data.purchase && data.purchase.type === 'steam') {
+        if (statusEl) statusEl.textContent = 'Запуск пополнения Steam...';
+        fetch(apiBase + '/api/donatehub/steam/topup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -2210,65 +2247,57 @@ function openPaymentPage() {
                 currency: data.purchase.currency || 'RUB'
             })
         })
-            .then(async (res) => {
-                const j = await res.json().catch(() => ({}));
-                if (!res.ok) throw new Error(j?.message || j?.error || 'donatehub_error');
-                return j;
-            })
-            .then((result) => {
-                const orderId = result?.order?.id;
-                const st = result?.order?.status || 'WAIT';
-                if (statusEl) statusEl.textContent = `Статус: ${st}`;
-                if (!orderId) throw new Error('order_id_missing');
-
-                if (primaryBtn) primaryBtn.textContent = 'Пополнение в процессе...';
-
-                // Поллинг статуса
-                const poll = () => {
-                    fetch(`${apiBase}/api/donatehub/order/${encodeURIComponent(orderId)}`)
-                        .then(r => r.json())
-                        .then(s => {
-                            const status = s?.status || 'WAIT';
-                            if (statusEl) statusEl.textContent = `Статус: ${status}`;
-                            if (status === 'SUCCESS') {
-                                if (typeof showStoreNotification === 'function') {
-                                    showStoreNotification('✅ Steam успешно пополнен!', 'success');
-                                }
-                                closePaymentWaiting();
-                                closeSteamTopup();
-                                return;
-                            }
-                            if (status === 'FAILED') {
-                                if (typeof showStoreNotification === 'function') {
-                                    showStoreNotification('❌ Пополнение Steam не удалось', 'error');
-                                }
-                                if (primaryBtn) {
-                                    primaryBtn.disabled = false;
-                                    primaryBtn.textContent = 'Повторить пополнение Steam';
-                                }
-                                return;
-                            }
-                            setTimeout(poll, 3000);
-                        })
-                        .catch(() => setTimeout(poll, 3000));
-                };
-                setTimeout(poll, 2500);
-            })
-            .catch((err) => {
-                console.error('DonateHub steam topup error:', err);
-                if (statusEl) statusEl.textContent = 'Ошибка создания заказа';
-                if (primaryBtn) {
-                    primaryBtn.disabled = false;
-                    primaryBtn.textContent = 'Запустить пополнение Steam';
+            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(result) {
+                var orderId = result && result.order && result.order.id;
+                if (!orderId) {
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания заказа Steam', 'error');
+                    return;
                 }
-                if (typeof showStoreNotification === 'function') {
-                    showStoreNotification('Ошибка DonateHub: проверьте donatehub_config.json и баланс', 'error');
-                }
+                if (typeof showStoreNotification === 'function') showStoreNotification('✅ Заказ Steam создан. Пополнение в процессе.', 'success');
+                closePaymentWaiting();
+                if (typeof closeSteamTopup === 'function') closeSteamTopup();
+            })
+            .catch(function() {
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка DonateHub', 'error');
             });
-
         return;
     }
+
+    if (data.purchase && (data.purchase.type === 'stars' || data.purchase.type === 'premium')) {
+        if (typeof showStoreNotification === 'function') showStoreNotification('Выдача звёзд/премиума будет настроена позже.', 'info');
+        if (statusEl) statusEl.textContent = 'Ожидание...';
+        return;
+    }
+
+    if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+    closePaymentWaiting();
+}
+
+// Открыть страницу оплаты
+function openPaymentPage() {
+    if (!window.paymentData) return;
     
+    const data = window.paymentData;
+    const statusEl = document.getElementById('paymentDetailStatus');
+    const primaryBtn = document.getElementById('paymentWaitingPrimaryBtn');
+
+    // Steam: переход на страницу оплаты (пополнение Steam запускается только после успешной оплаты в confirmPayment → runDeliveryAfterPayment)
+    if (data.purchase?.type === 'steam') {
+        if (typeof showStoreNotification === 'function') {
+            showStoreNotification('Открываем страницу оплаты...', 'info');
+        }
+        const payUrl = data.payment_url || data.pay_url;
+        if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
+            if (window.Telegram?.WebApp?.openLink) {
+                window.Telegram.WebApp.openLink(payUrl);
+            } else {
+                window.open(payUrl, '_blank');
+            }
+        }
+        return;
+    }
+
     // Покупка звёзд: просто переход на страницу оплаты (без Fragment)
     if (data.purchase?.type === 'stars') {
         if (typeof showStoreNotification === 'function') {

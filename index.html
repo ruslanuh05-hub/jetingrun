@@ -68,6 +68,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #0a0a0a;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        .splash-logo-icon img.splash-logo-img {
+            width: 75%;
+            height: 75%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
+            animation: rocketTakeoffSplash 2s ease-in-out infinite;
         }
         
         .splash-logo-icon i {
@@ -228,9 +239,26 @@
         }
         
         .store-logo img {
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+        
+        .logo-with-img .logo-img-wrap {
+            background: #0a0a0a;
+            border-radius: 10px;
+            padding: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-with-img .logo-img-old {
+            height: 32px;
+            width: auto;
+            max-width: 32px;
+            object-fit: contain;
         }
         
         .store-title {
@@ -2291,7 +2319,15 @@
             box-shadow: 0 6px 30px rgba(76, 175, 80, 0.6);
             transform: translateY(-2px);
         }
-        
+        .payment-waiting-btn.confirm {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: #fff;
+            margin-top: 10px;
+        }
+        .payment-waiting-btn.confirm:hover {
+            box-shadow: 0 6px 30px rgba(33, 150, 243, 0.5);
+            transform: translateY(-2px);
+        }
         .payment-waiting-btn.secondary {
             background: transparent;
             color: rgba(0, 212, 255, 0.9);
@@ -3714,7 +3750,7 @@
         </div>
         <div class="splash-logo">
             <div class="splash-logo-icon">
-                <i class="fas fa-rocket"></i>
+                <img src="assets/jet-logo.png" alt="JET" class="splash-logo-img">
             </div>
             <div class="splash-title">JET</div>
             <div class="splash-loader"></div>
@@ -3727,7 +3763,7 @@
         <header class="store-header">
             <div class="store-header-left">
                 <div class="store-logo" id="storeUserAvatar">
-                    <i class="fas fa-rocket" style="color: #20b2aa; font-size: 1.5rem;"></i>
+                    <img src="assets/jet-logo.png" alt="JET" style="width:100%;height:100%;object-fit:contain;">
                 </div>
                 <div class="store-title">
                     <h1 id="storeUserName">JET</h1>
@@ -4187,9 +4223,12 @@
                     </div>
                     
                     <button class="payment-waiting-btn primary" id="paymentWaitingPrimaryBtn" onclick="openPaymentPage()">
-                        Открыть страницу оплаты
+                        Перейти на страницу оплаты
                     </button>
-                    <p class="payment-waiting-hint">После оплаты баланс обновится</p>
+                    <button class="payment-waiting-btn confirm" id="paymentWaitingConfirmBtn" onclick="confirmPayment()">
+                        Подтвердить оплату
+                    </button>
+                    <p class="payment-waiting-hint">После оплаты нажмите «Подтвердить оплату». Если платёж не найден — повторите попытку.</p>
                     <button class="payment-waiting-btn secondary" onclick="closePaymentWaiting()">
                         Вернуться к покупкам
                     </button>
@@ -4614,8 +4653,8 @@
     <div class="container" id="oldMenu" style="display: none;">
         <!-- Шапка магазина -->
         <header class="header">
-            <div class="logo">
-                <i class="fas fa-rocket"></i>
+            <div class="logo logo-with-img">
+                <span class="logo-img-wrap"><img src="assets/jet-logo.png" alt="JET" class="logo-img-old"></span>
                 <h1>JET STORE</h1>
             </div>
             <div class="user-info" id="userInfo">

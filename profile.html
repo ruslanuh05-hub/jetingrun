@@ -94,26 +94,21 @@
             overflow: hidden;
         }
         
-        .logo-icon i {
+        .logo-icon i,
+        .logo-icon img {
             color: #ffffff;
             font-size: 1.5rem;
-            animation: rocketTakeoff 2s ease-in-out infinite;
-            transform-origin: center bottom;
         }
         
-        @keyframes rocketTakeoff {
-            0% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 1;
-            }
-            50% {
-                transform: translateY(-8px) rotate(-5deg);
-                opacity: 0.9;
-            }
-            100% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 1;
-            }
+        .logo-icon-img {
+            background: #0a0a0a;
+            overflow: hidden;
+        }
+        
+        .logo-icon img {
+            width: 70%;
+            height: 70%;
+            object-fit: contain;
         }
         
         .logo-icon svg path {
@@ -238,8 +233,6 @@
             font-size: 1.8rem;
             color: white;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
-            border: 3px solid rgba(255, 255, 255, 0.1);
         }
         
         .user-avatar img {
@@ -494,12 +487,19 @@
         .tonkeeper-icon {
             width: 50px;
             height: 50px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
+            background: #0a0a0a;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            overflow: hidden;
+        }
+        
+        .tonkeeper-icon img {
+            width: 70%;
+            height: 70%;
+            object-fit: contain;
         }
         
         .tonkeeper-text {
@@ -2090,8 +2090,8 @@
         <!-- Шапка с логотипом Kupol -->
         <header class="profile-header-top">
             <div class="header-left">
-                <div class="logo-icon">
-                    <i class="fas fa-rocket"></i>
+                <div class="logo-icon logo-icon-img">
+                    <img src="assets/jet-logo.png" alt="JET">
         </div>
                 <div class="logo-text">
                     <h1>JET</h1>
@@ -2161,11 +2161,7 @@
                 </div>
                 <button id="tonkeeperConnectBtn" class="btn-tonkeeper" onclick="connectTonkeeper()">
                     <div class="tonkeeper-icon">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <img src="assets/tonkeeper-logo.png" alt="TonKeeper">
                     </div>
                     <div class="tonkeeper-text">
                         <span class="tonkeeper-title">Подключить TonKeeper</span>
@@ -2462,7 +2458,19 @@
         console.log('2. Проверьте результат в консоли');
         console.log('3. Обновите страницу и проверьте, что баланс сохранился');
         
-        // Обновление блока TonKeeper: подключено (адрес, баланс 0.00, отвязать) или кнопка подключения
+        // Получить баланс TON по адресу из блокчейна (TonKeeper)
+        function fetchTonBalance(address) {
+            if (!address) return Promise.resolve('0.00');
+            return fetch('https://toncenter.com/api/v2/getAddressBalance?address=' + encodeURIComponent(address))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var nano = parseInt((data && data.result) ? data.result : '0', 10);
+                    return (nano / 1e9).toFixed(2);
+                })
+                .catch(function() { return '0.00'; });
+        }
+        
+        // Обновление блока TonKeeper: подключено (адрес, баланс из TonKeeper), отвязать или кнопка подключения
         window.updateTonkeeperButton = function() {
             const connectedBlock = document.getElementById('tonkeeperConnectedBlock');
             const connectBtn = document.getElementById('tonkeeperConnectBtn');
@@ -2471,15 +2479,19 @@
             
             const isConnected = localStorage.getItem('jetstore_tonkeeper_connected') === 'true';
             const address = localStorage.getItem('jetstore_tonkeeper_address') || '';
-            const balanceRaw = localStorage.getItem('jetstore_tonkeeper_balance') || '0';
-            const balanceNum = parseFloat(balanceRaw);
-            const balanceText = isNaN(balanceNum) ? '0.00' : balanceNum.toFixed(2);
             
             if (connectedBlock) connectedBlock.style.display = isConnected && address ? 'block' : 'none';
             if (connectBtn) connectBtn.style.display = isConnected && address ? 'none' : 'flex';
             
             if (addressEl) addressEl.textContent = address ? (address.length > 18 ? address.slice(0, 6) + '…' + address.slice(-6) : address) : '—';
-            if (balanceEl) balanceEl.textContent = balanceText + ' TON';
+            if (balanceEl) balanceEl.textContent = '… TON';
+            
+            if (isConnected && address && balanceEl) {
+                fetchTonBalance(address).then(function(balanceText) {
+                    try { localStorage.setItem('jetstore_tonkeeper_balance', balanceText); } catch (e) {}
+                    if (balanceEl) balanceEl.textContent = balanceText + ' TON';
+                });
+            }
         };
         
         // Отвязать TonKeeper
@@ -2892,7 +2904,7 @@
             
             // Генерация реферальной ссылки на основе ID пользователя
             const userId = userData.id || document.getElementById('profileUserId')?.textContent || '000000';
-            const botUsername = window.JET_BOT_USERNAME || 'JetStoreApp_bot';
+            const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
             const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
             const referralLinkElement = document.getElementById('referralLinkText');
             
@@ -2988,7 +3000,7 @@
             // Получаем userData из глобального объекта
             const currentUserData = window.userData || {};
             const userId = currentUserData.id || '000000';
-            const botUsername = window.JET_BOT_USERNAME || 'JetStoreApp_bot';
+            const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
             const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
             const referralsCount = currentUserData.referrals?.count || 0;
             const referralEarnings = currentUserData.referrals?.earnings || 0;
