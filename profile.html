@@ -23,7 +23,7 @@
                     try {
                         localStorage.setItem('jetstore_tonkeeper_connected', 'true');
                         localStorage.setItem('jetstore_tonkeeper_address', wallet.account.address);
-                        if (wallet.account.chain && wallet.account.chain !== '-239') {
+                        if (!localStorage.getItem('jetstore_tonkeeper_balance')) {
                             localStorage.setItem('jetstore_tonkeeper_balance', '0');
                         }
                     } catch (e) {}
@@ -524,6 +524,51 @@
         
         .btn-tonkeeper .tonkeeper-arrow {
             color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Блок «подключено»: адрес, баланс, отвязать */
+        .tonkeeper-connected-block {
+            width: 100%;
+            padding: 18px 20px;
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+        .tonkeeper-connected-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .tonkeeper-connected-row:last-of-type {
+            margin-bottom: 16px;
+        }
+        .tonkeeper-connected-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        .tonkeeper-connected-value {
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .btn-tonkeeper-unbind {
+            width: 100%;
+            padding: 12px 20px;
+            background: #c62828;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-tonkeeper-unbind:hover {
+            background: #b71c1c;
+        }
+        .btn-tonkeeper-unbind:active {
+            transform: scale(0.98);
         }
         
         .tonkeeper-arrow {
@@ -2101,16 +2146,27 @@
                 </div>
             </div>
             
-            <!-- Кнопка TonKeeper -->
+            <!-- TonKeeper: подключено (адрес, баланс, отвязать) или кнопка подключения -->
             <div class="tonkeeper-section">
-                <button class="btn-tonkeeper" onclick="connectTonkeeper()">
+                <div id="tonkeeperConnectedBlock" class="tonkeeper-connected-block" style="display: none;">
+                    <div class="tonkeeper-connected-row">
+                        <span class="tonkeeper-connected-label">Адрес</span>
+                        <span id="tonkeeperAddress" class="tonkeeper-connected-value">—</span>
+                    </div>
+                    <div class="tonkeeper-connected-row">
+                        <span class="tonkeeper-connected-label">Баланс</span>
+                        <span id="tonkeeperBalance" class="tonkeeper-connected-value">0.00 TON</span>
+                    </div>
+                    <button type="button" class="btn-tonkeeper-unbind" onclick="disconnectTonkeeper()">Отвязать</button>
+                </div>
+                <button id="tonkeeperConnectBtn" class="btn-tonkeeper" onclick="connectTonkeeper()">
                     <div class="tonkeeper-icon">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        </div>
+                    </div>
                     <div class="tonkeeper-text">
                         <span class="tonkeeper-title">Подключить TonKeeper</span>
                         <span class="tonkeeper-subtitle">Криптокошелёк для TON</span>
@@ -2406,27 +2462,39 @@
         console.log('2. Проверьте результат в консоли');
         console.log('3. Обновите страницу и проверьте, что баланс сохранился');
         
-        // Обновление статуса TonKeeper на кнопке в профиле
+        // Обновление блока TonKeeper: подключено (адрес, баланс 0.00, отвязать) или кнопка подключения
         window.updateTonkeeperButton = function() {
-            const titleEl = document.querySelector('.tonkeeper-title');
-            const subtitleEl = document.querySelector('.tonkeeper-subtitle');
-            if (!titleEl || !subtitleEl) return;
+            const connectedBlock = document.getElementById('tonkeeperConnectedBlock');
+            const connectBtn = document.getElementById('tonkeeperConnectBtn');
+            const addressEl = document.getElementById('tonkeeperAddress');
+            const balanceEl = document.getElementById('tonkeeperBalance');
             
             const isConnected = localStorage.getItem('jetstore_tonkeeper_connected') === 'true';
             const address = localStorage.getItem('jetstore_tonkeeper_address') || '';
-            const balance = localStorage.getItem('jetstore_tonkeeper_balance') || '0';
+            const balanceRaw = localStorage.getItem('jetstore_tonkeeper_balance') || '0';
+            const balanceNum = parseFloat(balanceRaw);
+            const balanceText = isNaN(balanceNum) ? '0.00' : balanceNum.toFixed(2);
             
-            if (isConnected && address) {
-                const shortAddr = address.length > 18 ? address.slice(0, 6) + '…' + address.slice(-6) : address;
-                const balanceNum = parseFloat(balance);
-                const balanceText = isNaN(balanceNum) ? balance : balanceNum.toLocaleString('ru-RU');
-                
-                titleEl.textContent = shortAddr;
-                subtitleEl.textContent = `${balanceText} TON`;
-            } else {
-                titleEl.textContent = 'Подключить TonKeeper';
-                subtitleEl.textContent = 'Криптокошелёк для TON';
+            if (connectedBlock) connectedBlock.style.display = isConnected && address ? 'block' : 'none';
+            if (connectBtn) connectBtn.style.display = isConnected && address ? 'none' : 'flex';
+            
+            if (addressEl) addressEl.textContent = address ? (address.length > 18 ? address.slice(0, 6) + '…' + address.slice(-6) : address) : '—';
+            if (balanceEl) balanceEl.textContent = balanceText + ' TON';
+        };
+        
+        // Отвязать TonKeeper
+        window.disconnectTonkeeper = function() {
+            try {
+                localStorage.removeItem('jetstore_tonkeeper_connected');
+                localStorage.removeItem('jetstore_tonkeeper_address');
+                localStorage.removeItem('jetstore_tonkeeper_balance');
+            } catch (e) {}
+            var connector = window.tonConnectConnector;
+            if (connector && typeof connector.disconnect === 'function') {
+                connector.disconnect().catch(function() {});
             }
+            if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
+            if (typeof showNotification === 'function') showNotification('TonKeeper отвязан', 'info');
         };
         
         // Подключение TonKeeper через TonConnect: генерируем ссылку-запрос и открываем её.
