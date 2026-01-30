@@ -1,0 +1,22 @@
+# Секреты — не загружать на GitHub
+.env
+.env.local
+.env.*
+telethon_config.json
+telethon_session.txt
+fragment_config.json
+donatehub_config.json
+*.session
+*.session-journal
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+
+# Логи и данные
+*.log
+*.db
+*.sqlite3
