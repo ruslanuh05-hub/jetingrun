@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Активы - JET</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -1677,7 +1677,7 @@
     <!-- Анимация видео при загрузке -->
     <div class="assets-graph-animation" id="graphAnimation">
         <video class="assets-video-background" autoplay muted loop playsinline>
-            <source src="assets/video.mp4" type="video/mp4">
+            <source src="../assets/video.mp4" type="video/mp4">
         </video>
         <div class="assets-graph-wrapper">
             <div class="assets-graph-text">JET NFT</div>
@@ -1688,7 +1688,7 @@
         <!-- Шапка -->
         <div class="assets-header">
             <div class="header-left">
-                <img src="assets/jet-logo.png" alt="JET" class="assets-header-logo">
+                <img src="../assets/jet-logo.png" alt="JET" class="assets-header-logo">
                 <span class="assets-header-title">Jet Store</span>
             </div>
             <div class="header-right">
@@ -1891,8 +1891,8 @@
         </button>
     </nav>
     
-    <script src="config.js"></script>
-    <script src="database.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/database.js"></script>
     <script>
         // Удаление анимации графика после завершения
         document.addEventListener('DOMContentLoaded', function() {
@@ -2444,7 +2444,7 @@
             }
             
             const priceIcon = usernameCurrencyFilter === 'TON' 
-                ? '<img src="assets/tonkeeper-icon.png" alt="TON" class="auction-price-icon">' 
+                ? '<img src="../assets/tonkeeper-icon.png" alt="TON" class="auction-price-icon">' 
                 : '<span class="auction-price-rub">₽</span>';
             
             container.innerHTML = filtered.map(u => {

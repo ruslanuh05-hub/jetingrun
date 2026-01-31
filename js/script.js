@@ -690,6 +690,10 @@ function proceedStarsPurchase() {
         showStoreNotification('Минимум 50 звёзд', 'error');
         return;
     }
+    if (selectedStars.amount > 50000) {
+        showStoreNotification('Максимум 50 000 звёзд за одну покупку', 'error');
+        return;
+    }
     
     // Получаем получателя из поля ввода
     const recipientInput = document.getElementById('starsRecipient');
@@ -723,6 +727,7 @@ function proceedPremiumPurchase() {
     currentPurchase = {
         type: 'premium',
         amount: selectedPremium.price,
+        months: selectedPremium.months,
         login: recipient || null,
         productId: null,
         productName: `Premium ${selectedPremium.months} мес.`
@@ -732,13 +737,17 @@ function proceedPremiumPurchase() {
 }
 
 // Обновление суммы звёзд из поля ввода (новый дизайн)
-// Минимум 50 звёзд
+// Минимум 50 звёзд, максимум 50 000
 function updateStarsAmountFromInput() {
     const input = document.getElementById('starsAmountInput');
     if (!input) return;
     
     let amount = parseInt(input.value || '0', 10) || 0;
     if (amount > 0 && amount < 50) amount = 0; // минимум 50
+    if (amount > 50000) {
+        amount = 50000;
+        input.value = '50000';
+    }
     const starRate = getStarRate();
     const usdRate = getUsdRate();
     
@@ -1414,6 +1423,7 @@ function proceedPremiumPurchaseFromPopup() {
     currentPurchase = {
         type: 'premium',
         amount: selectedPremium.price,
+        months: selectedPremium.months,
         login: document.getElementById('premiumPopupRecipient')?.value || '',
         productId: null,
         productName: `Premium ${selectedPremium.months} мес.`
@@ -1607,11 +1617,11 @@ function updateSellStarsUI() {
     
     if (limitText) {
         if (currentSellMethod === 'wallet') {
-            limitText.textContent = 'Минимум 100 ⭐, максимум 10 000 ⭐ (продажа на кошелёк).';
+            limitText.textContent = 'Минимум 100 ⭐, максимум 50 000 ⭐ (продажа на кошелёк).';
         } else if (currentSellMethod === 'sbp') {
-            limitText.textContent = 'Минимум 230 ⭐, максимум 10 000 ⭐ (продажа по СБП).';
+            limitText.textContent = 'Минимум 230 ⭐, максимум 50 000 ⭐ (продажа по СБП).';
         } else if (currentSellMethod === 'card') {
-            limitText.textContent = 'Минимум 1600 ⭐, максимум 10 000 ⭐ (продажа на карту).';
+            limitText.textContent = 'Минимум 1600 ⭐, максимум 50 000 ⭐ (продажа на карту).';
         }
     }
     if (buyRateText) {
@@ -1634,7 +1644,7 @@ function updateSellStarsAmountFromInput() {
     if (isNaN(amount) || amount < 0) amount = 0;
     
     // Ограничиваем только по максимуму, минимум проверяем при отправке
-    const max = 10000;
+    const max = 50000;
     if (amount > max) {
         amount = max;
         input.value = amount.toString();
@@ -1668,7 +1678,7 @@ function submitSellStars() {
     let min = 100;
     if (currentSellMethod === 'sbp') min = 230;
     if (currentSellMethod === 'card') min = 1600;
-    const max = 10000;
+    const max = 50000;
     
     if (currentSellAmount < min) {
         showStoreNotification(`Минимальная продажа для этого способа: ${min.toLocaleString('ru-RU')} ⭐`, 'error');
@@ -1783,7 +1793,10 @@ function showStoreView(section) {
     
     // Переключаем на нужную вкладку / окно
     if (section === 'stars') {
-        switchStoreTab('stars');
+        // Откладываем переключение на следующий тик, чтобы storeView успел отрисоваться и секция звёзд показалась с первого раза
+        setTimeout(function() {
+            switchStoreTab('stars');
+        }, 0);
     } else if (section === 'premium') {
         window.location.href = 'premium.html';
     } else if (section === 'sellStars') {
@@ -2232,15 +2245,18 @@ function confirmPayment() {
     }
     if (statusEl) statusEl.textContent = 'Проверка оплаты...';
 
+    var checkPayload = {
+        method: data.method,
+        totalAmount: data.totalAmount,
+        baseAmount: data.baseAmount,
+        purchase: data.purchase || {}
+    };
+    if (data.order_id) checkPayload.order_id = data.order_id;
+    if (data.transaction_id) checkPayload.transaction_id = data.transaction_id;
     fetch(apiBase + '/api/payment/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            method: data.method,
-            totalAmount: data.totalAmount,
-            baseAmount: data.baseAmount,
-            purchase: data.purchase || {}
-        })
+        body: JSON.stringify(checkPayload)
     })
         .then(function(r) { return r.json().catch(function() { return {}; }); })
         .then(function(res) {
@@ -2249,12 +2265,12 @@ function confirmPayment() {
                 confirmBtn.textContent = 'Подтвердить оплату';
             }
             if (res.paid === true) {
-                if (statusEl) statusEl.textContent = 'Оплата подтверждена. Выдача...';
-                runDeliveryAfterPayment(data);
+                if (statusEl) statusEl.textContent = res.delivered_by_fragment ? 'Оплата подтверждена.' : 'Оплата подтверждена. Выдача...';
+                runDeliveryAfterPayment(data, res);
             } else {
                 if (statusEl) statusEl.textContent = 'Ожидание...';
                 if (typeof showStoreNotification === 'function') {
-                    showStoreNotification('Не видим ваш платёж. Повторите снова.', 'error');
+                    showStoreNotification('Оплата не найдена.', 'error');
                 }
             }
         })
@@ -2265,15 +2281,21 @@ function confirmPayment() {
             }
             if (statusEl) statusEl.textContent = 'Ожидание...';
             if (typeof showStoreNotification === 'function') {
-                showStoreNotification('Не видим ваш платёж. Повторите снова.', 'error');
+                showStoreNotification('Оплата не найдена.', 'error');
             }
         });
 }
 
-// Выдача товара после подтверждённой оплаты (Steam = DonateHub API, звёзды/премиум — заглушка)
-function runDeliveryAfterPayment(data) {
+// Выдача товара после подтверждённой оплаты (Steam = DonateHub, звёзды/премиум = Fragment.com)
+function runDeliveryAfterPayment(data, checkResponse) {
     var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var statusEl = document.getElementById('paymentDetailStatus');
+    // Оплата через Fragment (TonKeeper): товар уже выдан по вебхуку order.completed
+    if (checkResponse && checkResponse.delivered_by_fragment === true) {
+        if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+        closePaymentWaiting();
+        return;
+    }
 
     if (data.purchase && data.purchase.type === 'steam') {
         if (statusEl) statusEl.textContent = 'Запуск пополнения Steam...';
@@ -2303,9 +2325,79 @@ function runDeliveryAfterPayment(data) {
         return;
     }
 
-    if (data.purchase && (data.purchase.type === 'stars' || data.purchase.type === 'premium')) {
-        if (typeof showStoreNotification === 'function') showStoreNotification('Выдача звёзд/премиума будет настроена позже.', 'info');
-        if (statusEl) statusEl.textContent = 'Ожидание...';
+    // Fragment: заказ уже создан и оплачен (order_id из вебхука) — выдача уже выполнена Fragment
+    if (data.order_id && data.purchase && (data.purchase.type === 'stars' || data.purchase.type === 'premium')) {
+        if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+        closePaymentWaiting();
+        return;
+    }
+
+    // Fragment.com: выдача звёзд через iStar API (оплата TonKeeper)
+    if (data.purchase && data.purchase.type === 'stars') {
+        var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
+        var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
+        if (!recipient || !starsAmount) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка: укажите получателя и количество звёзд.', 'error');
+            if (statusEl) statusEl.textContent = 'Ожидание...';
+            return;
+        }
+        if (statusEl) statusEl.textContent = 'Выдача звёзд...';
+        fetch(apiBase + '/api/fragment/deliver-stars', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stars_amount: starsAmount, recipient: recipient })
+        })
+            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(res) {
+                if (res.success) {
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+                    closePaymentWaiting();
+                } else {
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification(res.message || 'Ошибка выдачи товара.', 'error');
+                    }
+                    if (statusEl) statusEl.textContent = 'Ожидание...';
+                }
+            })
+            .catch(function() {
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка выдачи товара.', 'error');
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+            });
+        return;
+    }
+
+    // Fragment.com: выдача Premium через iStar API (оплата TonKeeper)
+    if (data.purchase && data.purchase.type === 'premium') {
+        var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
+        var months = data.purchase.months || 3;
+        if ([3, 6, 12].indexOf(months) === -1) months = 3;
+        if (!recipient) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка: укажите получателя.', 'error');
+            if (statusEl) statusEl.textContent = 'Ожидание...';
+            return;
+        }
+        if (statusEl) statusEl.textContent = 'Выдача Premium...';
+        fetch(apiBase + '/api/fragment/deliver-premium', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ months: months, recipient: recipient })
+        })
+            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(res) {
+                if (res.success) {
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+                    closePaymentWaiting();
+                } else {
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification(res.message || 'Ошибка выдачи товара.', 'error');
+                    }
+                    if (statusEl) statusEl.textContent = 'Ожидание...';
+                }
+            })
+            .catch(function() {
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка выдачи товара.', 'error');
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+            });
         return;
     }
 
@@ -2337,19 +2429,90 @@ function openPaymentPage() {
         return;
     }
 
-    // Покупка звёзд: просто переход на страницу оплаты (без Fragment)
+    // Звёзды: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
     if (data.purchase?.type === 'stars') {
-        if (typeof showStoreNotification === 'function') {
-            showStoreNotification('Открываем страницу оплаты...', 'info');
+        var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
+        var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
+        if (!apiBase || !recipient || !starsAmount) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Укажите получателя и количество звёзд.', 'error');
+            return;
         }
-        const payUrl = data.payment_url || data.pay_url;
-        if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
-            if (window.Telegram?.WebApp?.openLink) {
-                window.Telegram.WebApp.openLink(payUrl);
-            } else {
-                window.open(payUrl, '_blank');
-            }
+        if (statusEl) statusEl.textContent = 'Создаём заказ...';
+        if (primaryBtn) primaryBtn.disabled = true;
+        fetch(apiBase + '/api/fragment/create-star-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient: recipient, stars_amount: starsAmount })
+        })
+            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(res) {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (res.success && res.order_id) {
+                    window.paymentData = window.paymentData || {};
+                    window.paymentData.order_id = res.order_id;
+                    if (res.payment_url) window.paymentData.payment_url = res.payment_url;
+                    var payUrl = res.payment_url || res.pay_url || data.payment_url || data.pay_url;
+                    if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
+                        if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
+                        else window.open(payUrl, '_blank');
+                    } else {
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment, затем нажмите «Подтвердить оплату».', 'info');
+                    }
+                } else {
+                    if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа.', 'error');
+                }
+            })
+            .catch(function() {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания заказа.', 'error');
+            });
+        return;
+    }
+
+    // Premium: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
+    if (data.purchase?.type === 'premium') {
+        var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
+        var months = data.purchase.months || 3;
+        if ([3, 6, 12].indexOf(months) === -1) months = 3;
+        if (!apiBase || !recipient) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Укажите получателя.', 'error');
+            return;
         }
+        if (statusEl) statusEl.textContent = 'Создаём заказ...';
+        if (primaryBtn) primaryBtn.disabled = true;
+        fetch(apiBase + '/api/fragment/create-premium-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient: recipient, months: months })
+        })
+            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(res) {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (res.success && res.order_id) {
+                    window.paymentData = window.paymentData || {};
+                    window.paymentData.order_id = res.order_id;
+                    if (res.payment_url) window.paymentData.payment_url = res.payment_url;
+                    var payUrl = res.payment_url || res.pay_url || data.payment_url || data.pay_url;
+                    if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
+                        if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
+                        else window.open(payUrl, '_blank');
+                    } else {
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment, затем нажмите «Подтвердить оплату».', 'info');
+                    }
+                } else {
+                    if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа.', 'error');
+                }
+            })
+            .catch(function() {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания заказа.', 'error');
+            });
         return;
     }
     

@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>JET - официальный бот</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- TonConnect dApp SDK -->
     <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
@@ -2097,7 +2097,7 @@
         <header class="profile-header-top">
             <div class="header-left">
                 <div class="logo-icon logo-icon-img">
-                    <img src="assets/jet-logo.png" alt="JET">
+                    <img src="../assets/jet-logo.png" alt="JET">
         </div>
                 <div class="logo-text">
                     <h1>JET</h1>
@@ -2166,7 +2166,7 @@
                 </div>
                 <button id="tonkeeperConnectBtn" class="btn-tonkeeper" onclick="connectTonkeeper()">
                     <div class="tonkeeper-icon">
-                        <img src="assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;">
+                        <img src="../assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;">
                     </div>
                     <div class="tonkeeper-text">
                         <span class="tonkeeper-title">Подключить TonKeeper</span>
@@ -2296,7 +2296,7 @@
                 <div class="payment-methods">
                     <button class="payment-method-btn sbp" onclick="showSbpDeposit()">
                         <div class="payment-icon sbp">
-                            <img src="assets/sbp-icon.png" alt="СБП">
+                            <img src="../assets/sbp-icon.png" alt="СБП">
                         </div>
                         <span class="payment-name">СБП / Банковские карты</span>
                         <span class="payment-badge active">Доступно</span>
@@ -2375,8 +2375,8 @@
     </div>
     
 
-    <script src="config.js"></script>
-    <script src="database.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/database.js"></script>
     <script>
         // Фиксация нижней навигации при открытии клавиатуры
         (function() {
@@ -2418,7 +2418,7 @@
             console.error('❌ Database не найдена или init не доступен!');
         }
     </script>
-    <script src="profile.js"></script>
+    <script src="../js/profile.js"></script>
     <script>
         // Тестовая функция для проверки сохранения баланса
         window.testBalanceSave = function(amount) {
