@@ -87,6 +87,34 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePricesDisplay();
     }, 2000);
     
+    // Переход с premium.html по кнопке «Оплатить»: открыть выбор способа оплаты
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('pay') === 'premium') {
+        const months = sessionStorage.getItem('premium_pay_months');
+        const recipient = sessionStorage.getItem('premium_pay_recipient') || '';
+        const amount = sessionStorage.getItem('premium_pay_amount');
+        if (months && amount) {
+            sessionStorage.removeItem('premium_pay_months');
+            sessionStorage.removeItem('premium_pay_recipient');
+            sessionStorage.removeItem('premium_pay_amount');
+            currentPurchase = {
+                type: 'premium',
+                amount: parseFloat(amount),
+                login: recipient || null,
+                productId: null,
+                productName: 'Premium ' + months + ' мес.'
+            };
+            if (typeof history.replaceState === 'function') {
+                history.replaceState({}, '', window.location.pathname + (window.location.hash || ''));
+            }
+            setTimeout(function() {
+                if (typeof showPaymentMethodSelection === 'function') {
+                    showPaymentMethodSelection('premium');
+                }
+            }, 300);
+        }
+    }
+    
     console.log('Магазин инициализирован. Баланс RUB:', window.userData?.currencies?.RUB);
 });
 
@@ -1296,6 +1324,12 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+function goToHistory() {
+    window.location.href = 'profile.html';
+}
+
+window.goToHistory = goToHistory;
+
 // Экспортируем функции для использования в других файлах
 window.getUserData = function() {
     return window.userData;
@@ -1534,9 +1568,14 @@ function closeSellStarsPopup() {
 // Возврат из окна продажи звёзд в главное меню
 function backFromSellStars() {
     closeSellStarsPopup();
-    if (typeof showMainMenuView === 'function') {
-        showMainMenuView();
-    }
+    const mainMenuView = document.getElementById('mainMenuView');
+    const storeView = document.getElementById('storeView');
+    if (mainMenuView) mainMenuView.classList.remove('hidden');
+    if (storeView) storeView.classList.remove('active');
+    const mainNavButtons = document.querySelectorAll('.main-nav-btn');
+    mainNavButtons.forEach(function(btn) { btn.classList.remove('active'); });
+    const homeBtn = Array.from(mainNavButtons).find(function(btn) { return btn.textContent && btn.textContent.includes('Главная'); });
+    if (homeBtn) homeBtn.classList.add('active');
 }
 
 function switchSellStarsMethod(method) {
@@ -1746,7 +1785,7 @@ function showStoreView(section) {
     if (section === 'stars') {
         switchStoreTab('stars');
     } else if (section === 'premium') {
-        openPremiumPopup();
+        window.location.href = 'premium.html';
     } else if (section === 'sellStars') {
         // Открываем отдельное окно продажи звёзд
         openSellStarsPopup();
@@ -2646,3 +2685,11 @@ window.selectPaymentMethod = selectPaymentMethod;
 window.showPaymentWaiting = showPaymentWaiting;
 window.closePaymentWaiting = closePaymentWaiting;
 window.openPaymentPage = openPaymentPage;
+
+// Открыть рулетку
+function openRoulette() {
+    if (typeof showStoreNotification === 'function') {
+        showStoreNotification('Рулетка скоро будет доступна!', 'info');
+    }
+}
+window.openRoulette = openRoulette;

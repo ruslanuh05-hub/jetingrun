@@ -1092,26 +1092,57 @@ function deleteSupercellProduct(game, index) {
 
 
 // =============================================
-// Управление Usernames
+// Управление Usernames (аренда / продажа, ₽ и TON)
 // =============================================
+function toggleUsernameRentFields() {
+    const chk = document.getElementById('newUsernameRent');
+    const block = document.getElementById('usernameRentFields');
+    if (block) block.style.display = chk && chk.checked ? 'block' : 'none';
+}
+
+function toggleUsernameSaleFields() {
+    const chk = document.getElementById('newUsernameSale');
+    const block = document.getElementById('usernameSaleFields');
+    if (block) block.style.display = chk && chk.checked ? 'block' : 'none';
+}
+
 function loadUsernamesAdmin() {
     const container = document.getElementById('usernamesAdminList');
     if (!container) return;
     
     try {
-        const usernames = JSON.parse(localStorage.getItem('jetstore_usernames') || '[]');
+        let usernames = JSON.parse(localStorage.getItem('jetstore_usernames') || '[]');
+        // Поддержка старого формата: { username, price, status } -> новый формат
+        let changed = false;
+        usernames = usernames.map(u => {
+            if (u.rent !== undefined || u.sale !== undefined) return u;
+            changed = true;
+            const priceTon = typeof u.price === 'number' ? u.price : parseFloat(u.price) || 0;
+            const priceRub = Math.round(priceTon * 80);
+            return {
+                username: u.username,
+                rent: u.status === 'on_auction' ? { rub: priceRub, ton: priceTon } : null,
+                sale: u.status === 'for_sale' ? { rub: priceRub, ton: priceTon } : (u.status === 'on_auction' ? null : { rub: priceRub, ton: priceTon }),
+                rentMonths: u.rentMonths || 1
+            };
+        });
+        if (changed) localStorage.setItem('jetstore_usernames', JSON.stringify(usernames));
         
         if (usernames.length === 0) {
             container.innerHTML = '<p style="color: #666; text-align: center; padding: 30px;">Usernames пока не добавлены</p>';
             return;
         }
         
-        container.innerHTML = usernames.map((u, index) => `
+        container.innerHTML = usernames.map((u, index) => {
+            const rentStr = u.rent ? `Аренда: ${u.rent.rub || 0} ₽ / ${u.rent.ton || 0} TON` : '';
+            const saleStr = u.sale ? `Продажа: ${u.sale.rub || 0} ₽ / ${u.sale.ton || 0} TON` : '';
+            const parts = [rentStr, saleStr].filter(Boolean).join(' · ');
+            return `
             <div class="product-item">
                 <div class="product-info">
                     <div class="product-title">@${u.username}</div>
-                    <div style="color: #00d4ff; font-weight: 600;">${u.price} TON</div>
-                    <div style="color: #888; font-size: 0.9rem;">${u.status === 'for_sale' ? 'На продаже' : 'На аукционе'} | ${u.timeLeft || 'Без ограничений'}</div>
+                    <div style="color: #00d4ff; font-weight: 600; font-size: 0.9rem;">${parts || '—'}</div>
+                    ${u.rentMonths ? `<div style="color: #888; font-size: 0.85rem;">Срок аренды: ${u.rentMonths} мес.</div>` : ''}
                 </div>
                 <div class="product-actions">
                     <button class="action-btn edit" onclick="editUsername(${index})">
@@ -1122,7 +1153,8 @@ function loadUsernamesAdmin() {
                     </button>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     } catch (error) {
         console.error('Ошибка загрузки usernames:', error);
         container.innerHTML = '<p style="color: #f44336; text-align: center; padding: 20px;">Ошибка загрузки</p>';
@@ -1130,40 +1162,81 @@ function loadUsernamesAdmin() {
 }
 
 function addUsername() {
-    const username = document.getElementById('newUsernameInput')?.value.trim();
-    const price = parseInt(document.getElementById('newUsernamePrice')?.value) || 0;
-    const status = document.getElementById('newUsernameStatus')?.value || 'for_sale';
-    const timeLeft = document.getElementById('newUsernameTime')?.value.trim() || '';
+    const username = (document.getElementById('newUsernameInput')?.value || '').trim().replace('@', '');
+    const rentChk = document.getElementById('newUsernameRent')?.checked;
+    const saleChk = document.getElementById('newUsernameSale')?.checked;
     
     if (!username) {
         showNotification('Введите username', 'error');
         return;
     }
     
-    if (price <= 0) {
-        showNotification('Введите корректную цену', 'error');
+    if (!rentChk && !saleChk) {
+        showNotification('Отметьте «В аренду» и/или «В продажу»', 'error');
         return;
     }
     
+    let rent = null;
+    if (rentChk) {
+        const rentRub = parseFloat(document.getElementById('newUsernameRentRub')?.value) || 0;
+        const rentTon = parseFloat(document.getElementById('newUsernameRentTon')?.value) || 0;
+        if (rentRub <= 0 && rentTon <= 0) {
+            showNotification('Укажите цену аренды (₽ или TON)', 'error');
+            return;
+        }
+        rent = { rub: rentRub, ton: rentTon };
+    }
+    
+    let sale = null;
+    if (saleChk) {
+        const saleRub = parseFloat(document.getElementById('newUsernameSaleRub')?.value) || 0;
+        const saleTon = parseFloat(document.getElementById('newUsernameSaleTon')?.value) || 0;
+        if (saleRub <= 0 && saleTon <= 0) {
+            showNotification('Укажите цену продажи (₽ или TON)', 'error');
+            return;
+        }
+        sale = { rub: saleRub, ton: saleTon };
+    }
+    
+    const rentMonths = parseInt(document.getElementById('newUsernameRentMonths')?.value) || 1;
+    
     try {
-        const usernames = JSON.parse(localStorage.getItem('jetstore_usernames') || '[]');
+        let usernames = JSON.parse(localStorage.getItem('jetstore_usernames') || '[]');
+        const existingIndex = usernames.findIndex(u => (u.username || '').toLowerCase() === username.toLowerCase());
         
-        usernames.push({
-            username: username.replace('@', ''),
-            price: price,
-            status: status,
-            timeLeft: timeLeft
-        });
+        if (existingIndex >= 0) {
+            const existing = usernames[existingIndex];
+            usernames[existingIndex] = {
+                username: existing.username,
+                rent: rent || existing.rent || null,
+                sale: sale || existing.sale || null,
+                rentMonths: rent ? rentMonths : (existing.rentMonths || 1)
+            };
+            showNotification('Username обновлён (добавлены аренда/продажа)', 'success');
+        } else {
+            usernames.push({
+                username,
+                rent,
+                sale,
+                rentMonths: rent ? rentMonths : 1
+            });
+            showNotification('Username добавлен в список', 'success');
+        }
         
         localStorage.setItem('jetstore_usernames', JSON.stringify(usernames));
         
-        // Очищаем поля
         document.getElementById('newUsernameInput').value = '';
-        document.getElementById('newUsernamePrice').value = '';
-        document.getElementById('newUsernameTime').value = '';
+        document.getElementById('newUsernameRent').checked = false;
+        document.getElementById('newUsernameSale').checked = false;
+        document.getElementById('newUsernameRentRub').value = '';
+        document.getElementById('newUsernameRentTon').value = '';
+        document.getElementById('newUsernameRentMonths').value = '1';
+        document.getElementById('newUsernameSaleRub').value = '';
+        document.getElementById('newUsernameSaleTon').value = '';
+        toggleUsernameRentFields();
+        toggleUsernameSaleFields();
         
         loadUsernamesAdmin();
-        showNotification('Username добавлен', 'success');
     } catch (error) {
         console.error('Ошибка добавления username:', error);
         showNotification('Ошибка при добавлении', 'error');
@@ -1180,23 +1253,32 @@ function editUsername(index) {
             return;
         }
         
-        const newUsername = prompt('Введите новый username:', u.username);
+        const newUsername = prompt('Username:', u.username);
         if (newUsername === null) return;
         
-        const newPrice = parseInt(prompt('Введите новую цену (TON):', u.price));
-        if (isNaN(newPrice) || newPrice <= 0) {
-            showNotification('Неверная цена', 'error');
-            return;
+        const rent = u.rent ? { ...u.rent } : null;
+        const sale = u.sale ? { ...u.sale } : null;
+        
+        if (u.rent) {
+            const rub = prompt('Цена аренды (₽):', (u.rent.rub || 0).toString());
+            if (rub !== null) rent.rub = parseFloat(rub) || 0;
+            const ton = prompt('Цена аренды (TON):', (u.rent.ton || 0).toString());
+            if (ton !== null) rent.ton = parseFloat(ton) || 0;
+        }
+        if (u.sale) {
+            const rub = prompt('Цена продажи (₽):', (u.sale.rub || 0).toString());
+            if (rub !== null) sale.rub = parseFloat(rub) || 0;
+            const ton = prompt('Цена продажи (TON):', (u.sale.ton || 0).toString());
+            if (ton !== null) sale.ton = parseFloat(ton) || 0;
         }
         
-        const newStatus = prompt('Статус (for_sale или on_auction):', u.status);
-        const newTime = prompt('Время (осталось):', u.timeLeft || '');
+        const rentMonths = parseInt(prompt('Срок аренды (мес.):', (u.rentMonths || 1).toString())) || 1;
         
         usernames[index] = {
-            username: newUsername.replace('@', '').trim(),
-            price: newPrice,
-            status: newStatus === 'on_auction' ? 'on_auction' : 'for_sale',
-            timeLeft: newTime || ''
+            username: newUsername.replace('@', '').trim() || u.username,
+            rent: rent && (rent.rub > 0 || rent.ton > 0) ? rent : null,
+            sale: sale && (sale.rub > 0 || sale.ton > 0) ? sale : null,
+            rentMonths
         };
         
         localStorage.setItem('jetstore_usernames', JSON.stringify(usernames));

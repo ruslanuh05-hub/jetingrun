@@ -106,18 +106,277 @@
             justify-content: space-between;
             align-items: center;
             padding: 16px 20px;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(10, 14, 39, 0.98);
             backdrop-filter: blur(10px);
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
         }
         
         .header-left {
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .assets-header-logo {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+        
+        .assets-header-title {
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .assets-section-header {
+            padding: 20px 20px 12px;
+        }
+        
+        .assets-section-title {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            position: relative;
+        }
+        
+        .assets-section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #00d4ff, #40e0d0);
+            border-radius: 2px;
+            margin-top: 8px;
+        }
+        
+        .menu-burger-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 10px;
+            transition: opacity 0.2s;
+        }
+        
+        .menu-burger-btn:hover {
+            opacity: 0.7;
+        }
+        
+        /* Шторка меню — выезжает справа, бирюзовый стиль, блоки */
+        .assets-drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .assets-drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .assets-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: min(320px, 85vw);
+            max-width: 320px;
+            height: 100%;
+            background: linear-gradient(180deg, #0a0e27 0%, #0d1529 30%, #0f1a2e 60%, #0a0e27 100%);
+            border-left: 1px solid rgba(0, 212, 255, 0.2);
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0 0 100px 0;
+            box-sizing: border-box;
+        }
+        
+        .assets-drawer.active {
+            transform: translateX(0);
+        }
+        
+        .assets-drawer-user-block {
+            background: rgba(0, 212, 255, 0.08);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 20px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+        }
+        
+        .assets-drawer-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .assets-drawer-close:hover {
+            background: rgba(0, 212, 255, 0.3);
+        }
+        
+        .assets-drawer-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(64, 224, 208, 0.2) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        .assets-drawer-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .assets-drawer-avatar span {
+            color: #00d4ff;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        
+        .assets-drawer-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .assets-drawer-nickname {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        
+        .assets-drawer-username {
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 0.9rem;
+        }
+        
+        .assets-drawer-section {
+            padding: 16px;
+        }
+        
+        .assets-drawer-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        
+        .assets-drawer-block:hover {
+            border-color: rgba(0, 212, 255, 0.4);
+            background: rgba(0, 212, 255, 0.06);
+        }
+        
+        .assets-drawer-block-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .assets-drawer-block-value {
+            color: #fff;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+        
+        .assets-drawer-balance-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        .assets-drawer-balance-item {
+            flex: 1;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: center;
+            border: 1px solid rgba(0, 212, 255, 0.25);
+        }
+        
+        .assets-drawer-balance-currency {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+        }
+        
+        .assets-drawer-balance-amount {
+            color: #00d4ff;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .assets-drawer-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .assets-drawer-item:hover {
+            border-color: rgba(0, 212, 255, 0.5);
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .assets-drawer-item i {
+            color: #00d4ff;
+            font-size: 1.15rem;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .assets-drawer-item span {
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
         }
         
         .back-btn {
@@ -919,6 +1178,145 @@
             margin: 0;
         }
         
+        .usernames-filters {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px 16px;
+            flex-wrap: wrap;
+        }
+        
+        .usernames-filter-group {
+            position: relative;
+        }
+        
+        .usernames-filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 10px 16px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .usernames-filter-btn:hover {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+        
+        .usernames-filter-btn i {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+        
+        .usernames-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: rgba(20, 20, 35, 0.98);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 8px 0;
+            min-width: 180px;
+            z-index: 50;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+        
+        .usernames-dropdown.active {
+            display: block;
+        }
+        
+        .usernames-dropdown-item {
+            padding: 10px 16px;
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .usernames-dropdown-item:hover {
+            background: rgba(0, 212, 255, 0.15);
+        }
+        
+        .usernames-filters {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px 16px;
+            flex-wrap: wrap;
+        }
+        
+        .usernames-filter-group {
+            position: relative;
+        }
+        
+        .usernames-filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            padding: 10px 16px;
+            color: #00d4ff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .usernames-filter-btn:hover {
+            background: rgba(0, 212, 255, 0.25);
+        }
+        
+        .usernames-filter-btn i {
+            font-size: 0.75rem;
+        }
+        
+        .usernames-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: rgba(20, 20, 35, 0.98);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            min-width: 180px;
+            z-index: 50;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .usernames-dropdown.active {
+            display: block;
+        }
+        
+        .usernames-dropdown-item {
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .usernames-dropdown-item:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+        
+        .usernames-dropdown-item:first-child {
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .usernames-dropdown-item:last-child {
+            border-radius: 0 0 10px 10px;
+        }
+        
         .auction-filters {
             display: flex;
             gap: 10px;
@@ -949,14 +1347,93 @@
             transition: transform 0.3s ease;
         }
         
+        /* Фильтры юзернеймов */
+        .usernames-filters {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px 16px;
+            flex-wrap: wrap;
+        }
+        
+        .usernames-filter-group {
+            position: relative;
+        }
+        
+        .usernames-filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .usernames-filter-btn:hover {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+        
+        .usernames-filter-btn i {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .usernames-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: #1a1a2e;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            min-width: 180px;
+            z-index: 50;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+        
+        .usernames-dropdown.active {
+            display: block;
+        }
+        
+        .usernames-dropdown-item {
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .usernames-dropdown-item:hover {
+            background: rgba(0, 212, 255, 0.15);
+        }
+        
+        .usernames-dropdown-item:first-child {
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .usernames-dropdown-item:last-child {
+            border-radius: 0 0 10px 10px;
+        }
+        
         .auction-table-header {
             display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr;
+            grid-template-columns: 2fr 1fr;
             gap: 10px;
             padding: 12px 16px;
             background: rgba(0, 0, 0, 0.4);
             border-radius: 10px;
             margin-bottom: 8px;
+        }
+        
+        .usernames-table-header {
+            grid-template-columns: 2fr 1fr auto;
         }
         
         .auction-table-header span {
@@ -975,9 +1452,10 @@
         
         .auction-item {
             display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr;
+            grid-template-columns: 2fr 1fr auto;
             gap: 10px;
             padding: 16px;
+            align-items: center;
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 12px;
@@ -1005,14 +1483,28 @@
         }
         
         .auction-item-subtitle {
-            color: rgba(255, 255, 255, 0.5);
+            color: #00d4ff;
             font-size: 0.8rem;
         }
         
         .auction-item-value {
             display: flex;
             flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
             gap: 4px;
+            position: relative;
+        }
+        
+        .auction-item-duration {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+        }
+        
+        .auction-item-arrow {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.9rem;
+            align-self: center;
         }
         
         .auction-item-price {
@@ -1022,6 +1514,10 @@
             color: #ffffff;
             font-size: 1rem;
             font-weight: 700;
+        }
+        
+        .auction-item-price span {
+            color: #fff;
         }
         
         .auction-item-price .ton-icon {
@@ -1034,6 +1530,25 @@
             justify-content: center;
             font-size: 0.7rem;
             color: #ffffff;
+        }
+        
+        .auction-price-icon {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            vertical-align: middle;
+        }
+        
+        .auction-price-rub {
+            color: #00d4ff;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+        
+        .auction-item-arrow {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.8rem;
+            margin-top: 4px;
         }
         
         .auction-item-price-usd {
@@ -1173,101 +1688,68 @@
         <!-- Шапка -->
         <div class="assets-header">
             <div class="header-left">
-                <button class="back-btn" onclick="window.history.back()">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <h1 class="header-title">Активы</h1>
+                <img src="assets/jet-logo.png" alt="JET" class="assets-header-logo">
+                <span class="assets-header-title">Jet Store</span>
             </div>
             <div class="header-right">
-                <div class="assets-balance" id="assetsBalance">
-                    <i class="fas fa-wallet assets-balance-icon"></i>
-                    <span id="assetsBalanceAmount">0 ₽</span>
-                </div>
-                <div class="assets-user-info" onclick="toggleAssetsProfileDropdown(event)">
-                    <div class="assets-user-avatar" id="assetsUserAvatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="assets-user-name" id="assetsUserName">Пользователь</div>
-                    <!-- Выпадающее меню профиля -->
-                    <div id="assetsProfileDropdown" class="assets-profile-dropdown">
-                        <div class="assets-profile-dropdown-content">
-                            <div class="assets-profile-balance-label">Доступный баланс:</div>
-                            <div class="assets-profile-balance-item">
-                                <span class="assets-profile-balance-amount" id="assetsProfileBalanceRub">0 ₽</span>
-                            </div>
-                            <div class="assets-profile-balance-item">
-                                <span class="assets-profile-balance-amount" id="assetsProfileBalanceTon">0 TON</span>
-                            </div>
-                            <div class="assets-profile-tonkeeper-section">
-                                <div class="assets-profile-tonkeeper-label">TonKeeper</div>
-                                <div id="assetsProfileTonkeeperContent">
-                                    <!-- Контент будет динамически загружен -->
-                                </div>
-                            </div>
-                            
-                            <!-- Кнопка "Мои подарки" -->
-                            <div class="assets-profile-gifts-section">
-                                <button class="assets-profile-gifts-btn" onclick="goToUserGifts()">
-                                    <i class="fas fa-gift"></i>
-                                    <span>Ваши подарки</span>
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <button class="menu-burger-btn" onclick="toggleAssetsDrawer()">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
         </div>
         
-        <!-- Табы -->
-        <div class="assets-tabs">
-            <button class="assets-tab active" onclick="switchAssetsTab('gifts')">
-                Подарки
-                <span class="assets-tab-badge">New</span>
-            </button>
-            <button class="assets-tab" onclick="switchAssetsTab('usernames')">Usernames</button>
-            <button class="assets-tab" onclick="switchAssetsTab('numbers')">Номера</button>
-            <button class="assets-tab" onclick="switchAssetsTab('accounts')">Аккаунты</button>
-        </div>
-        
-        <!-- Контент для таба Подарки (NFT подарки из профиля Telegram) -->
-        <div id="assetsTabGifts" class="assets-content active">
-            <div id="nftGiftsHeader" class="assets-section-title" style="padding: 16px 20px 4px 20px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-                NFT подарки вашего Telegram профиля
-            </div>
-            <div id="nftGiftsGrid" class="nft-grid">
-                <!-- Карточки NFT будут подставляться динамически -->
-            </div>
+        <!-- Заголовок раздела -->
+        <div class="assets-section-header">
+            <h2 class="assets-section-title">Юзернеймы</h2>
         </div>
         
         <!-- Контент для таба Usernames -->
-        <div id="assetsTabUsernames" class="assets-content">
+        <div id="assetsTabUsernames" class="assets-content active">
             <!-- Поиск -->
             <div class="auction-search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="usernameSearchInput" placeholder="Введите Telegram username..." oninput="filterUsernames()">
+                <input type="text" id="usernameSearchInput" placeholder="Enter a Telegram username..." oninput="filterUsernames()">
             </div>
             
-            <!-- Заголовок и фильтры -->
-            <div class="auction-header">
-                <h2 class="auction-title">Топ аукционы</h2>
-                <div class="auction-filters">
-                    <div class="auction-filter-btn" onclick="toggleUsernameStatusFilter()">
-                        <span id="usernameStatusText">На продаже</span>
+            <!-- Фильтры: валюта, тип сделки, сортировка -->
+            <div class="usernames-filters">
+                <div class="usernames-filter-group">
+                    <button class="usernames-filter-btn" onclick="toggleUsernameCurrencyDropdown()">
+                        <span id="usernameCurrencyText">TON</span>
                         <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div id="usernameCurrencyDropdown" class="usernames-dropdown">
+                        <div class="usernames-dropdown-item" onclick="setUsernameCurrency('RUB')">₽</div>
+                        <div class="usernames-dropdown-item" onclick="setUsernameCurrency('TON')">TON</div>
                     </div>
-                    <div class="auction-filter-btn" onclick="toggleUsernameSortFilter()">
-                        <span id="usernameSortText">Цена: низкая</span>
+                </div>
+                <div class="usernames-filter-group">
+                    <button class="usernames-filter-btn" onclick="toggleUsernameTypeDropdown()">
+                        <span id="usernameTypeText">Аренда</span>
                         <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div id="usernameTypeDropdown" class="usernames-dropdown">
+                        <div class="usernames-dropdown-item" onclick="setUsernameType('rent')">Аренда</div>
+                        <div class="usernames-dropdown-item" onclick="setUsernameType('sale')">Продажа</div>
+                    </div>
+                </div>
+                <div class="usernames-filter-group">
+                    <button class="usernames-filter-btn" onclick="toggleUsernameSortDropdown()">
+                        <span id="usernameSortText">↑↓ Цена</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div id="usernameSortDropdown" class="usernames-dropdown">
+                        <div class="usernames-dropdown-item" onclick="setUsernameSort('price_high')">Цена: от высокой к низкой</div>
+                        <div class="usernames-dropdown-item" onclick="setUsernameSort('price_low')">Цена: от низкой к высокой</div>
                     </div>
                 </div>
             </div>
             
             <!-- Заголовки таблицы -->
-            <div class="auction-table-header">
+            <div class="auction-table-header usernames-table-header">
                 <span class="auction-col-name">Username</span>
-                <span class="auction-col-value">Цена</span>
-                <span class="auction-col-status">Статус</span>
+                <span class="auction-col-value" id="usernamePriceColLabel">Минимальная аренда</span>
+                <span></span>
             </div>
             
             <!-- Список usernames -->
@@ -1280,8 +1762,8 @@
             </div>
         </div>
         
-        <!-- Контент для таба Номера -->
-        <div id="assetsTabNumbers" class="assets-content">
+        <!-- Контент для таба Номера (временно скрыт) -->
+        <div id="assetsTabNumbers" class="assets-content" style="display:none !important;">
             <!-- Поиск -->
             <div class="auction-search-box">
                 <i class="fas fa-search"></i>
@@ -1320,8 +1802,8 @@
             </div>
         </div>
         
-        <!-- Контент для таба Аккаунты -->
-        <div id="assetsTabAccounts" class="assets-content">
+        <!-- Контент для таба Аккаунты (временно скрыт) -->
+        <div id="assetsTabAccounts" class="assets-content" style="display:none !important;">
             <div class="assets-grid">
                 <div class="asset-card" onclick="showNotification('Физические аккаунты скоро будут доступны')">
                     <div class="asset-icon">
@@ -1329,6 +1811,54 @@
                     </div>
                     <div class="asset-title">Физические аккаунты</div>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Шторка меню: аватар/ник/@юзер, кошелёк TON, баланс; после баланса: Мои подарки, Аренда, Мои покупки -->
+    <div class="assets-drawer-overlay" id="assetsDrawerOverlay" onclick="closeAssetsDrawer()"></div>
+    <div class="assets-drawer" id="assetsDrawer">
+        <div class="assets-drawer-user-block">
+            <button class="assets-drawer-close" onclick="closeAssetsDrawer()" aria-label="Закрыть"><i class="fas fa-times"></i></button>
+            <div class="assets-drawer-avatar" id="assetsDrawerAvatar">
+                <span id="assetsDrawerAvatarLetter">?</span>
+            </div>
+            <div class="assets-drawer-user-info">
+                <div class="assets-drawer-nickname" id="assetsDrawerNickname">—</div>
+                <div class="assets-drawer-username" id="assetsDrawerUsername">@username</div>
+            </div>
+        </div>
+        <div class="assets-drawer-section">
+            <div class="assets-drawer-block">
+                <div class="assets-drawer-block-label">Подключённый кошелёк TON</div>
+                <div class="assets-drawer-block-value" id="assetsDrawerWallet">Не подключён</div>
+            </div>
+            <div class="assets-drawer-block">
+                <div class="assets-drawer-block-label">Баланс</div>
+                <div class="assets-drawer-balance-row">
+                    <div class="assets-drawer-balance-item">
+                        <div class="assets-drawer-balance-currency">RUB</div>
+                        <div class="assets-drawer-balance-amount" id="assetsDrawerBalanceRub">0</div>
+                    </div>
+                    <div class="assets-drawer-balance-item">
+                        <div class="assets-drawer-balance-currency">TON</div>
+                        <div class="assets-drawer-balance-amount" id="assetsDrawerBalanceTon">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="assets-drawer-section">
+            <div class="assets-drawer-item" onclick="closeAssetsDrawer(); showNotification('Мои подарки');">
+                <i class="fas fa-gift"></i>
+                <span>Мои подарки</span>
+            </div>
+            <div class="assets-drawer-item" onclick="closeAssetsDrawer(); setUsernameType('rent');">
+                <i class="fas fa-clock"></i>
+                <span>Аренда</span>
+            </div>
+            <div class="assets-drawer-item" onclick="closeAssetsDrawer(); showNotification('Мои покупки');">
+                <i class="fas fa-shopping-bag"></i>
+                <span>Мои покупки</span>
             </div>
         </div>
     </div>
@@ -1374,7 +1904,6 @@
                 if (animation) {
                     animation.style.display = 'none';
                 }
-                // Загружаем данные пользователя
                 loadUserDataForAssets();
             } else {
                 // Первый заход в активы — показываем анимацию, затем скрываем и запоминаем
@@ -1399,7 +1928,7 @@
             if (window.userData && window.userData.id) {
                 userData = window.userData;
             } else {
-                // Загружаем из localStorage
+                // Загружаем из localStorage / базы
                 try {
                     const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
                     if (db && typeof db.getUser === 'function') {
@@ -1413,6 +1942,7 @@
                             userData = JSON.parse(userDataStr);
                         }
                     }
+                    if (userData) window.userData = userData;
                 } catch (e) {
                     console.error('Ошибка загрузки данных пользователя:', e);
                 }
@@ -1482,6 +2012,8 @@
             
             // Обновляем баланс каждые 2 секунды (на случай изменения в другом окне)
             setInterval(loadBalanceForAssets, 2000);
+            
+            if (typeof loadUsernamesFromStorage === 'function') loadUsernamesFromStorage();
         }
         
         // Загрузка баланса для активов
@@ -1565,6 +2097,81 @@
         function showNotification(message) {
             alert(message);
         }
+        
+        // Функции для шторки меню
+        function updateAssetsDrawerContent() {
+            const avatarEl = document.getElementById('assetsDrawerAvatar');
+            const nicknameEl = document.getElementById('assetsDrawerNickname');
+            const usernameEl = document.getElementById('assetsDrawerUsername');
+            const walletEl = document.getElementById('assetsDrawerWallet');
+            const balanceRubEl = document.getElementById('assetsDrawerBalanceRub');
+            const balanceTonEl = document.getElementById('assetsDrawerBalanceTon');
+            if (!avatarEl || !nicknameEl || !usernameEl) return;
+            const ud = window.userData || {};
+            const nickname = ud.firstName || ud.lastName || 'Пользователь';
+            const username = ud.username ? (ud.username.startsWith('@') ? ud.username : '@' + ud.username) : '@username';
+            avatarEl.innerHTML = '';
+            if (ud.photoUrl) {
+                const img = document.createElement('img');
+                img.src = ud.photoUrl;
+                img.alt = nickname;
+                avatarEl.appendChild(img);
+            } else {
+                const span = document.createElement('span');
+                span.id = 'assetsDrawerAvatarLetter';
+                span.textContent = (nickname || '?')[0].toUpperCase();
+                avatarEl.appendChild(span);
+            }
+            nicknameEl.textContent = nickname;
+            usernameEl.textContent = username;
+            if (walletEl) {
+                const addr = localStorage.getItem('jetstore_tonkeeper_address') || '';
+                if (addr) {
+                    const short = addr.length > 12 ? addr.slice(0, 8) + '…' + addr.slice(-10) : addr;
+                    walletEl.textContent = short;
+                } else {
+                    walletEl.textContent = 'Не подключён';
+                }
+            }
+            let rub = 0;
+            const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
+            if (db && typeof db.getBalanceFixed === 'function') {
+                rub = db.getBalanceFixed('RUB') || 0;
+            } else if (ud.currencies && ud.currencies.RUB != null) {
+                rub = ud.currencies.RUB;
+            }
+            if (balanceRubEl) balanceRubEl.textContent = typeof rub === 'number' ? rub.toLocaleString('ru-RU') : String(rub);
+            let ton = 0;
+            try {
+                const tonBal = localStorage.getItem('jetstore_tonkeeper_balance');
+                if (tonBal != null && tonBal !== '') ton = parseFloat(tonBal) || 0;
+            } catch (e) {}
+            if (balanceTonEl) balanceTonEl.textContent = typeof ton === 'number' ? ton.toFixed(2) : '0';
+        }
+        
+        function toggleAssetsDrawer() {
+            const drawer = document.getElementById('assetsDrawer');
+            const overlay = document.getElementById('assetsDrawerOverlay');
+            if (drawer && overlay) {
+                drawer.classList.toggle('active');
+                overlay.classList.toggle('active');
+                if (drawer.classList.contains('active')) {
+                    updateAssetsDrawerContent();
+                }
+            }
+        }
+        
+        function closeAssetsDrawer() {
+            const drawer = document.getElementById('assetsDrawer');
+            const overlay = document.getElementById('assetsDrawerOverlay');
+            if (drawer && overlay) {
+                drawer.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+        }
+        
+        window.toggleAssetsDrawer = toggleAssetsDrawer;
+        window.closeAssetsDrawer = closeAssetsDrawer;
         
         // Функции для выпадающего меню профиля в активах
         function toggleAssetsProfileDropdown(event) {
@@ -1673,15 +2280,18 @@
             window.location.href = 'gift_user.html';
         }
         
-        // Закрытие выпадающего меню при клике вне его
+        // Закрытие выпадающих меню при клике вне их
         document.addEventListener('click', function(e) {
             const dropdown = document.getElementById('assetsProfileDropdown');
             const userInfo = document.querySelector('.assets-user-info');
             
-            if (dropdown && dropdown.classList.contains('active')) {
-                if (!userInfo.contains(e.target)) {
-                    dropdown.classList.remove('active');
-                }
+            if (dropdown && dropdown.classList.contains('active') && userInfo && !userInfo.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+            
+            // Закрытие dropdown юзернеймов
+            if (!e.target.closest('.usernames-filter-group')) {
+                closeAllUsernameDropdowns();
             }
         });
         
@@ -1750,32 +2360,57 @@
         window.goToUserGifts = goToUserGifts;
         
         // =============================================
-        // Usernames (аукцион)
+        // Usernames (аренда / продажа)
         // =============================================
         let usernamesData = [];
-        let usernameStatusFilter = 'for_sale'; // for_sale, on_auction, all
+        let usernameCurrencyFilter = 'TON'; // RUB, TON
+        let usernameTypeFilter = 'rent'; // rent, sale
         let usernameSortFilter = 'price_low'; // price_low, price_high
+        
+        // Демо-данные (юзернейм может быть в аренде и/или в продаже)
+        const defaultUsernamesDemo = [
+            { username: 'investbanker', rent: { rub: 250, ton: 3 }, sale: null, rentMonths: 1 },
+            { username: 'svarnoy', rent: { rub: 750, ton: 9 }, sale: null, rentMonths: 1 },
+            { username: 'manila', rent: { rub: 750, ton: 9 }, sale: null, rentMonths: 1 },
+            { username: 'premium_user', rent: { rub: 500, ton: 6 }, sale: { rub: 5000, ton: 60 }, rentMonths: 1 }
+        ];
         
         function loadUsernamesFromStorage() {
             try {
                 const data = localStorage.getItem('jetstore_usernames');
                 if (data) {
-                    usernamesData = JSON.parse(data);
+                    const parsed = JSON.parse(data);
+                    usernamesData = Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultUsernamesDemo;
                 } else {
-                    usernamesData = [];
+                    usernamesData = defaultUsernamesDemo;
                 }
             } catch (e) {
                 console.error('Ошибка загрузки usernames:', e);
-                usernamesData = [];
+                usernamesData = defaultUsernamesDemo;
             }
             renderUsernamesList();
         }
         
+        function getUsernamePrice(u) {
+            if (usernameTypeFilter === 'rent' && u.rent) {
+                return usernameCurrencyFilter === 'RUB' ? u.rent.rub : u.rent.ton;
+            }
+            if (usernameTypeFilter === 'sale' && u.sale) {
+                return usernameCurrencyFilter === 'RUB' ? u.sale.rub : u.sale.ton;
+            }
+            return null;
+        }
+        
         function renderUsernamesList() {
             const container = document.getElementById('usernamesList');
+            const priceColLabel = document.getElementById('usernamePriceColLabel');
             if (!container) return;
             
-            let filtered = [...usernamesData];
+            let filtered = usernamesData.filter(u => {
+                if (usernameTypeFilter === 'rent') return !!u.rent;
+                if (usernameTypeFilter === 'sale') return !!u.sale;
+                return true;
+            });
             
             // Фильтрация по поиску
             const searchInput = document.getElementById('usernameSearchInput');
@@ -1784,18 +2419,17 @@
                 filtered = filtered.filter(u => u.username.toLowerCase().includes(query));
             }
             
-            // Фильтрация по статусу
-            if (usernameStatusFilter === 'for_sale') {
-                filtered = filtered.filter(u => u.status === 'for_sale');
-            } else if (usernameStatusFilter === 'on_auction') {
-                filtered = filtered.filter(u => u.status === 'on_auction');
+            // Сортировка по цене
+            filtered = filtered.filter(u => getUsernamePrice(u) !== null);
+            if (usernameSortFilter === 'price_low') {
+                filtered.sort((a, b) => getUsernamePrice(a) - getUsernamePrice(b));
+            } else {
+                filtered.sort((a, b) => getUsernamePrice(b) - getUsernamePrice(a));
             }
             
-            // Сортировка
-            if (usernameSortFilter === 'price_low') {
-                filtered.sort((a, b) => a.price - b.price);
-            } else if (usernameSortFilter === 'price_high') {
-                filtered.sort((a, b) => b.price - a.price);
+            // Обновляем заголовок колонки цены
+            if (priceColLabel) {
+                priceColLabel.textContent = usernameTypeFilter === 'rent' ? 'Минимальная аренда' : 'Цена';
             }
             
             if (filtered.length === 0) {
@@ -1809,55 +2443,84 @@
                 return;
             }
             
-            container.innerHTML = filtered.map(u => `
-                <div class="auction-item" onclick="showNotification('Username ${u.username} - ${u.price} TON')">
+            const priceIcon = usernameCurrencyFilter === 'TON' 
+                ? '<img src="assets/tonkeeper-icon.png" alt="TON" class="auction-price-icon">' 
+                : '<span class="auction-price-rub">₽</span>';
+            
+            container.innerHTML = filtered.map(u => {
+                const price = getUsernamePrice(u);
+                const priceStr = usernameCurrencyFilter === 'RUB' 
+                    ? priceIcon + '<span>' + price.toLocaleString('ru-RU') + '</span>' 
+                    : priceIcon + '<span>' + price + '</span>';
+                const duration = usernameTypeFilter === 'rent' && u.rentMonths 
+                    ? 'на ' + u.rentMonths + ' мес.' : '';
+                return `
+                <div class="auction-item" onclick="showNotification('@${u.username}')">
                     <div class="auction-item-name">
                         <span class="auction-item-title">@${u.username}</span>
                         <span class="auction-item-subtitle">${u.username.toLowerCase()}.t.me</span>
                     </div>
                     <div class="auction-item-value">
-                        <div class="auction-item-price">
-                            <span class="ton-icon">💎</span>
-                            ${u.price}
-                        </div>
-                        <span class="auction-item-price-usd">Цена продажи</span>
+                        <div class="auction-item-price">${priceStr}</div>
+                        ${duration ? '<span class="auction-item-duration">' + duration + '</span>' : ''}
                     </div>
-                    <div class="auction-item-status">
-                        <span class="auction-status-badge ${u.status === 'for_sale' ? 'for-sale' : 'on-auction'}">
-                            ${u.status === 'for_sale' ? 'На продаже' : 'На аукционе'}
-                        </span>
-                        <span class="auction-item-time">${u.timeLeft || 'Без ограничений'}</span>
-                    </div>
+                    <i class="fas fa-chevron-right auction-item-arrow"></i>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
         
         function filterUsernames() {
             renderUsernamesList();
         }
         
-        function toggleUsernameStatusFilter() {
-            if (usernameStatusFilter === 'for_sale') {
-                usernameStatusFilter = 'on_auction';
-                document.getElementById('usernameStatusText').textContent = 'На аукционе';
-            } else if (usernameStatusFilter === 'on_auction') {
-                usernameStatusFilter = 'all';
-                document.getElementById('usernameStatusText').textContent = 'Все';
-            } else {
-                usernameStatusFilter = 'for_sale';
-                document.getElementById('usernameStatusText').textContent = 'На продаже';
-            }
+        function toggleUsernameCurrencyDropdown() {
+            const dd = document.getElementById('usernameCurrencyDropdown');
+            document.getElementById('usernameTypeDropdown')?.classList.remove('active');
+            document.getElementById('usernameSortDropdown')?.classList.remove('active');
+            dd?.classList.toggle('active');
+        }
+        
+        function toggleUsernameTypeDropdown() {
+            const dd = document.getElementById('usernameTypeDropdown');
+            document.getElementById('usernameCurrencyDropdown')?.classList.remove('active');
+            document.getElementById('usernameSortDropdown')?.classList.remove('active');
+            dd?.classList.toggle('active');
+        }
+        
+        function toggleUsernameSortDropdown() {
+            const dd = document.getElementById('usernameSortDropdown');
+            document.getElementById('usernameCurrencyDropdown')?.classList.remove('active');
+            document.getElementById('usernameTypeDropdown')?.classList.remove('active');
+            dd?.classList.toggle('active');
+        }
+        
+        function closeAllUsernameDropdowns() {
+            ['usernameCurrencyDropdown', 'usernameTypeDropdown', 'usernameSortDropdown'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('active');
+            });
+        }
+        
+        function setUsernameCurrency(val) {
+            usernameCurrencyFilter = val;
+            document.getElementById('usernameCurrencyText').textContent = val === 'RUB' ? '₽' : 'TON';
+            closeAllUsernameDropdowns();
             renderUsernamesList();
         }
         
-        function toggleUsernameSortFilter() {
-            if (usernameSortFilter === 'price_low') {
-                usernameSortFilter = 'price_high';
-                document.getElementById('usernameSortText').textContent = 'Цена: высокая';
-            } else {
-                usernameSortFilter = 'price_low';
-                document.getElementById('usernameSortText').textContent = 'Цена: низкая';
-            }
+        function setUsernameType(val) {
+            usernameTypeFilter = val;
+            document.getElementById('usernameTypeText').textContent = val === 'rent' ? 'Аренда' : 'Продажа';
+            closeAllUsernameDropdowns();
+            renderUsernamesList();
+        }
+        
+        function setUsernameSort(val) {
+            usernameSortFilter = val;
+            const el = document.getElementById('usernameSortText');
+            if (el) el.textContent = val === 'price_high' ? 'Цена: ↓' : 'Цена: ↑';
+            closeAllUsernameDropdowns();
             renderUsernamesList();
         }
         
@@ -1986,8 +2649,12 @@
         
         // Экспорт функций
         window.filterUsernames = filterUsernames;
-        window.toggleUsernameStatusFilter = toggleUsernameStatusFilter;
-        window.toggleUsernameSortFilter = toggleUsernameSortFilter;
+        window.toggleUsernameCurrencyDropdown = toggleUsernameCurrencyDropdown;
+        window.toggleUsernameTypeDropdown = toggleUsernameTypeDropdown;
+        window.toggleUsernameSortDropdown = toggleUsernameSortDropdown;
+        window.setUsernameCurrency = setUsernameCurrency;
+        window.setUsernameType = setUsernameType;
+        window.setUsernameSort = setUsernameSort;
         window.filterNumbers = filterNumbers;
         window.toggleNumberStatusFilter = toggleNumberStatusFilter;
         window.toggleNumberSortFilter = toggleNumberSortFilter;
