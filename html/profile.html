@@ -40,20 +40,9 @@
             window.tonConnectConnector.restoreConnection().then(function() {
                 if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
             }).catch(function() {});
-            window.tonConnectConnector.onStatusChange(function() {
+            window.tonConnectConnector.onStatusChange(function(wallet) {
                 var conn = window.tonConnectConnector;
-                setTimeout(function() {
-                    var addr = '';
-                    if (conn && conn.connected) {
-                        var acc = conn.account || (conn.wallet && conn.wallet.account);
-                        if (acc && typeof acc.address === 'string') addr = acc.address.trim();
-                        if (!addr && conn.wallet && conn.wallet.accounts && conn.wallet.accounts.length) {
-                            var list = conn.wallet.accounts.filter(function(a) { return (a.chain === -239 || a.chain === 0) && a.address; });
-                            if (!list.length) list = conn.wallet.accounts;
-                            var chosen = list.length > 1 ? list[list.length - 1] : list[0];
-                            if (chosen && chosen.address) addr = chosen.address.trim();
-                        }
-                    }
+                function saveAddressAndUpdate(addr) {
                     if (addr) {
                         try {
                             localStorage.setItem('jetstore_tonkeeper_connected', 'true');
@@ -65,6 +54,35 @@
                     }
                     if (typeof window.updateTonkeeperButton === 'function') {
                         window.updateTonkeeperButton();
+                    }
+                }
+                function extractAddr() {
+                    var addr = '';
+                    if (!conn || !conn.connected) return addr;
+                    var acc = (wallet && wallet.account) || conn.account || (conn.wallet && conn.wallet.account);
+                    if (acc && typeof acc.address === 'string') addr = acc.address.trim();
+                    if (!addr && (wallet && wallet.accounts && wallet.accounts.length)) {
+                        var list = wallet.accounts.filter(function(a) { return (a.chain === -239 || a.chain === 0) && a.address; });
+                        if (!list.length) list = wallet.accounts;
+                        var chosen = list[0];
+                        if (chosen && chosen.address) addr = chosen.address.trim();
+                    }
+                    if (!addr && conn.wallet && conn.wallet.accounts && conn.wallet.accounts.length) {
+                        var list = conn.wallet.accounts.filter(function(a) { return (a.chain === -239 || a.chain === 0) && a.address; });
+                        if (!list.length) list = conn.wallet.accounts;
+                        var chosen = list[0];
+                        if (chosen && chosen.address) addr = chosen.address.trim();
+                    }
+                    return addr;
+                }
+                setTimeout(function() {
+                    var addr = extractAddr();
+                    saveAddressAndUpdate(addr);
+                    if (!addr && conn && conn.connected) {
+                        setTimeout(function() {
+                            addr = extractAddr();
+                            if (addr) saveAddressAndUpdate(addr);
+                        }, 150);
                     }
                 }, 0);
             });
@@ -2567,7 +2585,8 @@
                 .catch(function() { return '0.00'; });
         }
         
-        // Единая точка: адрес только из connector.account. При нескольких аккаунтах предпочитаем W5 (последний — обычно Wallet V5).
+        // Единая точка: адрес только из connector.account (или wallet.account — выбранный пользователем в Tonkeeper).
+        // При fallback на accounts используем первый — основной/активный кошелёк.
         window.getTonkeeperAddress = function() {
             var conn = window.tonConnectConnector;
             var addr = '';
@@ -2579,8 +2598,7 @@
                 if (!addr && conn.wallet && conn.wallet.accounts && conn.wallet.accounts.length) {
                     var list = conn.wallet.accounts.filter(function(a) { return (a.chain === -239 || a.chain === 0) && a.address; });
                     if (!list.length) list = conn.wallet.accounts;
-                    // W5 обычно последний в списке (Tonkeeper: [v4, v5]). Берём последний — это Wallet V5.
-                    var chosen = list.length > 1 ? list[list.length - 1] : list[0];
+                    var chosen = list[0];
                     if (chosen && chosen.address) addr = chosen.address.trim();
                 }
             }
