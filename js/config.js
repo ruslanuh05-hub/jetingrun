@@ -1,9 +1,16 @@
-// Конфиг: сайт на GitHub Pages, бот на хостинге (Railway/Render).
-// Укажите URL бота после деплоя (например: https://jet-store-bot.up.railway.app)
+// Конфиг: сайт на GitHub Pages / jetstoreapp.ru, бот на Railway.
+// URL бота — для API (CryptoBot, курс TON, Fragment и т.д.)
 window.JET_BOT_API_URL = 'https://jet-store-bot-production.up.railway.app';
 window.JET_API_BASE = '';
+window.JET_BOT_API_FALLBACK = 'https://jet-store-bot-production.up.railway.app';
 window.getJetApiBase = function() {
     var url = (window.JET_BOT_API_URL || window.JET_API_BASE || localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '').trim();
+    if (!url) {
+        var host = (window.location && window.location.hostname || '').toLowerCase();
+        if (host && host !== 'localhost' && host !== '127.0.0.1') {
+            url = window.JET_BOT_API_FALLBACK || '';
+        }
+    }
     if (!url) return '';
     url = url.replace(/\/$/, '');
     if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;

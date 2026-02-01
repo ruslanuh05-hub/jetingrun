@@ -659,15 +659,16 @@ async function processUsdtDeposit() {
     
     showNotification('Создаём счёт для оплаты...', 'info');
     
-    const apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) {
-        showNotification('Укажите URL бота в js/config.js или localStorage', 'error');
+        showNotification('API бота не настроен. Укажите JET_BOT_API_URL в js/config.js', 'error');
         return;
     }
     
     try {
         const response = await fetch(apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice', {
             method: 'POST',
+            mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 amount: rubAmount,
@@ -682,7 +683,7 @@ async function processUsdtDeposit() {
             })
         });
         
-        const data = await response.json();
+        const data = await response.json().catch(function() { return {}; });
         
         if (data.success && data.invoice_id && (data.payment_url || data.pay_url)) {
             const payUrl = data.payment_url || data.pay_url;
@@ -707,7 +708,7 @@ async function processUsdtDeposit() {
             showNotification('Перейдите в CryptoBot для оплаты', 'success');
             startPaymentCheck(data.invoice_id, rubAmount);
         } else {
-            const errMsg = data.message || data.error || 'Ошибка создания счёта';
+            const errMsg = data.message || data.error || ('Ошибка ' + response.status + ': ' + (typeof data === 'object' ? JSON.stringify(data).slice(0, 100) : ''));
             throw new Error(errMsg);
         }
     } catch (error) {

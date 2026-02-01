@@ -2659,7 +2659,7 @@ function openPaymentPage() {
     if (data.method === 'cryptobot') {
         var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (!apiBase) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Укажите адрес API бота.', 'error');
+            if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js (JET_BOT_API_URL).', 'error');
             return;
         }
         if (statusEl) statusEl.textContent = 'Создаём счёт CryptoBot...';
@@ -2674,8 +2674,10 @@ function openPaymentPage() {
             if (typeof showStoreNotification === 'function') showStoreNotification('Сумма должна быть не менее 1 ₽', 'error');
             return;
         }
-        fetch(apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice', {
+        var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
+        fetch(createUrl, {
             method: 'POST',
+            mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 amount: amountRub,
@@ -2687,10 +2689,18 @@ function openPaymentPage() {
                 })
             })
         })
-            .then(function(r) { return r.json().catch(function() { return {}; }); })
-            .then(function(res) {
+            .then(function(r) {
+                return r.json().catch(function() { return { error: 'parse_error', message: 'Ответ сервера не JSON. Status: ' + r.status }; }).then(function(json) {
+                    return { ok: r.ok, status: r.status, json: json };
+                });
+            })
+            .then(function(result) {
+                var res = result.json || {};
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (!result.ok && res.error === undefined) {
+                    res.message = res.message || 'Сервер вернул ошибку ' + result.status;
+                }
                 if (res.success && (res.payment_url || res.pay_url)) {
                     window.paymentData = window.paymentData || {};
                     window.paymentData.invoice_id = res.invoice_id;
@@ -2706,15 +2716,19 @@ function openPaymentPage() {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
                 } else {
                     var errMsg = res.message || res.error || 'Ошибка создания счёта CryptoBot';
-                    if (res.details && typeof res.details === 'object' && res.details.name) errMsg += ' (' + res.details.name + ')';
-                    console.error('CryptoBot create-invoice error:', res);
+                    if (res.details && typeof res.details === 'object') {
+                        if (res.details.name) errMsg += ' (' + res.details.name + ')';
+                        else if (typeof res.details === 'string') errMsg += ': ' + res.details;
+                    }
+                    console.error('CryptoBot create-invoice error:', res, 'URL:', createUrl);
                     if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
                 }
             })
             .catch(function(err) {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
-                var msg = 'Ошибка связи с ботом. Проверьте URL бота: ' + apiBase;
+                var msg = 'Нет связи с API. Проверьте: 1) URL бота в config.js 2) Бот запущен на Railway. ' + (apiBase || '(URL пуст)');
+                console.error('CryptoBot fetch error:', err, 'apiBase:', apiBase);
                 if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
             });
         return;
