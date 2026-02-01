@@ -2533,7 +2533,18 @@
             if (connectBtn) connectBtn.style.display = isConnected ? 'none' : 'flex';
             
             var displayAddress = address ? (address.length > 18 ? address.slice(0, 8) + '…' + address.slice(-8) : address) : '—';
-            if (addressEl) addressEl.textContent = displayAddress;
+            if (addressEl) {
+                addressEl.textContent = displayAddress;
+                if (typeof window.ensureUserFriendlyAddress === 'function' && address) {
+                    window.ensureUserFriendlyAddress(address, function(friendly) {
+                        if (friendly && friendly !== address) {
+                            try { localStorage.setItem(addrKey, friendly); } catch (e) {}
+                            var el = document.getElementById('tonkeeperAddress');
+                            if (el) el.textContent = friendly.length > 18 ? friendly.slice(0, 8) + '…' + friendly.slice(-8) : friendly;
+                        }
+                    });
+                }
+            }
             if (balanceEl) balanceEl.textContent = '… TON';
             
             if (isConnected && address && balanceEl) {

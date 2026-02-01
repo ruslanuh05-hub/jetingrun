@@ -2967,6 +2967,14 @@
                 if (addr && addr.trim()) {
                     var short = addr.length > 12 ? addr.slice(0, 8) + '…' + addr.slice(-10) : addr;
                     walletEl.textContent = short;
+                    if (typeof window.ensureUserFriendlyAddress === 'function') {
+                        window.ensureUserFriendlyAddress(addr, function(friendly) {
+                            if (friendly && friendly !== addr) {
+                                try { localStorage.setItem(addrKey, friendly); } catch (e) {}
+                                walletEl.textContent = friendly.length > 12 ? friendly.slice(0, 8) + '…' + friendly.slice(-10) : friendly;
+                            }
+                        });
+                    }
                 } else {
                     walletEl.textContent = 'Не подключён';
                 }
@@ -3093,6 +3101,15 @@
                             <div class="assets-profile-tonkeeper-balance">${parseFloat(tonkeeperBalance).toLocaleString('ru-RU')} TON</div>
                         </div>
                     `;
+                    if (typeof window.ensureUserFriendlyAddress === 'function') {
+                        window.ensureUserFriendlyAddress(tonkeeperAddress, function(friendly) {
+                            if (friendly && friendly !== tonkeeperAddress) {
+                                try { localStorage.setItem(addrKey2, friendly); } catch (e) {}
+                                var addrDiv = tonkeeperContentEl.querySelector('.assets-profile-tonkeeper-address');
+                                if (addrDiv) addrDiv.textContent = friendly;
+                            }
+                        });
+                    }
                 } else {
                     // TonKeeper не подключен - показываем кнопку подключения
                     tonkeeperContentEl.innerHTML = `

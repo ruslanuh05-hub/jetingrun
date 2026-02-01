@@ -1,10 +1,29 @@
 /**
  * TonConnect для profile.html и assets.html.
  * Показываем адрес кошелька из Tonkeeper — всегда берём conn.account (текущий выбранный в приложении).
+ * Raw-формат (0:hex...) конвертируем в читаемый UQA/EQ.
  */
 (function() {
     if (window.tonConnectSharedLoaded) return;
     window.tonConnectSharedLoaded = true;
+
+    function isRawAddress(addr) {
+        if (!addr || typeof addr !== 'string') return false;
+        var s = addr.trim();
+        return /^0:[0-9a-fA-F]{64}$/.test(s);
+    }
+
+    function toUserFriendlyAddress(addr, onDone) {
+        if (!addr || !onDone) return;
+        if (!isRawAddress(addr)) { onDone(addr.trim()); return; }
+        fetch('https://toncenter.com/api/v2/packAddress?address=' + encodeURIComponent(addr.trim()))
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                var result = (d && d.ok && d.result) ? String(d.result).trim() : addr.trim();
+                onDone(result);
+            })
+            .catch(function() { onDone(addr.trim()); });
+    }
 
     function getTgUserId() {
         try {
@@ -52,6 +71,12 @@
         return addr || '';
     };
 
+    window.ensureUserFriendlyAddress = function(addr, callback) {
+        if (!addr) { if (callback) callback(''); return; }
+        if (!isRawAddress(addr)) { if (callback) callback(addr); return; }
+        toUserFriendlyAddress(addr, callback || function() {});
+    };
+
     window.tonConnectConnector.restoreConnection().then(function() {
         if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
     }).catch(function() {});
@@ -81,13 +106,13 @@
             if (!conn || !conn.connected) { saveAddr(''); return; }
             var addr = getAccountAddress(conn);
             if (addr) {
-                saveAddr(addr);
+                toUserFriendlyAddress(addr, function(friendly) { saveAddr(friendly); });
                 return;
             }
             setTimeout(function() {
                 if (!conn || !conn.connected) { saveAddr(''); return; }
                 addr = getAccountAddress(conn);
-                if (addr) saveAddr(addr);
+                if (addr) toUserFriendlyAddress(addr, function(friendly) { saveAddr(friendly); });
             }, 200);
         }
 
