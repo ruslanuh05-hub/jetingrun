@@ -2635,10 +2635,14 @@ function openPaymentPage() {
         }
         if (statusEl) statusEl.textContent = 'Создаём заказ...';
         if (primaryBtn) primaryBtn.disabled = true;
+        var walletAddress = (typeof localStorage !== 'undefined' && localStorage.getItem('jetstore_tonkeeper_address')) || '';
+        if (!walletAddress || walletAddress === 'test_user_default') walletAddress = '';
+        var bodyStar = { recipient: recipient, stars_amount: starsAmount };
+        if (walletAddress) bodyStar.wallet_address = walletAddress;
         fetch(apiBase + '/api/fragment/create-star-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipient: recipient, stars_amount: starsAmount })
+            body: JSON.stringify(bodyStar)
         })
             .then(function(r) { return r.json().catch(function() { return {}; }); })
             .then(function(res) {
@@ -2679,10 +2683,14 @@ function openPaymentPage() {
         }
         if (statusEl) statusEl.textContent = 'Создаём заказ...';
         if (primaryBtn) primaryBtn.disabled = true;
+        var walletAddressPremium = (typeof localStorage !== 'undefined' && localStorage.getItem('jetstore_tonkeeper_address')) || '';
+        if (!walletAddressPremium || walletAddressPremium === 'test_user_default') walletAddressPremium = '';
+        var bodyPremium = { recipient: recipient, months: months };
+        if (walletAddressPremium) bodyPremium.wallet_address = walletAddressPremium;
         fetch(apiBase + '/api/fragment/create-premium-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipient: recipient, months: months })
+            body: JSON.stringify(bodyPremium)
         })
             .then(function(r) { return r.json().catch(function() { return {}; }); })
             .then(function(res) {

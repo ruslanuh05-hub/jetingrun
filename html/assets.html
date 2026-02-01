@@ -2960,9 +2960,9 @@
             nicknameEl.textContent = nickname;
             usernameEl.textContent = username;
             if (walletEl) {
-                const addr = localStorage.getItem('jetstore_tonkeeper_address') || '';
-                if (addr) {
-                    const short = addr.length > 12 ? addr.slice(0, 8) + '…' + addr.slice(-10) : addr;
+                var addr = (typeof window.getTonkeeperAddress === 'function') ? window.getTonkeeperAddress() : (localStorage.getItem('jetstore_tonkeeper_address') || '');
+                if (addr && addr.trim()) {
+                    var short = addr.length > 12 ? addr.slice(0, 8) + '…' + addr.slice(-10) : addr;
                     walletEl.textContent = short;
                 } else {
                     walletEl.textContent = 'Не подключён';
@@ -3071,15 +3071,15 @@
                 balanceTonEl.textContent = balanceTon.toLocaleString('ru-RU') + ' TON';
             }
             
-            // Статус TonKeeper
+            // Статус TonKeeper: адрес только из TonConnect/сохранённый при подключении (никогда не случайный)
             const tonkeeperContentEl = document.getElementById('assetsProfileTonkeeperContent');
             if (tonkeeperContentEl) {
-                const isConnected = localStorage.getItem('jetstore_tonkeeper_connected') === 'true';
-                const tonkeeperAddress = localStorage.getItem('jetstore_tonkeeper_address') || '';
-                const tonkeeperBalance = localStorage.getItem('jetstore_tonkeeper_balance') || '0';
+                var isConnected = localStorage.getItem('jetstore_tonkeeper_connected') === 'true';
+                var tonkeeperAddress = (typeof window.getTonkeeperAddress === 'function') ? window.getTonkeeperAddress() : (localStorage.getItem('jetstore_tonkeeper_address') || '');
+                if (!tonkeeperAddress || !tonkeeperAddress.trim()) isConnected = false;
+                var tonkeeperBalance = localStorage.getItem('jetstore_tonkeeper_balance') || '0';
                 
                 if (isConnected && tonkeeperAddress) {
-                    // TonKeeper подключен - показываем адрес и баланс
                     tonkeeperContentEl.innerHTML = `
                         <div class="assets-profile-tonkeeper-info">
                             <div class="assets-profile-tonkeeper-address">${tonkeeperAddress}</div>
