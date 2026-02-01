@@ -15,7 +15,7 @@
         var wc = parseInt(parts[0], 10);
         if (isNaN(wc) || wc < -128 || wc > 127) return false;
         var hash = parts[1];
-        return /^[0-9a-fA-F]{64}$/.test(hash);
+        return /^[0-9a-fA-F]{32,64}$/.test(hash);
     }
 
     function crc16bytes(data) {
@@ -35,11 +35,18 @@
         try {
             var s = addr.trim(), parts = s.split(':');
             var wc = parseInt(parts[0], 10);
-            var hashHex = parts[1];
+            var hashHex = parts[1].toLowerCase();
+            while (hashHex.length < 64) hashHex = '0' + hashHex;
+            if (hashHex.length !== 64) return addr;
             var hash = [];
-            for (var i = 0; i < 64; i += 2) hash.push(parseInt(hashHex.substr(i, 2), 16));
-            var wcByte = (wc < 0) ? (wc + 256) : wc;
-            var addrBuf = [0x11, wcByte].concat(hash);
+            for (var i = 0; i < 64; i += 2) {
+                var b = parseInt(hashHex.substr(i, 2), 16);
+                if (isNaN(b)) return addr;
+                hash.push(b);
+            }
+            var wcByte = (wc < 0) ? (wc + 256) & 0xff : (wc & 0xff);
+            var tag = 0x51;
+            var addrBuf = [tag, wcByte].concat(hash);
             var crc = crc16bytes(addrBuf);
             var total = addrBuf.concat(crc);
             var b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -48,7 +55,7 @@
                 j = (total[i] << 16) | ((total[i + 1] || 0) << 8) | (total[i + 2] || 0);
                 str += b64[j >> 18] + b64[(j >> 12) & 63] + b64[(j >> 6) & 63] + b64[j & 63];
             }
-            str = str.slice(0, (n * 4 + 2) / 3).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            str = str.slice(0, 48).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
             return str;
         } catch (e) { return addr; }
     }
