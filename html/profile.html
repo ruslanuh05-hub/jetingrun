@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- TonConnect dApp SDK -->
-    <script src="https://unpkg.com/@tonconnect/sdk@2.2.0/dist/tonconnect-sdk.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/sdk@2.0.2/dist/tonconnect-sdk.min.js"></script>
     <script src="../js/tonconnect-shared.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -2585,11 +2585,6 @@
                     localStorage.removeItem(ak);
                     localStorage.removeItem(ck);
                     localStorage.removeItem(bk);
-                    Object.keys(localStorage).forEach(function(key) {
-                        if (key.indexOf('tonconnect') !== -1 || key.indexOf('ton-connect') !== -1) {
-                            localStorage.removeItem(key);
-                        }
-                    });
                 } catch (e) {}
                 if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
                 var walletSource = {
@@ -2621,11 +2616,12 @@
                     window.open(linkToOpen, '_blank');
                 }
             }
-            if (connector.connected && typeof connector.disconnect === 'function') {
-                connector.disconnect().then(doConnect).catch(function() { doConnect(); });
-            } else {
-                doConnect();
+            if (connector.connected) {
+                if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
+                if (typeof showNotification === 'function') showNotification('TonKeeper уже подключен', 'info');
+                return;
             }
+            doConnect();
         };
         
         // Переход на страницу подарков пользователя

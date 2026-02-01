@@ -92,28 +92,34 @@
 
         function getAllAddrs() {
             var addrs = [];
-            var acc = (wallet && wallet.account) || conn.account || (conn.wallet && conn.wallet.account);
+            var acc = (wallet && wallet.account) || (conn && conn.account) || (conn && conn.wallet && conn.wallet.account);
             if (acc && typeof acc.address === 'string') addrs.push(acc.address.trim());
-            var list = (wallet && wallet.accounts) || (conn.wallet && conn.wallet.accounts);
+            var list = (wallet && wallet.accounts) || (conn && conn.wallet && conn.wallet.accounts);
             if (list && list.length) {
                 list.forEach(function(a) { if (a && a.address) addrs.push(a.address.trim()); });
             }
             return addrs.filter(function(a, i, arr) { return a && arr.indexOf(a) === i; });
         }
 
-        setTimeout(function() {
+        function applyAddr() {
             if (!conn || !conn.connected) { saveAddr(''); return; }
             var addrs = getAllAddrs();
             if (!addrs.length) {
-                setTimeout(function() { addrs = getAllAddrs(); if (addrs.length) pickByBalance(addrs, saveAddr); else saveAddr(''); }, 200);
+                setTimeout(function() {
+                    addrs = getAllAddrs();
+                    if (addrs.length) {
+                        if (addrs.length === 1) saveAddr(addrs[0]); else pickByBalance(addrs, saveAddr);
+                    } else {
+                        var acc = conn.account || (conn.wallet && conn.wallet.account);
+                        if (acc && acc.address) saveAddr(acc.address.trim());
+                    }
+                }, 150);
                 return;
             }
-            if (addrs.length === 1) {
-                saveAddr(addrs[0]);
-                return;
-            }
-            pickByBalance(addrs, saveAddr);
-        }, 0);
+            if (addrs.length === 1) saveAddr(addrs[0]); else pickByBalance(addrs, saveAddr);
+        }
+
+        setTimeout(applyAddr, 0);
     });
 
     function pickByBalance(addrs, onDone) {
