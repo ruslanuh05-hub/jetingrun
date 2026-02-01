@@ -2786,13 +2786,16 @@ function openPaymentPage() {
                     }
                     if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
                 } else {
-                    if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания счёта CryptoBot', 'error');
+                    var errMsg = res.message || res.error || 'Ошибка создания счёта CryptoBot';
+                    console.error('CryptoBot error:', res);
+                    if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
                 }
             })
-            .catch(function() {
+            .catch(function(err) {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
-                var msg = 'Ошибка связи с ботом. Укажите URL API бота в config.js (JET_BOT_API_URL).';
+                console.error('CryptoBot fetch error:', err);
+                var msg = 'Ошибка связи с ботом. Проверьте URL бота: ' + apiBase;
                 if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
             });
         return;

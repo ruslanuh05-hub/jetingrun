@@ -739,11 +739,13 @@ async function processUsdtDeposit() {
             showNotification('Перейдите в CryptoBot для оплаты', 'success');
             startPaymentCheck(data.invoice_id, rubAmount);
         } else {
-            throw new Error(data.message || 'Ошибка создания счёта');
+            const errMsg = data.message || data.error || 'Ошибка создания счёта';
+            console.error('CryptoBot API error:', data);
+            throw new Error(errMsg);
         }
     } catch (error) {
         console.error('Ошибка создания инвойса:', error);
-        showNotification('Ошибка создания счёта. Попробуйте позже.', 'error');
+        showNotification(error.message || 'Ошибка создания счёта. Попробуйте позже.', 'error');
     }
 }
 
