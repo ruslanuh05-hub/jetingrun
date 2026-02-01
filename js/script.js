@@ -75,7 +75,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Обновляем цены из админки
     updatePricesDisplay();
     
-    // Слушаем изменения цен в localStorage (если админ изменит цены)
+    // Загружаем курс TON↔RUB (для активов, аренды)
+    if (typeof window.fetchTonToRubRateFromApi === 'function') {
+        window.fetchTonToRubRateFromApi().then(function(rate) {
+            if (rate != null) updatePricesDisplay();
+        });
+    }
+    
+    // Слушаем изменения цен в localStorage (если админ изменил цены)
     window.addEventListener('storage', function(e) {
         if (e.key === 'jetstore_stars_prices' || e.key === 'jetstore_premium_prices' || e.key === 'jetstore_star_rate') {
             updatePricesDisplay();
@@ -2564,7 +2571,7 @@ function openPaymentPage() {
 
     // Звёзды: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
     if (data.purchase?.type === 'stars') {
-        var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
         var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
         if (!apiBase || !recipient || !starsAmount) {
@@ -2573,7 +2580,7 @@ function openPaymentPage() {
         }
         if (statusEl) statusEl.textContent = 'Создаём заказ...';
         if (primaryBtn) primaryBtn.disabled = true;
-        fetch(apiBase + '/api/fragment/create-star-order', {
+        fetch(apiBase.replace(/\/$/, '') + '/api/fragment/create-star-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ recipient: recipient, stars_amount: starsAmount })
@@ -2607,7 +2614,7 @@ function openPaymentPage() {
 
     // Premium: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
     if (data.purchase?.type === 'premium') {
-        var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
         var months = data.purchase.months || 3;
         if ([3, 6, 12].indexOf(months) === -1) months = 3;
@@ -2617,7 +2624,7 @@ function openPaymentPage() {
         }
         if (statusEl) statusEl.textContent = 'Создаём заказ...';
         if (primaryBtn) primaryBtn.disabled = true;
-        fetch(apiBase + '/api/fragment/create-premium-order', {
+        fetch(apiBase.replace(/\/$/, '') + '/api/fragment/create-premium-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ recipient: recipient, months: months })
@@ -2662,11 +2669,16 @@ function openPaymentPage() {
             if (data.purchase.type === 'stars') desc = 'Звёзды Telegram — ' + (data.purchase.stars_amount || data.baseAmount || 0) + ' шт.';
             else if (data.purchase.type === 'premium') desc = 'Premium Telegram — ' + (data.purchase.months || 3) + ' мес.';
         }
+        var amountRub = data.totalAmount || data.baseAmount || (data.purchase && data.purchase.amount) || 0;
+        if (!amountRub || amountRub < 1) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Сумма должна быть не менее 1 ₽', 'error');
+            return;
+        }
         fetch(apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                amount: data.totalAmount || data.baseAmount || 0,
+                amount: amountRub,
                 description: desc,
                 payload: JSON.stringify({
                     purchase: data.purchase,
@@ -2694,6 +2706,8 @@ function openPaymentPage() {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
                 } else {
                     var errMsg = res.message || res.error || 'Ошибка создания счёта CryptoBot';
+                    if (res.details && typeof res.details === 'object' && res.details.name) errMsg += ' (' + res.details.name + ')';
+                    console.error('CryptoBot create-invoice error:', res);
                     if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
                 }
             })

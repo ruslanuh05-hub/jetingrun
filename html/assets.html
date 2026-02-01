@@ -150,6 +150,13 @@
             position: relative;
         }
         
+        .assets-ton-rate {
+            display: block;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+            margin-top: 4px;
+        }
+        
         .assets-section-title::after {
             content: '';
             display: block;
@@ -2399,6 +2406,7 @@
         <!-- Заголовок раздела -->
         <div class="assets-section-header">
             <h2 class="assets-section-title">Юзернеймы</h2>
+            <span class="assets-ton-rate" id="assetsTonRateDisplay">1 TON ≈ … ₽</span>
         </div>
         
         <!-- Контент для таба Usernames -->
@@ -2793,6 +2801,7 @@
             setInterval(loadBalanceForAssets, 2000);
             
             if (typeof loadUsernamesFromStorage === 'function') loadUsernamesFromStorage();
+            if (typeof updateTonRateDisplay === 'function') updateTonRateDisplay();
             updateTonRateFromApi();
             if (window._tonRateInterval) clearInterval(window._tonRateInterval);
             window._tonRateInterval = setInterval(updateTonRateFromApi, 5 * 60 * 1000);
@@ -2804,8 +2813,15 @@
         function updateTonRateFromApi() {
             if (typeof window.fetchTonToRubRateFromApi !== 'function') return;
             window.fetchTonToRubRateFromApi().then(function(rate) {
+                updateTonRateDisplay();
                 if (rate != null && typeof renderUsernamesList === 'function') renderUsernamesList();
             });
+        }
+        function updateTonRateDisplay() {
+            var el = document.getElementById('assetsTonRateDisplay');
+            if (!el) return;
+            var rate = getTonToRubRate();
+            el.textContent = '1 TON ≈ ' + (rate ? rate.toLocaleString('ru-RU') : '…') + ' ₽';
         }
         
         // Загрузка баланса для активов
@@ -3240,6 +3256,7 @@
         }
         
         function renderUsernamesList() {
+            if (typeof updateTonRateDisplay === 'function') updateTonRateDisplay();
             const container = document.getElementById('usernamesList');
             const priceColLabel = document.getElementById('usernamePriceColLabel');
             if (!container) return;
