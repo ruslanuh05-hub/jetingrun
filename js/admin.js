@@ -884,31 +884,36 @@ function importDataFile(file) {
     }
 }
 
-// Сброс всех данных
+// Сброс всех данных (полная очистка БД)
 function resetData() {
-    if (confirm('ВНИМАНИЕ: Это удалит ВСЕ данные (товары, пользователей, настройки). Действие необратимо. Продолжить?')) {
-        // Сбрасываем базу данных
-        localStorage.removeItem('jetStoreProducts');
-        localStorage.removeItem('jetStoreUsers');
-        localStorage.removeItem('jetStoreAdminSettings');
-        localStorage.removeItem('jetStoreAdminLoggedIn');
-        
-        // Инициализируем заново
+    if (confirm('ВНИМАНИЕ: Это удалит ВСЕ данные (товары, пользователей, балансы, Tonkeeper, настройки). Действие необратимо. Продолжить?')) {
+        if (window.Database && typeof window.Database.clearAll === 'function') {
+            window.Database.clearAll();
+        } else {
+            localStorage.removeItem('jetStoreProducts');
+            localStorage.removeItem('jetStoreUsers');
+            localStorage.removeItem('jetStoreAdminSettings');
+            localStorage.removeItem('jetStoreAdminLoggedIn');
+            Object.keys(localStorage).forEach(function(k) {
+                if (k.indexOf('jetstore_') === 0 || k.indexOf('jetStore') === 0 || k.indexOf('jet_') === 0 || k.indexOf('tonconnect') !== -1) {
+                    localStorage.removeItem(k);
+                }
+            });
+        }
+        try {
+            sessionStorage.removeItem('jet_tg_user');
+            sessionStorage.removeItem('jet_tg_init_data');
+        } catch (e) {}
         if (typeof Database !== 'undefined') {
             Database.init();
         }
-        
-        // Сбрасываем формы
-        resetProductForm();
-        resetUserForm();
-        
-        // Обновляем отображение
-        loadProducts(currentCategory);
-        loadUsers();
-        loadSettings();
-        refreshStatistics();
-        
-        showNotification('Все данные сброшены', 'success');
+        if (typeof resetProductForm === 'function') resetProductForm();
+        if (typeof resetUserForm === 'function') resetUserForm();
+        if (typeof loadProducts === 'function') loadProducts(currentCategory);
+        if (typeof loadUsers === 'function') loadUsers();
+        if (typeof loadSettings === 'function') loadSettings();
+        if (typeof refreshStatistics === 'function') refreshStatistics();
+        if (typeof showNotification === 'function') showNotification('Вся база данных очищена', 'success');
     }
 }
 

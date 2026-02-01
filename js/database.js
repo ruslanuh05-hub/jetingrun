@@ -454,6 +454,44 @@ class Database {
             return false;
         }
     }
+
+    /**
+     * Очистка всей базы данных (localStorage и sessionStorage).
+     * Удаляет все ключи: jetstore_*, jetStore*, jet_*, tonconnect*, ton-connect*.
+     */
+    clearAll() {
+        try {
+            let count = 0;
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (
+                    key.indexOf('jetstore_') === 0 ||
+                    key.indexOf('jetStore') === 0 ||
+                    key.indexOf('jet_') === 0 ||
+                    key.indexOf('jet_api') === 0 ||
+                    key.indexOf('tonconnect') !== -1 ||
+                    key.indexOf('ton-connect') !== -1
+                )) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => {
+                localStorage.removeItem(k);
+                count++;
+            });
+            try {
+                ['jet_tg_user', 'jet_tg_init_data', 'profileOpenTab', 'assetsOpenDrawer', 'openReferral'].forEach(function(k) {
+                    sessionStorage.removeItem(k);
+                });
+            } catch (e) {}
+            console.log('✅ База данных очищена. Удалено записей:', count);
+            return count;
+        } catch (error) {
+            console.error('Ошибка очистки базы данных:', error);
+            return 0;
+        }
+    }
 }
 
 // Создаем глобальный экземпляр базы данных
