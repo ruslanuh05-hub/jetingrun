@@ -101,6 +101,16 @@
             return addrs.filter(function(a, i, arr) { return a && arr.indexOf(a) === i; });
         }
 
+        function getPreferredAddr(addrs) {
+            if (!addrs || !addrs.length) return '';
+            var preferred = (wallet && wallet.account && wallet.account.address) || (conn && conn.account && conn.account.address) || (conn && conn.wallet && conn.wallet.account && conn.wallet.account.address);
+            if (preferred && typeof preferred === 'string') {
+                var p = preferred.trim();
+                if (p && addrs.indexOf(p) !== -1) return p;
+            }
+            return '';
+        }
+
         function applyAddr() {
             if (!conn || !conn.connected) { saveAddr(''); return; }
             var addrs = getAllAddrs();
@@ -108,7 +118,10 @@
                 setTimeout(function() {
                     addrs = getAllAddrs();
                     if (addrs.length) {
-                        if (addrs.length === 1) saveAddr(addrs[0]); else pickByBalance(addrs, saveAddr);
+                        var preferred = getPreferredAddr(addrs);
+                        if (preferred) saveAddr(preferred);
+                        else if (addrs.length === 1) saveAddr(addrs[0]);
+                        else pickByBalance(addrs, saveAddr);
                     } else {
                         var acc = conn.account || (conn.wallet && conn.wallet.account);
                         if (acc && acc.address) saveAddr(acc.address.trim());
@@ -116,7 +129,10 @@
                 }, 150);
                 return;
             }
-            if (addrs.length === 1) saveAddr(addrs[0]); else pickByBalance(addrs, saveAddr);
+            var preferred = getPreferredAddr(addrs);
+            if (preferred) saveAddr(preferred);
+            else if (addrs.length === 1) saveAddr(addrs[0]);
+            else pickByBalance(addrs, saveAddr);
         }
 
         setTimeout(applyAddr, 0);
