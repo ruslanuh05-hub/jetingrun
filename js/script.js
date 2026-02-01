@@ -54,6 +54,24 @@ window.currentSupercellGame = null;
     }
 })();
 
+// Загрузка аватарки текущего пользователя через Bot API (в initData photo_url часто отсутствует)
+function fetchCurrentUserAvatar() {
+    if (!window.userData?.id || window.userData.photoUrl) return;
+    var apiBase = window.JET_API_BASE || '';
+    if (!apiBase) return;
+    var url = apiBase.replace(/\/$/, '') + '/api/telegram/avatar?user_id=' + encodeURIComponent(String(window.userData.id));
+    fetch(url)
+        .then(function(r) { return r.json().catch(function() { return null; }); })
+        .then(function(data) {
+            if (data && data.avatar) {
+                window.userData.photoUrl = data.avatar;
+                if (typeof updateUserDisplay === 'function') updateUserDisplay();
+                if (typeof updateStoreDisplay === 'function') updateStoreDisplay();
+            }
+        })
+        .catch(function() {});
+}
+
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Инициализация магазина...');
@@ -71,6 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ВАЖНО: Инициализируем пользователя ПЕРВЫМ делом, чтобы загрузить баланс из базы
     initializeUserData();
+    // Аватар из TG в initData часто нет — подгружаем через API
+    fetchCurrentUserAvatar();
     
     // Загружаем товары для активного раздела
     loadProductsForSection(currentSection);
@@ -309,6 +329,13 @@ function saveUserToDatabase() {
     }
 }
 
+// URL аватарки-заглушки по имени (если нет фото из TG)
+function getFallbackAvatarUrl() {
+    var name = (window.userData && (window.userData.firstName || window.userData.username || window.userData.lastName)) || '';
+    if (!name) return '';
+    return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(String(name).trim() || 'U') + '&background=00d4ff&color=fff&size=128';
+}
+
 // Обновление отображения пользователя
 function updateUserDisplay() {
     // Обновляем аватар в старом меню
@@ -316,10 +343,13 @@ function updateUserDisplay() {
     if (userAvatar) {
         if (window.userData.photoUrl) {
             userAvatar.innerHTML = `<img src="${window.userData.photoUrl}" alt="Avatar">`;
-        } else if (window.userData.firstName) {
-            userAvatar.textContent = window.userData.firstName[0].toUpperCase();
         } else {
-            userAvatar.textContent = '👤';
+            var fallback = getFallbackAvatarUrl();
+            if (fallback) {
+                userAvatar.innerHTML = '<img src="' + fallback + '" alt="Avatar">';
+            } else {
+                userAvatar.textContent = '👤';
+            }
         }
     }
     

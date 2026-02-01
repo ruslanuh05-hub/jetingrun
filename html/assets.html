@@ -2735,13 +2735,8 @@
                 const nameEl = document.getElementById('assetsUserName');
                 
                 if (avatarEl) {
-                    if (userData.photoUrl) {
-                        avatarEl.innerHTML = `<img src="${userData.photoUrl}" alt="Avatar">`;
-                    } else {
-                        // Используем первую букву имени или username
-                        const initial = (userData.firstName?.[0] || userData.username?.[0] || 'П').toUpperCase();
-                        avatarEl.innerHTML = initial;
-                    }
+                    const src = userData.photoUrl || ('https://ui-avatars.com/api/?name=' + encodeURIComponent((userData.firstName || userData.username || 'П').toString().trim()) + '&background=00d4ff&color=fff&size=128');
+                    avatarEl.innerHTML = '<img src="' + src + '" alt="Avatar">';
                 }
                 
                 if (nameEl) {
@@ -2752,6 +2747,24 @@
                 if (userData.username) {
                     usernameForNft = userData.username;
                 }
+                // Подгрузка аватарки через API, если в initData её не было
+                if (userData.id && !userData.photoUrl) {
+                    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+                    if (apiBase) {
+                        fetch(apiBase.replace(/\/$/, '') + '/api/telegram/avatar?user_id=' + encodeURIComponent(String(userData.id)))
+                            .then(function(r) { return r.json().catch(function() { return null; }); })
+                            .then(function(data) {
+                                if (data && data.avatar) {
+                                    userData.photoUrl = data.avatar;
+                                    if (window.userData) window.userData.photoUrl = data.avatar;
+                                    var ae = document.getElementById('assetsUserAvatar');
+                                    if (ae) ae.innerHTML = '<img src="' + data.avatar + '" alt="Avatar">';
+                                    if (typeof updateAssetsDrawerContent === 'function') updateAssetsDrawerContent();
+                                }
+                            })
+                            .catch(function() {});
+                    }
+                }
             } else {
                 // Используем данные Telegram WebApp если доступны
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
@@ -2760,11 +2773,9 @@
                         const avatarEl = document.getElementById('assetsUserAvatar');
                         const nameEl = document.getElementById('assetsUserName');
                         
-                        if (avatarEl && tgUser.photo_url) {
-                            avatarEl.innerHTML = `<img src="${tgUser.photo_url}" alt="Avatar">`;
-                        } else if (avatarEl) {
-                            const initial = (tgUser.first_name?.[0] || 'П').toUpperCase();
-                            avatarEl.innerHTML = initial;
+                        if (avatarEl) {
+                            const src = tgUser.photo_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent((tgUser.first_name || tgUser.username || 'П').toString().trim()) + '&background=00d4ff&color=fff&size=128');
+                            avatarEl.innerHTML = '<img src="' + src + '" alt="Avatar">';
                         }
                         
                         if (nameEl) {
@@ -2937,17 +2948,15 @@
             const nickname = ud.firstName || ud.lastName || 'Пользователь';
             const username = ud.username ? (ud.username.startsWith('@') ? ud.username : '@' + ud.username) : '@username';
             avatarEl.innerHTML = '';
+            var img = document.createElement('img');
+            img.alt = nickname;
             if (ud.photoUrl) {
-                const img = document.createElement('img');
                 img.src = ud.photoUrl;
-                img.alt = nickname;
-                avatarEl.appendChild(img);
             } else {
-                const span = document.createElement('span');
-                span.id = 'assetsDrawerAvatarLetter';
-                span.textContent = (nickname || '?')[0].toUpperCase();
-                avatarEl.appendChild(span);
+                var name = (ud.firstName || ud.username || ud.lastName || nickname || 'U').toString().trim();
+                img.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=00d4ff&color=fff&size=128';
             }
+            avatarEl.appendChild(img);
             nicknameEl.textContent = nickname;
             usernameEl.textContent = username;
             if (walletEl) {

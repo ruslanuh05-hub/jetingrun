@@ -89,6 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Обновляем отображение профиля
     updateProfileDisplay();
+    // Аватар из TG в initData часто нет — подгружаем через API
+    fetchProfileAvatar();
     
     // Загружаем историю покупок
     loadUserPurchases();
@@ -106,6 +108,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Профиль инициализирован');
 });
+
+// Загрузка аватарки через Bot API (в initData photo_url часто отсутствует)
+function fetchProfileAvatar() {
+    if (!userData.id || userData.photoUrl) return;
+    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) return;
+    var url = apiBase.replace(/\/$/, '') + '/api/telegram/avatar?user_id=' + encodeURIComponent(String(userData.id));
+    fetch(url)
+        .then(function(r) { return r.json().catch(function() { return null; }); })
+        .then(function(data) {
+            if (data && data.avatar) {
+                userData.photoUrl = data.avatar;
+                if (window.userData) window.userData.photoUrl = data.avatar;
+                if (typeof updateProfileDisplay === 'function') updateProfileDisplay();
+            }
+        })
+        .catch(function() {});
+}
 
 // Загрузка данных пользователя
 function loadUserData() {
@@ -328,14 +348,15 @@ function loadUserData() {
 function updateProfileDisplay() {
     console.log('Обновление отображения профиля...');
     
-    // Обновляем аватар
+    // Обновляем аватар (фото из TG или заглушка по имени)
     const profileAvatar = document.getElementById('profileAvatar');
     if (profileAvatar) {
         if (userData.photoUrl) {
             profileAvatar.innerHTML = `<img src="${userData.photoUrl}" alt="Avatar">`;
         } else {
-            const initials = userData.firstName ? userData.firstName[0].toUpperCase() : 'U';
-            profileAvatar.innerHTML = `<span style="font-size: 2.5rem;">${initials}</span>`;
+            const name = userData.firstName || userData.username || userData.lastName || 'U';
+            const fallbackUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(String(name).trim()) + '&background=00d4ff&color=fff&size=256';
+            profileAvatar.innerHTML = '<img src="' + fallbackUrl + '" alt="Avatar">';
         }
     }
     

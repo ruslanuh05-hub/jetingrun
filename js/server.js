@@ -113,6 +113,40 @@ app.get('/api/telegram/user', async (req, res) => {
   }
 });
 
+// Аватар текущего пользователя по user_id (для Mini App: initData не всегда содержит photo_url)
+app.get('/api/telegram/avatar', async (req, res) => {
+  try {
+    if (!botToken) {
+      return res
+        .status(500)
+        .json({ error: 'bot_token_missing', message: 'BOT_TOKEN не сконфигурирован' });
+    }
+
+    const userId = (req.query.user_id || req.query.userId || '').toString().trim();
+    if (!userId) {
+      return res.status(400).json({ error: 'bad_request', message: 'user_id is required' });
+    }
+
+    let avatarUrl = null;
+    try {
+      const photos = await callTelegram('getUserProfilePhotos', {
+        user_id: userId,
+        limit: 1
+      });
+      if (photos.total_count > 0 && photos.photos[0] && photos.photos[0][0]?.file_id) {
+        avatarUrl = await getFileUrl(photos.photos[0][0].file_id);
+      }
+    } catch {
+      // Пользователь без фото или ошибка — возвращаем null
+    }
+
+    return res.json({ avatar: avatarUrl });
+  } catch (err) {
+    console.error('Ошибка в /api/telegram/avatar:', err);
+    return res.status(500).json({ error: 'internal_error', message: 'Internal server error' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`JET mini-app backend запущен на порту ${port}`);
 });
