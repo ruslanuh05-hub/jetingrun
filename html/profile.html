@@ -20,20 +20,32 @@
             window.tonConnectConnector.restoreConnection().then(function() {
                 if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
             }).catch(function() {});
-            window.tonConnectConnector.onStatusChange(function(walletInfo) {
-                var addr = (walletInfo && walletInfo.account && typeof walletInfo.account.address === 'string') ? walletInfo.account.address.trim() : '';
-                if (addr) {
-                    try {
-                        localStorage.setItem('jetstore_tonkeeper_connected', 'true');
-                        localStorage.setItem('jetstore_tonkeeper_address', addr);
-                        if (!localStorage.getItem('jetstore_tonkeeper_balance')) {
-                            localStorage.setItem('jetstore_tonkeeper_balance', '0');
+            window.tonConnectConnector.onStatusChange(function() {
+                // Адрес всегда берём из connector.account после обновления состояния (не из параметра callback)
+                var conn = window.tonConnectConnector;
+                setTimeout(function() {
+                    var addr = '';
+                    if (conn && conn.connected) {
+                        var acc = conn.account || (conn.wallet && conn.wallet.account);
+                        if (acc && typeof acc.address === 'string') addr = acc.address.trim();
+                        if (!addr && conn.wallet && conn.wallet.accounts && conn.wallet.accounts.length) {
+                            var mainnet = conn.wallet.accounts.find(function(a) { return a.chain === -239 || a.chain === 0; }) || conn.wallet.accounts[0];
+                            if (mainnet && mainnet.address) addr = mainnet.address.trim();
                         }
-                    } catch (e) {}
+                    }
+                    if (addr) {
+                        try {
+                            localStorage.setItem('jetstore_tonkeeper_connected', 'true');
+                            localStorage.setItem('jetstore_tonkeeper_address', addr);
+                            if (!localStorage.getItem('jetstore_tonkeeper_balance')) {
+                                localStorage.setItem('jetstore_tonkeeper_balance', '0');
+                            }
+                        } catch (e) {}
+                    }
                     if (typeof window.updateTonkeeperButton === 'function') {
                         window.updateTonkeeperButton();
                     }
-                }
+                }, 0);
             });
         })();
     </script>
@@ -2534,13 +2546,17 @@
                 .catch(function() { return '0.00'; });
         }
         
-        // Единая точка: адрес Tonkeeper только из TonConnect (никогда не подставлять случайный/тестовый)
+        // Единая точка: адрес только из connector.account (ваш кошелёк Tonkeeper), не из других источников
         window.getTonkeeperAddress = function() {
-            var connector = window.tonConnectConnector;
-            if (connector && connector.connected) {
-                var acc = connector.account || (connector.wallet && connector.wallet.account);
+            var conn = window.tonConnectConnector;
+            if (conn && conn.connected) {
+                var acc = conn.account || (conn.wallet && conn.wallet.account);
                 if (acc && typeof acc.address === 'string' && acc.address.trim()) {
                     return acc.address.trim();
+                }
+                if (conn.wallet && conn.wallet.accounts && conn.wallet.accounts.length) {
+                    var mainnet = conn.wallet.accounts.find(function(a) { return (a.chain === -239 || a.chain === 0) && a.address; }) || conn.wallet.accounts[0];
+                    if (mainnet && mainnet.address) return mainnet.address.trim();
                 }
             }
             var saved = localStorage.getItem('jetstore_tonkeeper_address') || '';
@@ -2605,12 +2621,19 @@
                 return;
             }
             if (connector.connected) {
+                if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
                 if (typeof showNotification === 'function') {
                     showNotification('TonKeeper уже подключен', 'info');
                 }
-                if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
                 return;
             }
+            // Перед новым подключением очищаем старый адрес, чтобы не показывать чужой/устаревший
+            try {
+                localStorage.removeItem('jetstore_tonkeeper_address');
+                localStorage.removeItem('jetstore_tonkeeper_connected');
+                localStorage.removeItem('jetstore_tonkeeper_balance');
+            } catch (e) {}
+            if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
             var walletSource = {
                 universalLink: 'https://app.tonkeeper.com/ton-connect',
                 bridgeUrl: 'https://bridge.tonapi.io/bridge'
