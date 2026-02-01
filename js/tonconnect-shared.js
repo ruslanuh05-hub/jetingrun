@@ -1,10 +1,18 @@
 /**
  * TonConnect для profile.html и assets.html.
- * Адрес: conn.account или последний из wallet.accounts (Wallet V5 — основной в Tonkeeper).
+ * Показываем адрес кошелька, на котором лежат TON (выбираем по балансу при нескольких аккаунтах).
  */
 (function() {
     if (window.tonConnectSharedLoaded) return;
     window.tonConnectSharedLoaded = true;
+
+    function fetchBalance(address) {
+        if (!address) return Promise.resolve(0);
+        return fetch('https://toncenter.com/api/v2/getAddressBalance?address=' + encodeURIComponent(address))
+            .then(function(r) { return r.json(); })
+            .then(function(d) { return parseInt((d && d.result) ? d.result : '0', 10); })
+            .catch(function() { return 0; });
+    }
 
     function getTgUserId() {
         try {
@@ -69,9 +77,7 @@
                 try {
                     localStorage.setItem(connectedKey, 'true');
                     localStorage.setItem(addrKey, addr);
-                    if (!localStorage.getItem(balanceKey)) {
-                        localStorage.setItem(balanceKey, '0');
-                    }
+                    if (!localStorage.getItem(balanceKey)) localStorage.setItem(balanceKey, '0');
                 } catch (e) {}
             } else {
                 try {
@@ -84,34 +90,39 @@
             try { window.dispatchEvent(new CustomEvent('tonkeeperAddressUpdated')); } catch (e) {}
         }
 
-        function getAddr() {
-            if (!conn || !conn.connected) return '';
+        function getAllAddrs() {
+            var addrs = [];
             var acc = (wallet && wallet.account) || conn.account || (conn.wallet && conn.wallet.account);
-            if (acc && typeof acc.address === 'string') return acc.address.trim();
-            if (wallet && wallet.accounts && wallet.accounts.length) {
-                var list = wallet.accounts.filter(function(a) { return a && a.address; });
-                if (list.length) {
-                    var last = list[list.length - 1];
-                    if (last && last.address) return last.address.trim();
-                }
+            if (acc && typeof acc.address === 'string') addrs.push(acc.address.trim());
+            var list = (wallet && wallet.accounts) || (conn.wallet && conn.wallet.accounts);
+            if (list && list.length) {
+                list.forEach(function(a) { if (a && a.address) addrs.push(a.address.trim()); });
             }
-            if (conn.wallet && conn.wallet.accounts && conn.wallet.accounts.length) {
-                var list2 = conn.wallet.accounts.filter(function(a) { return a && a.address; });
-                if (list2.length) {
-                    var last2 = list2[list2.length - 1];
-                    if (last2 && last2.address) return last2.address.trim();
-                }
-            }
-            return '';
+            return addrs.filter(function(a, i, arr) { return a && arr.indexOf(a) === i; });
         }
 
         setTimeout(function() {
-            var addr = getAddr();
-            saveAddr(addr);
-            if (!addr && conn && conn.connected) {
-                setTimeout(function() { saveAddr(getAddr()); }, 100);
-                setTimeout(function() { saveAddr(getAddr()); }, 300);
+            if (!conn || !conn.connected) { saveAddr(''); return; }
+            var addrs = getAllAddrs();
+            if (!addrs.length) {
+                setTimeout(function() { addrs = getAllAddrs(); if (addrs.length) pickByBalance(addrs, saveAddr); else saveAddr(''); }, 200);
+                return;
             }
+            if (addrs.length === 1) {
+                saveAddr(addrs[0]);
+                return;
+            }
+            pickByBalance(addrs, saveAddr);
         }, 0);
     });
+
+    function pickByBalance(addrs, onDone) {
+        Promise.all(addrs.map(function(addr) { return fetchBalance(addr).then(function(nano) { return { addr: addr, nano: nano }; }); }))
+            .then(function(results) {
+                results.sort(function(a, b) { return (b.nano || 0) - (a.nano || 0); });
+                var best = results[0];
+                onDone(best && best.addr ? best.addr : (addrs[0] || ''));
+            })
+            .catch(function() { onDone(addrs[0] || ''); });
+    }
 })();
