@@ -686,7 +686,8 @@ async function processUsdtDeposit() {
         const data = await response.json().catch(function() { return {}; });
         
         if (data.success && data.invoice_id && (data.payment_url || data.pay_url)) {
-            const payUrl = data.payment_url || data.pay_url;
+            const payUrl = (data.payment_url || data.pay_url || '').trim();
+            if (!payUrl) throw new Error('Ссылка на оплату не получена');
             const pendingPayment = {
                 invoiceId: data.invoice_id,
                 rubAmount: rubAmount,
@@ -696,11 +697,11 @@ async function processUsdtDeposit() {
             localStorage.setItem('jetstore_pending_payment', JSON.stringify(pendingPayment));
             
             const tg = window.Telegram?.WebApp;
-            if (tg && tg.openTelegramLink) {
-                tg.openTelegramLink(payUrl);
-            } else if (tg && tg.openLink) {
-                tg.openLink(payUrl);
-            } else {
+            try {
+                if (tg && tg.openLink) tg.openLink(payUrl);
+                else if (tg && tg.openTelegramLink) tg.openTelegramLink(payUrl);
+                else window.open(payUrl, '_blank');
+            } catch (e) {
                 window.open(payUrl, '_blank');
             }
             

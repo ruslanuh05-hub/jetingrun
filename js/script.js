@@ -2705,15 +2705,32 @@ function openPaymentPage() {
                     window.paymentData = window.paymentData || {};
                     window.paymentData.invoice_id = res.invoice_id;
                     window.paymentData.payment_url = res.payment_url || res.pay_url;
-                    var payUrl = res.payment_url || res.pay_url;
-                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
-                        window.Telegram.WebApp.openTelegramLink(payUrl);
-                    } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
-                        window.Telegram.WebApp.openLink(payUrl);
+                    var payUrl = (res.payment_url || res.pay_url || '').trim();
+                    if (!payUrl) {
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Ссылка на оплату не получена от CryptoBot', 'error');
+                        return;
+                    }
+                    var tg = window.Telegram && window.Telegram.WebApp;
+                    if (tg && tg.openLink) {
+                        try { tg.openLink(payUrl); } catch (e) { console.warn('openLink failed:', e); window.open(payUrl, '_blank'); }
+                    } else if (tg && tg.openTelegramLink) {
+                        try { tg.openTelegramLink(payUrl); } catch (e) { console.warn('openTelegramLink failed:', e); window.open(payUrl, '_blank'); }
                     } else {
                         window.open(payUrl, '_blank');
                     }
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Откройте оплату в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
+                    if (statusEl) {
+                        statusEl.innerHTML = 'Счёт создан. <a href="#" id="cryptobotOpenLink" style="color:#00d4ff;text-decoration:underline;">Открыть оплату</a>';
+                        var linkEl = document.getElementById('cryptobotOpenLink');
+                        if (linkEl) {
+                            linkEl.onclick = function(e) {
+                                e.preventDefault();
+                                var t = window.Telegram && window.Telegram.WebApp;
+                                if (t && t.openLink) t.openLink(payUrl);
+                                else window.open(payUrl, '_blank');
+                            };
+                        }
+                    }
                 } else {
                     var errMsg = res.message || res.error || 'Ошибка создания счёта CryptoBot';
                     if (res.details && typeof res.details === 'object') {
