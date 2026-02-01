@@ -1,10 +1,7 @@
-// Конфиг для хостинга.
-// API бота — сервер, где запущен Python (bot.py) с эндпоинтами /api/*.
-// Если бот и сайт на РАЗНЫХ доменах — укажите URL бота (например https://api.jetstoreapp.ru):
-window.JET_BOT_API_URL = '';
-// Если бот на том же домене, что и сайт:
-window.JET_API_BASE = 'https://jetstoreapp.ru';
-// Возвращает URL для API-запросов. Бот может быть на другом домене — укажите JET_BOT_API_URL или jet_bot_api_url.
+// Конфиг: сайт на GitHub Pages, бот на хостинге (Railway/Render).
+// Укажите URL бота после деплоя (например: https://jet-store-bot.up.railway.app)
+window.JET_BOT_API_URL = '';  // ← ВСТАВЬТЕ URL ВАШЕГО БОТА ЗДЕСЬ
+window.JET_API_BASE = '';
 window.getJetApiBase = function() {
     var url = (window.JET_BOT_API_URL || window.JET_API_BASE || localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '').trim();
     return url ? url.replace(/\/$/, '') : '';

@@ -3,8 +3,22 @@ node_modules/
 .env
 *.pyc
 __pycache__/
+venv/
+.venv/
 
-# Конфиги с секретами (создать из .example)
+# Конфиги с секретами (не коммитить!)
 cryptobot_config.json
+telethon_config.json
+telethon_session.txt
+donatehub_config.json
+fragment_config.json
+
+# Логи
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
 
 # Не игнорируем html/, css/, js/, assets/ — они должны быть в репозитории для GitHub Pages

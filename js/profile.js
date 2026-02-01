@@ -693,7 +693,7 @@ async function processUsdtDeposit() {
     
     const apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) {
-        showNotification('Укажите адрес API бота в настройках', 'error');
+        showNotification('Укажите URL бота в js/config.js или localStorage', 'error');
         return;
     }
     

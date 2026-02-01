@@ -42,19 +42,14 @@ window.currentGameCategory = null;
 let currentSupercellGame = null;
 window.currentSupercellGame = null;
 
-// API бота: при открытии с localhost — localhost:3000; с GitHub Pages — из localStorage.
-// Если бот на другом домене — укажите JET_BOT_API_URL в config.js или jet_bot_api_url в localStorage.
+// API бота: сайт на GitHub Pages, бот на хостинге (Railway/Render). URL бота сохраняется в localStorage.
 (function() {
     var host = (typeof window !== 'undefined' && window.location?.hostname) ? window.location.hostname.toLowerCase() : '';
     if (host === 'localhost' || host === '127.0.0.1') {
         window.JET_API_BASE = 'http://localhost:3000';
-    } else if (host.indexOf('github') !== -1) {
-        window.JET_API_BASE = localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '';
-    } else if ((host === 'jetstoreapp.ru' || host === 'www.jetstoreapp.ru') && !(window.JET_BOT_API_URL && window.JET_BOT_API_URL !== '')) {
-        // По умолчанию бот на том же домене; если бот на другом — задайте JET_BOT_API_URL в config.js
-        if (!(window.JET_API_BASE && window.JET_API_BASE !== '')) {
-            window.JET_API_BASE = window.location.origin || 'https://jetstoreapp.ru';
-        }
+    } else {
+        // GitHub Pages или другой хостинг — берём URL бота из config.js или localStorage
+        window.JET_API_BASE = window.JET_BOT_API_URL || localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '';
     }
 })();
 
@@ -109,6 +104,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // Аватар из TG в initData часто нет — подгружаем через API
     fetchCurrentUserAvatar();
+    
+    // GitHub Pages: если URL бота не задан в config.js — запросить один раз
+    (function() {
+        var h = (window.location?.hostname || '').toLowerCase();
+        var isExternal = h !== 'localhost' && h !== '127.0.0.1';
+        if (isExternal && !(window.getJetApiBase && window.getJetApiBase())) {
+            if (!sessionStorage.getItem('jet_api_prompt_shown')) {
+                sessionStorage.setItem('jet_api_prompt_shown', '1');
+                setTimeout(function() {
+                    if (window.getJetApiBase && window.getJetApiBase()) return;
+                    var url = typeof prompt === 'function' ? prompt(
+                        'Введите URL бота (Railway/Render):\n\nПример: https://jet-store-bot.up.railway.app'
+                    ) : '';
+                    if (url && (url = url.trim().replace(/\/$/, ''))) {
+                        try { localStorage.setItem('jet_bot_api_url', url); localStorage.setItem('jet_api_base', url); } catch (e) {}
+                        if (typeof showStoreNotification === 'function') showStoreNotification('URL бота сохранён.', 'success');
+                    }
+                }, 1000);
+            }
+        }
+    })();
     
     // Загружаем товары для активного раздела
     loadProductsForSection(currentSection);
@@ -2410,13 +2426,15 @@ function confirmPayment() {
     var confirmBtn = document.getElementById('paymentWaitingConfirmBtn');
     var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) {
-        var url = typeof prompt !== 'undefined' ? prompt('Укажите адрес API бота (сервер, где запущен Python-бот).\n\nБот может быть на другом домене, например: https://api.jetstoreapp.ru') : '';
+        var url = typeof prompt !== 'undefined' ? prompt(
+            'Введите URL бота (Railway/Render):\n\nПример: https://jet-store-bot.up.railway.app'
+        ) : '';
         if (url && (url = url.trim().replace(/\/$/, ''))) {
             try { localStorage.setItem('jet_bot_api_url', url); localStorage.setItem('jet_api_base', url); } catch (e) {}
             window.JET_API_BASE = url;
             if (typeof showStoreNotification === 'function') showStoreNotification('Адрес API сохранён. Нажмите «Подтвердить оплату» снова.', 'success');
         } else {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Укажите адрес API бота (сервер, где запущен бот).', 'error');
+            if (typeof showStoreNotification === 'function') showStoreNotification('Укажите URL бота (Railway/Render).', 'error');
         }
         return;
     }
