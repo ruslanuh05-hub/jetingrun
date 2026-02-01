@@ -1,18 +1,10 @@
 /**
  * TonConnect для profile.html и assets.html.
- * Показываем адрес кошелька, на котором лежат TON (выбираем по балансу при нескольких аккаунтах).
+ * Показываем адрес кошелька из Tonkeeper — всегда берём conn.account (текущий выбранный в приложении).
  */
 (function() {
     if (window.tonConnectSharedLoaded) return;
     window.tonConnectSharedLoaded = true;
-
-    function fetchBalance(address) {
-        if (!address) return Promise.resolve(0);
-        return fetch('https://toncenter.com/api/v2/getAddressBalance?address=' + encodeURIComponent(address))
-            .then(function(r) { return r.json(); })
-            .then(function(d) { return parseInt((d && d.result) ? d.result : '0', 10); })
-            .catch(function() { return 0; });
-    }
 
     function getTgUserId() {
         try {
@@ -46,28 +38,23 @@
     var connectedKey = window.getTonkeeperStorageKey('jetstore_tonkeeper_connected');
     var balanceKey = window.getTonkeeperStorageKey('jetstore_tonkeeper_balance');
 
+    function getAccountAddress(conn) {
+        if (!conn || !conn.connected) return '';
+        var acc = conn.account || (conn.wallet && conn.wallet.account);
+        if (acc && typeof acc.address === 'string') return acc.address.trim();
+        return '';
+    }
+
     window.getTonkeeperAddress = function() {
         var conn = window.tonConnectConnector;
-        var addr = '';
-        if (conn && conn.connected) {
-            var acc = conn.account || (conn.wallet && conn.wallet.account);
-            if (acc && typeof acc.address === 'string' && acc.address.trim()) addr = acc.address.trim();
-            if (!addr && conn.wallet && conn.wallet.accounts && conn.wallet.accounts.length) {
-                var list = conn.wallet.accounts.filter(function(a) { return a && a.address; });
-                if (list.length) {
-                    var chosen = list[list.length - 1];
-                    if (chosen && chosen.address) addr = chosen.address.trim();
-                }
-            }
-        }
+        var addr = getAccountAddress(conn);
         if (!addr) { var s = localStorage.getItem(addrKey) || ''; if (s && s.trim()) addr = s.trim(); }
-        return addr;
+        return addr || '';
     };
 
     window.tonConnectConnector.restoreConnection().then(function() {
         if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
     }).catch(function() {});
-
 
     window.tonConnectConnector.onStatusChange(function(wallet) {
         var conn = window.tonConnectConnector;
@@ -90,61 +77,20 @@
             try { window.dispatchEvent(new CustomEvent('tonkeeperAddressUpdated')); } catch (e) {}
         }
 
-        function getAllAddrs() {
-            var addrs = [];
-            var acc = (wallet && wallet.account) || (conn && conn.account) || (conn && conn.wallet && conn.wallet.account);
-            if (acc && typeof acc.address === 'string') addrs.push(acc.address.trim());
-            var list = (wallet && wallet.accounts) || (conn && conn.wallet && conn.wallet.accounts);
-            if (list && list.length) {
-                list.forEach(function(a) { if (a && a.address) addrs.push(a.address.trim()); });
-            }
-            return addrs.filter(function(a, i, arr) { return a && arr.indexOf(a) === i; });
-        }
-
-        function getPreferredAddr(addrs) {
-            if (!addrs || !addrs.length) return '';
-            var preferred = (wallet && wallet.account && wallet.account.address) || (conn && conn.account && conn.account.address) || (conn && conn.wallet && conn.wallet.account && conn.wallet.account.address);
-            if (preferred && typeof preferred === 'string') {
-                var p = preferred.trim();
-                if (p && addrs.indexOf(p) !== -1) return p;
-            }
-            return '';
-        }
-
         function applyAddr() {
             if (!conn || !conn.connected) { saveAddr(''); return; }
-            var addrs = getAllAddrs();
-            if (!addrs.length) {
-                setTimeout(function() {
-                    addrs = getAllAddrs();
-                    if (addrs.length) {
-                        var preferred = getPreferredAddr(addrs);
-                        if (preferred) saveAddr(preferred);
-                        else if (addrs.length === 1) saveAddr(addrs[0]);
-                        else pickByBalance(addrs, saveAddr);
-                    } else {
-                        var acc = conn.account || (conn.wallet && conn.wallet.account);
-                        if (acc && acc.address) saveAddr(acc.address.trim());
-                    }
-                }, 150);
+            var addr = getAccountAddress(conn);
+            if (addr) {
+                saveAddr(addr);
                 return;
             }
-            var preferred = getPreferredAddr(addrs);
-            if (preferred) saveAddr(preferred);
-            else if (addrs.length === 1) saveAddr(addrs[0]);
-            else pickByBalance(addrs, saveAddr);
+            setTimeout(function() {
+                if (!conn || !conn.connected) { saveAddr(''); return; }
+                addr = getAccountAddress(conn);
+                if (addr) saveAddr(addr);
+            }, 200);
         }
 
         setTimeout(applyAddr, 0);
     });
-
-    function pickByBalance(addrs, onDone) {
-        Promise.all(addrs.map(function(addr) { return fetchBalance(addr).then(function(nano) { return { addr: addr, nano: nano }; }); }))
-            .then(function(results) {
-                results.sort(function(a, b) { return (b.nano || 0) - (a.nano || 0); });
-                var best = results[0];
-                onDone(best && best.addr ? best.addr : (addrs[0] || ''));
-            })
-            .catch(function() { onDone(addrs[0] || ''); });
-    }
 })();
