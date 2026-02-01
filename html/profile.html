@@ -48,8 +48,10 @@
                         var acc = conn.account || (conn.wallet && conn.wallet.account);
                         if (acc && typeof acc.address === 'string') addr = acc.address.trim();
                         if (!addr && conn.wallet && conn.wallet.accounts && conn.wallet.accounts.length) {
-                            var mainnet = conn.wallet.accounts.find(function(a) { return a.chain === -239 || a.chain === 0; }) || conn.wallet.accounts[0];
-                            if (mainnet && mainnet.address) addr = mainnet.address.trim();
+                            var list = conn.wallet.accounts.filter(function(a) { return (a.chain === -239 || a.chain === 0) && a.address; });
+                            if (!list.length) list = conn.wallet.accounts;
+                            var chosen = list.length > 1 ? list[list.length - 1] : list[0];
+                            if (chosen && chosen.address) addr = chosen.address.trim();
                         }
                     }
                     if (addr) {
@@ -2565,31 +2567,26 @@
                 .catch(function() { return '0.00'; });
         }
         
-        // Единая точка: адрес только из connector.account (ваш кошелёк Tonkeeper), не из других источников
+        // Единая точка: адрес только из connector.account. При нескольких аккаунтах предпочитаем W5 (последний — обычно Wallet V5).
         window.getTonkeeperAddress = function() {
             var conn = window.tonConnectConnector;
             var addr = '';
-            var source = '';
             if (conn && conn.connected) {
                 var acc = conn.account || (conn.wallet && conn.wallet.account);
                 if (acc && typeof acc.address === 'string' && acc.address.trim()) {
                     addr = acc.address.trim();
-                    source = 'connector.account';
                 }
                 if (!addr && conn.wallet && conn.wallet.accounts && conn.wallet.accounts.length) {
-                    var mainnet = conn.wallet.accounts.find(function(a) { return (a.chain === -239 || a.chain === 0) && a.address; }) || conn.wallet.accounts[0];
-                    if (mainnet && mainnet.address) {
-                        addr = mainnet.address.trim();
-                        source = 'wallet.accounts';
-                    }
+                    var list = conn.wallet.accounts.filter(function(a) { return (a.chain === -239 || a.chain === 0) && a.address; });
+                    if (!list.length) list = conn.wallet.accounts;
+                    // W5 обычно последний в списке (Tonkeeper: [v4, v5]). Берём последний — это Wallet V5.
+                    var chosen = list.length > 1 ? list[list.length - 1] : list[0];
+                    if (chosen && chosen.address) addr = chosen.address.trim();
                 }
             }
             if (!addr) {
                 var saved = localStorage.getItem('jetstore_tonkeeper_address') || '';
-                if (saved && saved.trim()) {
-                    addr = saved.trim();
-                    source = 'localStorage';
-                }
+                if (saved && saved.trim()) addr = saved.trim();
             }
             return addr;
         };
