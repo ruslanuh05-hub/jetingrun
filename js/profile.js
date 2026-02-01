@@ -139,32 +139,37 @@ function fetchProfileAvatar() {
 function loadUserData() {
     console.log('Загрузка данных пользователя...');
     
-    // Сначала получаем ID пользователя
     let userId = null;
-    
-    // Загружаем из Telegram
     const tg = window.Telegram?.WebApp;
-    const initData = tg?.initDataUnsafe;
-    
-    if (initData?.user) {
-        userId = initData.user.id;
+    var initUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+
+    // После редиректа с корня на html/ — Telegram может быть недоступен; данные в sessionStorage
+    if (!initUser) {
+        try {
+            var saved = sessionStorage.getItem('jet_tg_user');
+            if (saved) initUser = JSON.parse(saved);
+        } catch (e) {}
+    }
+    if (!initUser && window.userData && window.userData.id && window.userData.id !== 'test_user_default') {
+        initUser = { id: window.userData.id, username: window.userData.username, first_name: window.userData.firstName, last_name: window.userData.lastName, photo_url: window.userData.photoUrl };
+    }
+
+    if (initUser) {
+        userId = initUser.id;
         userData.id = userId;
-        userData.username = initData.user.username || '';
-        userData.firstName = initData.user.first_name || '';
-        userData.lastName = initData.user.last_name || '';
-        userData.photoUrl = initData.user.photo_url || null;
-        
+        userData.username = initUser.username || '';
+        userData.firstName = initUser.first_name || '';
+        userData.lastName = initUser.last_name || '';
+        userData.photoUrl = initUser.photo_url || null;
         console.log('Пользователь загружен из Telegram:', userId);
     } else {
-        // Для тестирования вне Telegram - используем ФИКСИРОВАННЫЙ ID
         userId = 'test_user_default';
         userData.id = userId;
         userData.username = 'test_user';
         userData.firstName = 'Тестовый';
         userData.lastName = 'Пользователь';
         userData.photoUrl = null;
-        
-        console.log('✅ Используются тестовые данные с фиксированным ID:', userId);
+        console.log('Тестовый пользователь (Telegram не найден или initData пуст)');
     }
     
     // КРИТИЧЕСКИ ВАЖНО: Убеждаемся, что ID всегда строка

@@ -165,9 +165,19 @@ document.addEventListener('DOMContentLoaded', function() {
 // Инициализация пользователя
 function initializeUserData() {
     console.log('Инициализация данных пользователя...');
-    // Всегда читаем Telegram в момент вызова — объект может появиться после загрузки скрипта
     var tg = getTg();
-    var initUser = tg?.initDataUnsafe?.user;
+    var initUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+
+    // Если открыли из корня (/) и сделали редирект в html/index.html — Telegram есть только в первом документе.
+    // Данные пользователя сохраняются в sessionStorage на корневой странице перед редиректом.
+    if (!initUser) {
+        try {
+            var saved = sessionStorage.getItem('jet_tg_user');
+            if (saved) {
+                initUser = JSON.parse(saved);
+            }
+        } catch (e) {}
+    }
 
     var userId = null;
     if (initUser) {
@@ -179,7 +189,6 @@ function initializeUserData() {
         window.userData.photoUrl = initUser.photo_url || null;
         console.log('Пользователь из Telegram:', userId);
     } else {
-        // Вне Telegram или initData ещё не внедрён — тестовый пользователь
         userId = 'test_user_default';
         window.userData.id = String(userId);
         window.userData.username = 'test_user';

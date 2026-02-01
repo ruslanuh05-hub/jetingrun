@@ -14,7 +14,21 @@ class Database {
         try {
             const tg = window.Telegram?.WebApp;
             const initData = tg?.initDataUnsafe;
-            const tgId = initData?.user?.id ? String(initData.user.id) : 'test_user_default';
+            let tgId = initData?.user?.id ? String(initData.user.id) : null;
+            // После редиректа с корня на html/index.html Telegram может быть недоступен — берём из sessionStorage
+            if (!tgId) {
+                try {
+                    const saved = sessionStorage.getItem('jet_tg_user');
+                    if (saved) {
+                        const user = JSON.parse(saved);
+                        if (user && user.id) tgId = String(user.id);
+                    }
+                } catch (e) {}
+            }
+            if (!tgId && window.userData && window.userData.id && window.userData.id !== 'test_user_default') {
+                tgId = String(window.userData.id);
+            }
+            tgId = tgId || 'test_user_default';
 
             let storedId = localStorage.getItem(this.userIdKey);
 
