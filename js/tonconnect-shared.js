@@ -10,19 +10,55 @@
     function isRawAddress(addr) {
         if (!addr || typeof addr !== 'string') return false;
         var s = addr.trim();
-        return /^0:[0-9a-fA-F]{64}$/.test(s);
+        var parts = s.split(':');
+        if (parts.length !== 2) return false;
+        var wc = parseInt(parts[0], 10);
+        if (isNaN(wc) || wc < -128 || wc > 127) return false;
+        var hash = parts[1];
+        return /^[0-9a-fA-F]{64}$/.test(hash);
+    }
+
+    function crc16bytes(data) {
+        var poly = 0x1021, reg = 0, i, byte, mask;
+        for (i = 0; i < data.length + 2; i++) {
+            byte = i < data.length ? data[i] : 0;
+            for (mask = 0x80; mask > 0; mask >>= 1) {
+                reg = reg << 1;
+                if (byte & mask) reg += 1;
+                if (reg > 0xffff) { reg &= 0xffff; reg ^= poly; }
+            }
+        }
+        return [Math.floor(reg / 256), reg % 256];
+    }
+
+    function rawToUserFriendly(addr) {
+        try {
+            var s = addr.trim(), parts = s.split(':');
+            var wc = parseInt(parts[0], 10);
+            var hashHex = parts[1];
+            var hash = [];
+            for (var i = 0; i < 64; i += 2) hash.push(parseInt(hashHex.substr(i, 2), 16));
+            var wcByte = (wc < 0) ? (wc + 256) : wc;
+            var addrBuf = [0x11, wcByte].concat(hash);
+            var crc = crc16bytes(addrBuf);
+            var total = addrBuf.concat(crc);
+            var b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+            var str = '', n = total.length, i, j;
+            for (i = 0; i < n; i += 3) {
+                j = (total[i] << 16) | ((total[i + 1] || 0) << 8) | (total[i + 2] || 0);
+                str += b64[j >> 18] + b64[(j >> 12) & 63] + b64[(j >> 6) & 63] + b64[j & 63];
+            }
+            str = str.slice(0, (n * 4 + 2) / 3).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            return str;
+        } catch (e) { return addr; }
     }
 
     function toUserFriendlyAddress(addr, onDone) {
         if (!addr || !onDone) return;
-        if (!isRawAddress(addr)) { onDone(addr.trim()); return; }
-        fetch('https://toncenter.com/api/v2/packAddress?address=' + encodeURIComponent(addr.trim()))
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                var result = (d && d.ok && d.result) ? String(d.result).trim() : addr.trim();
-                onDone(result);
-            })
-            .catch(function() { onDone(addr.trim()); });
+        var s = addr.trim();
+        if (!isRawAddress(s)) { onDone(s); return; }
+        var result = rawToUserFriendly(s);
+        onDone(result || s);
     }
 
     function getTgUserId() {
