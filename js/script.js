@@ -1,15 +1,11 @@
 // script.js - Исправленный скрипт
-// Не кэшируем Telegram.WebApp при загрузке — в Mini App он может появиться чуть позже
-function getTg() { return window.Telegram?.WebApp; }
+const tg = window.Telegram?.WebApp;
 
-// Инициализация приложения (вызов после загрузки, когда Telegram уже мог внедрить объект)
-function initTelegramWebApp() {
-    var tg = getTg();
-    if (tg) {
-        tg.expand();
-        tg.MainButton.hide();
-        tg.BackButton.hide();
-    }
+// Инициализация приложения
+if (tg) {
+    tg.expand();
+    tg.MainButton.hide();
+    tg.BackButton.hide();
 }
 
 // Данные пользователя - ГЛОБАЛЬНЫЕ для связи между файлами
@@ -42,34 +38,15 @@ window.currentGameCategory = null;
 let currentSupercellGame = null;
 window.currentSupercellGame = null;
 
-// API бота: сайт на GitHub Pages, бот на хостинге (Railway/Render). URL бота сохраняется в localStorage.
+// API бота: localhost → localhost:3000; GitHub Pages → из config.js (JET_BOT_API_URL) или localStorage.
 (function() {
     var host = (typeof window !== 'undefined' && window.location?.hostname) ? window.location.hostname.toLowerCase() : '';
     if (host === 'localhost' || host === '127.0.0.1') {
         window.JET_API_BASE = 'http://localhost:3000';
     } else {
-        // GitHub Pages или другой хостинг — берём URL бота из config.js или localStorage
         window.JET_API_BASE = window.JET_BOT_API_URL || localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '';
     }
 })();
-
-// Загрузка аватарки текущего пользователя через Bot API (в initData photo_url часто отсутствует)
-function fetchCurrentUserAvatar() {
-    if (!window.userData?.id || window.userData.photoUrl) return;
-    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || '';
-    if (!apiBase) return;
-    var url = apiBase.replace(/\/$/, '') + '/api/telegram/avatar?user_id=' + encodeURIComponent(String(window.userData.id));
-    fetch(url)
-        .then(function(r) { return r.json().catch(function() { return null; }); })
-        .then(function(data) {
-            if (data && data.avatar) {
-                window.userData.photoUrl = data.avatar;
-                if (typeof updateUserDisplay === 'function') updateUserDisplay();
-                if (typeof updateStoreDisplay === 'function') updateStoreDisplay();
-            }
-        })
-        .catch(function() {});
-}
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
@@ -86,45 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('⚠️ window.Database не найден');
     }
     
-    // Инициализация Telegram Web App (expand, кнопки) — в момент загрузки объект уже может быть
-    initTelegramWebApp();
-    // ВАЖНО: Инициализируем пользователя ПЕРВЫМ делом (читаем initData в момент вызова)
+    // ВАЖНО: Инициализируем пользователя ПЕРВЫМ делом, чтобы загрузить баланс из базы
     initializeUserData();
-    // Если получили тестового пользователя, но Telegram есть — повторная попытка через 400 мс (позднее внедрение initData)
-    if (window.userData.id === 'test_user_default' && getTg()) {
-        setTimeout(function() {
-            var u = getTg()?.initDataUnsafe?.user;
-            if (u) {
-                initializeUserData();
-                fetchCurrentUserAvatar();
-                if (typeof updateUserDisplay === 'function') updateUserDisplay();
-                if (typeof updateStoreDisplay === 'function') updateStoreDisplay();
-            }
-        }, 400);
-    }
-    // Аватар из TG в initData часто нет — подгружаем через API
-    fetchCurrentUserAvatar();
-    
-    // GitHub Pages: если URL бота не задан в config.js — запросить один раз
-    (function() {
-        var h = (window.location?.hostname || '').toLowerCase();
-        var isExternal = h !== 'localhost' && h !== '127.0.0.1';
-        if (isExternal && !(window.getJetApiBase && window.getJetApiBase())) {
-            if (!sessionStorage.getItem('jet_api_prompt_shown')) {
-                sessionStorage.setItem('jet_api_prompt_shown', '1');
-                setTimeout(function() {
-                    if (window.getJetApiBase && window.getJetApiBase()) return;
-                    var url = typeof prompt === 'function' ? prompt(
-                        'Введите URL бота (Railway/Render):\n\nПример: https://jet-store-bot.up.railway.app'
-                    ) : '';
-                    if (url && (url = url.trim().replace(/\/$/, ''))) {
-                        try { localStorage.setItem('jet_bot_api_url', url); localStorage.setItem('jet_api_base', url); } catch (e) {}
-                        if (typeof showStoreNotification === 'function') showStoreNotification('URL бота сохранён.', 'success');
-                    }
-                }, 1000);
-            }
-        }
-    })();
     
     // Загружаем товары для активного раздела
     loadProductsForSection(currentSection);
@@ -181,36 +121,30 @@ document.addEventListener('DOMContentLoaded', function() {
 // Инициализация пользователя
 function initializeUserData() {
     console.log('Инициализация данных пользователя...');
-    var tg = getTg();
-    var initUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-
-    // Если открыли из корня (/) и сделали редирект в html/index.html — Telegram есть только в первом документе.
-    // Данные пользователя сохраняются в sessionStorage на корневой странице перед редиректом.
-    if (!initUser) {
-        try {
-            var saved = sessionStorage.getItem('jet_tg_user');
-            if (saved) {
-                initUser = JSON.parse(saved);
-            }
-        } catch (e) {}
-    }
-
-    var userId = null;
-    if (initUser) {
-        userId = initUser.id;
+    
+    // Сначала получаем ID пользователя
+    let userId = null;
+    
+    // Проверяем Telegram Web App
+    if (tg?.initDataUnsafe?.user) {
+        const user = tg.initDataUnsafe.user;
+        userId = user.id;
         window.userData.id = userId;
-        window.userData.username = initUser.username || '';
-        window.userData.firstName = initUser.first_name || '';
-        window.userData.lastName = initUser.last_name || '';
-        window.userData.photoUrl = initUser.photo_url || null;
+        window.userData.username = user.username || '';
+        window.userData.firstName = user.first_name || '';
+        window.userData.lastName = user.last_name || '';
+        window.userData.photoUrl = user.photo_url || null;
+        
         console.log('Пользователь из Telegram:', userId);
     } else {
+        // Для тестирования вне Telegram - используем ФИКСИРОВАННЫЙ ID
         userId = 'test_user_default';
         window.userData.id = String(userId);
         window.userData.username = 'test_user';
         window.userData.firstName = 'Тестовый';
         window.userData.lastName = 'Пользователь';
-        console.log('Тестовый пользователь (Telegram не найден или initData пуст)');
+        
+        console.log('✅ Тестовый пользователь с фиксированным ID:', userId);
     }
     
     // КРИТИЧЕСКИ ВАЖНО: Убеждаемся, что ID всегда строка
@@ -369,13 +303,6 @@ function saveUserToDatabase() {
     }
 }
 
-// URL аватарки-заглушки по имени (если нет фото из TG)
-function getFallbackAvatarUrl() {
-    var name = (window.userData && (window.userData.firstName || window.userData.username || window.userData.lastName)) || '';
-    if (!name) return '';
-    return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(String(name).trim() || 'U') + '&background=00d4ff&color=fff&size=128';
-}
-
 // Обновление отображения пользователя
 function updateUserDisplay() {
     // Обновляем аватар в старом меню
@@ -383,13 +310,10 @@ function updateUserDisplay() {
     if (userAvatar) {
         if (window.userData.photoUrl) {
             userAvatar.innerHTML = `<img src="${window.userData.photoUrl}" alt="Avatar">`;
+        } else if (window.userData.firstName) {
+            userAvatar.textContent = window.userData.firstName[0].toUpperCase();
         } else {
-            var fallback = getFallbackAvatarUrl();
-            if (fallback) {
-                userAvatar.innerHTML = '<img src="' + fallback + '" alt="Avatar">';
-            } else {
-                userAvatar.textContent = '👤';
-            }
+            userAvatar.textContent = '👤';
         }
     }
     
@@ -968,7 +892,7 @@ function lookupStarsRecipient() {
         return;
     }
     setStarsRecipientState('loading', { username: username });
-    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var url = (apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '');
     if (!url) {
         setStarsRecipientState('found', { username: username, firstName: username });
@@ -1038,7 +962,7 @@ function lookupPremiumRecipient() {
         return;
     }
     setPremiumRecipientState('loading', { username: username });
-    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var url = apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '';
     if (!url) {
         setPremiumRecipientState('found', { username: username, firstName: username });
@@ -1299,7 +1223,7 @@ function confirmPurchase() {
     if (window.userData.currencies.RUB >= price) {
         // Убеждаемся, что ID есть
         if (!window.userData.id) {
-            const tg = getTg();
+            const tg = window.Telegram?.WebApp;
             const initData = tg?.initDataUnsafe;
             if (initData?.user?.id) {
                 window.userData.id = String(initData.user.id);
@@ -1425,7 +1349,6 @@ function showSuccessMessage(productName, price) {
 
 // Отправка данных о покупке в бота
 function sendPurchaseToBot(productName, price) {
-    var tg = getTg();
     if (tg) {
         const data = {
             action: 'purchase',
@@ -1466,7 +1389,6 @@ function setupEventListeners() {
     }
     
     // Обработка нажатия кнопки "Назад" в Telegram
-    var tg = getTg();
     if (tg) {
         tg.onEvent('backButtonClicked', function() {
             if (document.getElementById('buyPopup').classList.contains('active')) {
@@ -1480,7 +1402,6 @@ function setupEventListeners() {
 
 // Функции для взаимодействия с ботом
 function sendDataToBot(data) {
-    var tg = getTg();
     if (tg) {
         tg.sendData(JSON.stringify(data));
     }
@@ -2426,15 +2347,13 @@ function confirmPayment() {
     var confirmBtn = document.getElementById('paymentWaitingConfirmBtn');
     var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) {
-        var url = typeof prompt !== 'undefined' ? prompt(
-            'Введите URL бота (Railway/Render):\n\nПример: https://jet-store-bot.up.railway.app'
-        ) : '';
+        var url = typeof prompt !== 'undefined' ? prompt('Введите URL бота (Railway):\n\nПример: https://jet-store-bot-production.up.railway.app') : '';
         if (url && (url = url.trim().replace(/\/$/, ''))) {
-            try { localStorage.setItem('jet_bot_api_url', url); localStorage.setItem('jet_api_base', url); } catch (e) {}
+            try { localStorage.setItem('jet_api_base', url); } catch (e) {}
             window.JET_API_BASE = url;
             if (typeof showStoreNotification === 'function') showStoreNotification('Адрес API сохранён. Нажмите «Подтвердить оплату» снова.', 'success');
         } else {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Укажите URL бота (Railway/Render).', 'error');
+            if (typeof showStoreNotification === 'function') showStoreNotification('Укажите адрес API бота (сервер, где запущен бот).', 'error');
         }
         return;
     }
@@ -2645,7 +2564,7 @@ function openPaymentPage() {
 
     // Звёзды: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
     if (data.purchase?.type === 'stars') {
-        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
         var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
         if (!apiBase || !recipient || !starsAmount) {
@@ -2654,65 +2573,10 @@ function openPaymentPage() {
         }
         if (statusEl) statusEl.textContent = 'Создаём заказ...';
         if (primaryBtn) primaryBtn.disabled = true;
-        var addrK = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_address') : 'jetstore_tonkeeper_address';
-        var walletAddress = (typeof localStorage !== 'undefined' && localStorage.getItem(addrK)) || '';
-        if (!walletAddress || walletAddress === 'test_user_default') walletAddress = '';
-        var bodyStar = { recipient: recipient, stars_amount: starsAmount };
-        if (walletAddress) bodyStar.wallet_address = walletAddress;
         fetch(apiBase + '/api/fragment/create-star-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bodyStar)
-        })
-            .then(function(r) { return r.json().catch(function() { return {}; }); })
-            .then(function(res) {
-                if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (res.success && res.order_id) {
-                    window.paymentData = window.paymentData || {};
-                    window.paymentData.order_id = res.order_id;
-                    if (res.payment_url) window.paymentData.payment_url = res.payment_url;
-                    var payUrl = res.payment_url || res.pay_url || data.payment_url || data.pay_url;
-                    if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
-                        if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
-                        else window.open(payUrl, '_blank');
-                    } else {
-                        if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment, затем нажмите «Подтвердить оплату».', 'info');
-                    }
-                } else {
-                    if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа.', 'error');
-                }
-            })
-            .catch(function(err) {
-                if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-                var msg = 'Ошибка создания заказа. Проверьте адрес API бота (config.js: JET_BOT_API_URL или jet_bot_api_url в localStorage).';
-                if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
-            });
-        return;
-    }
-
-    // Premium: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
-    if (data.purchase?.type === 'premium') {
-        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-        var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
-        var months = data.purchase.months || 3;
-        if ([3, 6, 12].indexOf(months) === -1) months = 3;
-        if (!apiBase || !recipient) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Укажите получателя.', 'error');
-            return;
-        }
-        if (statusEl) statusEl.textContent = 'Создаём заказ...';
-        if (primaryBtn) primaryBtn.disabled = true;
-        var addrK2 = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_address') : 'jetstore_tonkeeper_address';
-        var walletAddressPremium = (typeof localStorage !== 'undefined' && localStorage.getItem(addrK2)) || '';
-        if (!walletAddressPremium || walletAddressPremium === 'test_user_default') walletAddressPremium = '';
-        var bodyPremium = { recipient: recipient, months: months };
-        if (walletAddressPremium) bodyPremium.wallet_address = walletAddressPremium;
-        fetch(apiBase + '/api/fragment/create-premium-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bodyPremium)
+            body: JSON.stringify({ recipient: recipient, stars_amount: starsAmount })
         })
             .then(function(r) { return r.json().catch(function() { return {}; }); })
             .then(function(res) {
@@ -2736,8 +2600,51 @@ function openPaymentPage() {
             .catch(function() {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
-                var msg = 'Ошибка связи с ботом. Укажите URL API (config.js: JET_BOT_API_URL).';
-                if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания заказа.', 'error');
+            });
+        return;
+    }
+
+    // Premium: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
+    if (data.purchase?.type === 'premium') {
+        var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
+        var months = data.purchase.months || 3;
+        if ([3, 6, 12].indexOf(months) === -1) months = 3;
+        if (!apiBase || !recipient) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Укажите получателя.', 'error');
+            return;
+        }
+        if (statusEl) statusEl.textContent = 'Создаём заказ...';
+        if (primaryBtn) primaryBtn.disabled = true;
+        fetch(apiBase + '/api/fragment/create-premium-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient: recipient, months: months })
+        })
+            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(res) {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (res.success && res.order_id) {
+                    window.paymentData = window.paymentData || {};
+                    window.paymentData.order_id = res.order_id;
+                    if (res.payment_url) window.paymentData.payment_url = res.payment_url;
+                    var payUrl = res.payment_url || res.pay_url || data.payment_url || data.pay_url;
+                    if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
+                        if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
+                        else window.open(payUrl, '_blank');
+                    } else {
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment, затем нажмите «Подтвердить оплату».', 'info');
+                    }
+                } else {
+                    if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа.', 'error');
+                }
+            })
+            .catch(function() {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания заказа.', 'error');
             });
         return;
     }
@@ -2787,14 +2694,12 @@ function openPaymentPage() {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
                 } else {
                     var errMsg = res.message || res.error || 'Ошибка создания счёта CryptoBot';
-                    console.error('CryptoBot error:', res);
                     if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
                 }
             })
             .catch(function(err) {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
-                console.error('CryptoBot fetch error:', err);
                 var msg = 'Ошибка связи с ботом. Проверьте URL бота: ' + apiBase;
                 if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
             });

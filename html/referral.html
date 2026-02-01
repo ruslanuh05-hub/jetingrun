@@ -732,7 +732,7 @@
                 Database.init();
             }
             // Загружаем username бота с сервера
-            const apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || (typeof localStorage !== 'undefined' && localStorage.getItem('jet_api_base')) || window.location.origin;
+            const apiBase = window.JET_API_BASE || (typeof localStorage !== 'undefined' && localStorage.getItem('jet_api_base')) || window.location.origin;
             fetch(apiBase + '/api/config').then(r => r.json()).then(c => {
                 if (c && c.bot_username) {
                     window.JET_BOT_USERNAME = c.bot_username;

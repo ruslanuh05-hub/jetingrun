@@ -14,21 +14,7 @@ class Database {
         try {
             const tg = window.Telegram?.WebApp;
             const initData = tg?.initDataUnsafe;
-            let tgId = initData?.user?.id ? String(initData.user.id) : null;
-            // После редиректа с корня на html/index.html Telegram может быть недоступен — берём из sessionStorage
-            if (!tgId) {
-                try {
-                    const saved = sessionStorage.getItem('jet_tg_user');
-                    if (saved) {
-                        const user = JSON.parse(saved);
-                        if (user && user.id) tgId = String(user.id);
-                    }
-                } catch (e) {}
-            }
-            if (!tgId && window.userData && window.userData.id && window.userData.id !== 'test_user_default') {
-                tgId = String(window.userData.id);
-            }
-            tgId = tgId || 'test_user_default';
+            const tgId = initData?.user?.id ? String(initData.user.id) : 'test_user_default';
 
             let storedId = localStorage.getItem(this.userIdKey);
 
@@ -420,42 +406,6 @@ class Database {
             return {};
         }
     }
-
-    getUsers() {
-        return this.getAllUsers();
-    }
-
-    // Настройки админки (пароль хранится в jetStoreAdminSettings)
-    getAdminSettings() {
-        try {
-            const defaultSettings = {
-                password: 'admin',
-                currencyRates: { USDT: 80, USD: 90, EUR: 100, TON: 600 }
-            };
-            const saved = localStorage.getItem('jetStoreAdminSettings');
-            if (!saved) return defaultSettings;
-            const parsed = JSON.parse(saved);
-            return { ...defaultSettings, ...parsed };
-        } catch (e) {
-            return { password: 'admin' };
-        }
-    }
-
-    checkAdminPassword(inputPassword) {
-        const settings = this.getAdminSettings();
-        return settings.password && String(inputPassword) === String(settings.password);
-    }
-
-    changeAdminPassword(newPassword) {
-        try {
-            const settings = this.getAdminSettings();
-            settings.password = String(newPassword);
-            localStorage.setItem('jetStoreAdminSettings', JSON.stringify(settings));
-            return true;
-        } catch (e) {
-            return false;
-        }
-    }
     
     // Получение курсов валют
     getCurrencyRates() {
@@ -488,44 +438,6 @@ class Database {
         } catch (error) {
             console.error('Ошибка сохранения курсов валют:', error);
             return false;
-        }
-    }
-
-    /**
-     * Очистка всей базы данных (localStorage и sessionStorage).
-     * Удаляет все ключи: jetstore_*, jetStore*, jet_*, tonconnect*, ton-connect*.
-     */
-    clearAll() {
-        try {
-            let count = 0;
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && (
-                    key.indexOf('jetstore_') === 0 ||
-                    key.indexOf('jetStore') === 0 ||
-                    key.indexOf('jet_') === 0 ||
-                    key.indexOf('jet_api') === 0 ||
-                    key.indexOf('tonconnect') !== -1 ||
-                    key.indexOf('ton-connect') !== -1
-                )) {
-                    keysToRemove.push(key);
-                }
-            }
-            keysToRemove.forEach(k => {
-                localStorage.removeItem(k);
-                count++;
-            });
-            try {
-                ['jet_tg_user', 'jet_tg_init_data', 'profileOpenTab', 'assetsOpenDrawer', 'openReferral'].forEach(function(k) {
-                    sessionStorage.removeItem(k);
-                });
-            } catch (e) {}
-            console.log('✅ База данных очищена. Удалено записей:', count);
-            return count;
-        } catch (error) {
-            console.error('Ошибка очистки базы данных:', error);
-            return 0;
         }
     }
 }

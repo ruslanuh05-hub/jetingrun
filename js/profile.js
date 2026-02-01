@@ -84,21 +84,11 @@ document.addEventListener('DOMContentLoaded', function() {
         Database.init();
     }
     
-    // Загружаем данные пользователя (читаем window.Telegram в момент вызова)
+    // Загружаем данные пользователя
     loadUserData();
     
     // Обновляем отображение профиля
     updateProfileDisplay();
-    // Если получили тестового пользователя, но Telegram есть — повторная попытка через 400 мс (позднее внедрение initData)
-    if (userData.id === 'test_user_default' && window.Telegram?.WebApp) {
-        setTimeout(function() {
-            loadUserData();
-            updateProfileDisplay();
-            fetchProfileAvatar();
-        }, 400);
-    }
-    // Аватар из TG в initData часто нет — подгружаем через API
-    fetchProfileAvatar();
     
     // Загружаем историю покупок
     loadUserPurchases();
@@ -117,59 +107,36 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Профиль инициализирован');
 });
 
-// Загрузка аватарки через Bot API (в initData photo_url часто отсутствует)
-function fetchProfileAvatar() {
-    if (!userData.id || userData.photoUrl) return;
-    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-    if (!apiBase) return;
-    var url = apiBase.replace(/\/$/, '') + '/api/telegram/avatar?user_id=' + encodeURIComponent(String(userData.id));
-    fetch(url)
-        .then(function(r) { return r.json().catch(function() { return null; }); })
-        .then(function(data) {
-            if (data && data.avatar) {
-                userData.photoUrl = data.avatar;
-                if (window.userData) window.userData.photoUrl = data.avatar;
-                if (typeof updateProfileDisplay === 'function') updateProfileDisplay();
-            }
-        })
-        .catch(function() {});
-}
-
 // Загрузка данных пользователя
 function loadUserData() {
     console.log('Загрузка данных пользователя...');
     
+    // Сначала получаем ID пользователя
     let userId = null;
+    
+    // Загружаем из Telegram
     const tg = window.Telegram?.WebApp;
-    var initUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-
-    // После редиректа с корня на html/ — Telegram может быть недоступен; данные в sessionStorage
-    if (!initUser) {
-        try {
-            var saved = sessionStorage.getItem('jet_tg_user');
-            if (saved) initUser = JSON.parse(saved);
-        } catch (e) {}
-    }
-    if (!initUser && window.userData && window.userData.id && window.userData.id !== 'test_user_default') {
-        initUser = { id: window.userData.id, username: window.userData.username, first_name: window.userData.firstName, last_name: window.userData.lastName, photo_url: window.userData.photoUrl };
-    }
-
-    if (initUser) {
-        userId = initUser.id;
+    const initData = tg?.initDataUnsafe;
+    
+    if (initData?.user) {
+        userId = initData.user.id;
         userData.id = userId;
-        userData.username = initUser.username || '';
-        userData.firstName = initUser.first_name || '';
-        userData.lastName = initUser.last_name || '';
-        userData.photoUrl = initUser.photo_url || null;
+        userData.username = initData.user.username || '';
+        userData.firstName = initData.user.first_name || '';
+        userData.lastName = initData.user.last_name || '';
+        userData.photoUrl = initData.user.photo_url || null;
+        
         console.log('Пользователь загружен из Telegram:', userId);
     } else {
+        // Для тестирования вне Telegram - используем ФИКСИРОВАННЫЙ ID
         userId = 'test_user_default';
         userData.id = userId;
         userData.username = 'test_user';
         userData.firstName = 'Тестовый';
         userData.lastName = 'Пользователь';
         userData.photoUrl = null;
-        console.log('Тестовый пользователь (Telegram не найден или initData пуст)');
+        
+        console.log('✅ Используются тестовые данные с фиксированным ID:', userId);
     }
     
     // КРИТИЧЕСКИ ВАЖНО: Убеждаемся, что ID всегда строка
@@ -361,15 +328,14 @@ function loadUserData() {
 function updateProfileDisplay() {
     console.log('Обновление отображения профиля...');
     
-    // Обновляем аватар (фото из TG или заглушка по имени)
+    // Обновляем аватар
     const profileAvatar = document.getElementById('profileAvatar');
     if (profileAvatar) {
         if (userData.photoUrl) {
             profileAvatar.innerHTML = `<img src="${userData.photoUrl}" alt="Avatar">`;
         } else {
-            const name = userData.firstName || userData.username || userData.lastName || 'U';
-            const fallbackUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(String(name).trim()) + '&background=00d4ff&color=fff&size=256';
-            profileAvatar.innerHTML = '<img src="' + fallbackUrl + '" alt="Avatar">';
+            const initials = userData.firstName ? userData.firstName[0].toUpperCase() : 'U';
+            profileAvatar.innerHTML = `<span style="font-size: 2.5rem;">${initials}</span>`;
         }
     }
     
@@ -591,6 +557,8 @@ function showEmptyOrders() {
 }
 
 // ==================== НАСТРОЙКИ ПОПОЛНЕНИЯ ====================
+// CryptoBot: токен на бэкенде (CRYPTO_PAY_TOKEN в Railway). Фронт вызывает /api/cryptobot/create-invoice
+
 // Курс USDT к рублю (по умолчанию)
 let USDT_RATE = parseFloat(localStorage.getItem('jetstore_usdt_rate')) || 80;
 
@@ -740,7 +708,6 @@ async function processUsdtDeposit() {
             startPaymentCheck(data.invoice_id, rubAmount);
         } else {
             const errMsg = data.message || data.error || 'Ошибка создания счёта';
-            console.error('CryptoBot API error:', data);
             throw new Error(errMsg);
         }
     } catch (error) {
@@ -876,13 +843,13 @@ function processSbpDeposit() {
     showNotification(`Баланс пополнен на ${amount.toLocaleString('ru-RU')} ₽`, 'success');
 }
 
-// Проверка статуса платежа CryptoBot через бэкенд
+// Проверка статуса платежа через бэкенд
 async function startPaymentCheck(invoiceId, rubAmount) {
     const apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) return;
     
     let attempts = 0;
-    const maxAttempts = 60;
+    const maxAttempts = 60; // 5 минут (каждые 5 сек)
     
     const checkInterval = setInterval(async () => {
         attempts++;
@@ -900,7 +867,7 @@ async function startPaymentCheck(invoiceId, rubAmount) {
             });
             const data = await response.json();
             
-            if (data.paid) {
+            if (data.paid === true) {
                 clearInterval(checkInterval);
                 localStorage.removeItem('jetstore_pending_payment');
                 processDeposit(rubAmount);

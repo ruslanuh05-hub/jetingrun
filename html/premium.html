@@ -389,7 +389,7 @@
                 var username = (inp.value || '').trim().replace(/^@/, '');
                 if (!username) { setPremiumRecipientStatePage('empty'); return; }
                 setPremiumRecipientStatePage('loading', { username: username });
-                var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || window.location.origin || '';
+                var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || window.location.origin || '';
                 var url = apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '';
                 if (!url) { setPremiumRecipientStatePage('found', { username: username, firstName: username }); return; }
                 fetch(url).then(function(r) { return r.json().catch(function() { return null; }); })

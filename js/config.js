@@ -1,10 +1,13 @@
 // Конфиг: сайт на GitHub Pages, бот на хостинге (Railway/Render).
 // Укажите URL бота после деплоя (например: https://jet-store-bot.up.railway.app)
-window.JET_BOT_API_URL = '';  // ← ВСТАВЬТЕ URL ВАШЕГО БОТА ЗДЕСЬ
+window.JET_BOT_API_URL = 'https://jet-store-bot-production.up.railway.app';
 window.JET_API_BASE = '';
 window.getJetApiBase = function() {
     var url = (window.JET_BOT_API_URL || window.JET_API_BASE || localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '').trim();
-    return url ? url.replace(/\/$/, '') : '';
+    if (!url) return '';
+    url = url.replace(/\/$/, '');
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    return url;
 };
 
 // Ключ localStorage для Tonkeeper, изолированный по Telegram user ID
