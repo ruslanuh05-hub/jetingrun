@@ -1,11 +1,15 @@
 // script.js - Исправленный скрипт
-const tg = window.Telegram?.WebApp;
+// Не кэшируем Telegram.WebApp при загрузке — в Mini App он может появиться чуть позже
+function getTg() { return window.Telegram?.WebApp; }
 
-// Инициализация приложения
-if (tg) {
-    tg.expand();
-    tg.MainButton.hide();
-    tg.BackButton.hide();
+// Инициализация приложения (вызов после загрузки, когда Telegram уже мог внедрить объект)
+function initTelegramWebApp() {
+    var tg = getTg();
+    if (tg) {
+        tg.expand();
+        tg.MainButton.hide();
+        tg.BackButton.hide();
+    }
 }
 
 // Данные пользователя - ГЛОБАЛЬНЫЕ для связи между файлами
@@ -87,8 +91,22 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('⚠️ window.Database не найден');
     }
     
-    // ВАЖНО: Инициализируем пользователя ПЕРВЫМ делом, чтобы загрузить баланс из базы
+    // Инициализация Telegram Web App (expand, кнопки) — в момент загрузки объект уже может быть
+    initTelegramWebApp();
+    // ВАЖНО: Инициализируем пользователя ПЕРВЫМ делом (читаем initData в момент вызова)
     initializeUserData();
+    // Если получили тестового пользователя, но Telegram есть — повторная попытка через 400 мс (позднее внедрение initData)
+    if (window.userData.id === 'test_user_default' && getTg()) {
+        setTimeout(function() {
+            var u = getTg()?.initDataUnsafe?.user;
+            if (u) {
+                initializeUserData();
+                fetchCurrentUserAvatar();
+                if (typeof updateUserDisplay === 'function') updateUserDisplay();
+                if (typeof updateStoreDisplay === 'function') updateStoreDisplay();
+            }
+        }, 400);
+    }
     // Аватар из TG в initData часто нет — подгружаем через API
     fetchCurrentUserAvatar();
     
@@ -147,30 +165,27 @@ document.addEventListener('DOMContentLoaded', function() {
 // Инициализация пользователя
 function initializeUserData() {
     console.log('Инициализация данных пользователя...');
-    
-    // Сначала получаем ID пользователя
-    let userId = null;
-    
-    // Проверяем Telegram Web App
-    if (tg?.initDataUnsafe?.user) {
-        const user = tg.initDataUnsafe.user;
-        userId = user.id;
+    // Всегда читаем Telegram в момент вызова — объект может появиться после загрузки скрипта
+    var tg = getTg();
+    var initUser = tg?.initDataUnsafe?.user;
+
+    var userId = null;
+    if (initUser) {
+        userId = initUser.id;
         window.userData.id = userId;
-        window.userData.username = user.username || '';
-        window.userData.firstName = user.first_name || '';
-        window.userData.lastName = user.last_name || '';
-        window.userData.photoUrl = user.photo_url || null;
-        
+        window.userData.username = initUser.username || '';
+        window.userData.firstName = initUser.first_name || '';
+        window.userData.lastName = initUser.last_name || '';
+        window.userData.photoUrl = initUser.photo_url || null;
         console.log('Пользователь из Telegram:', userId);
     } else {
-        // Для тестирования вне Telegram - используем ФИКСИРОВАННЫЙ ID
+        // Вне Telegram или initData ещё не внедрён — тестовый пользователь
         userId = 'test_user_default';
         window.userData.id = String(userId);
         window.userData.username = 'test_user';
         window.userData.firstName = 'Тестовый';
         window.userData.lastName = 'Пользователь';
-        
-        console.log('✅ Тестовый пользователь с фиксированным ID:', userId);
+        console.log('Тестовый пользователь (Telegram не найден или initData пуст)');
     }
     
     // КРИТИЧЕСКИ ВАЖНО: Убеждаемся, что ID всегда строка
@@ -1259,7 +1274,7 @@ function confirmPurchase() {
     if (window.userData.currencies.RUB >= price) {
         // Убеждаемся, что ID есть
         if (!window.userData.id) {
-            const tg = window.Telegram?.WebApp;
+            const tg = getTg();
             const initData = tg?.initDataUnsafe;
             if (initData?.user?.id) {
                 window.userData.id = String(initData.user.id);
@@ -1385,6 +1400,7 @@ function showSuccessMessage(productName, price) {
 
 // Отправка данных о покупке в бота
 function sendPurchaseToBot(productName, price) {
+    var tg = getTg();
     if (tg) {
         const data = {
             action: 'purchase',
@@ -1425,6 +1441,7 @@ function setupEventListeners() {
     }
     
     // Обработка нажатия кнопки "Назад" в Telegram
+    var tg = getTg();
     if (tg) {
         tg.onEvent('backButtonClicked', function() {
             if (document.getElementById('buyPopup').classList.contains('active')) {
@@ -1438,6 +1455,7 @@ function setupEventListeners() {
 
 // Функции для взаимодействия с ботом
 function sendDataToBot(data) {
+    var tg = getTg();
     if (tg) {
         tg.sendData(JSON.stringify(data));
     }

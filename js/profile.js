@@ -84,11 +84,19 @@ document.addEventListener('DOMContentLoaded', function() {
         Database.init();
     }
     
-    // Загружаем данные пользователя
+    // Загружаем данные пользователя (читаем window.Telegram в момент вызова)
     loadUserData();
     
     // Обновляем отображение профиля
     updateProfileDisplay();
+    // Если получили тестового пользователя, но Telegram есть — повторная попытка через 400 мс (позднее внедрение initData)
+    if (userData.id === 'test_user_default' && window.Telegram?.WebApp) {
+        setTimeout(function() {
+            loadUserData();
+            updateProfileDisplay();
+            fetchProfileAvatar();
+        }, 400);
+    }
     // Аватар из TG в initData часто нет — подгружаем через API
     fetchProfileAvatar();
     
