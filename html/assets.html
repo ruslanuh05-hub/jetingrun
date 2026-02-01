@@ -34,7 +34,8 @@
             background: linear-gradient(180deg, #0a0e27 0%, #1a1a3e 30%, #16213e 60%, #0f3460 100%);
             padding-bottom: 100px;
             position: relative;
-            overflow: hidden;
+            overflow-x: visible;
+            overflow-y: visible;
         }
         
         /* Анимация видео при загрузке */
@@ -346,6 +347,21 @@
             font-size: 1.1rem;
             font-weight: 700;
         }
+        .assets-drawer-ton-topup {
+            margin-top: 4px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .assets-drawer-ton-topup:hover {
+            background: rgba(0, 212, 255, 0.25);
+        }
         
         .assets-drawer-item {
             display: flex;
@@ -377,6 +393,18 @@
             color: #fff;
             font-size: 0.95rem;
             font-weight: 600;
+        }
+        
+        .assets-drawer-item-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .assets-drawer-item-hint {
+            font-size: 0.75rem !important;
+            font-weight: 500 !important;
+            color: rgba(255, 255, 255, 0.6) !important;
         }
         
         .back-btn {
@@ -628,6 +656,7 @@
             display: none;
             padding: 0 20px 20px 20px;
             animation: fadeIn 0.3s ease;
+            overflow: visible;
         }
         
         .assets-content.active {
@@ -1347,41 +1376,77 @@
             transition: transform 0.3s ease;
         }
         
-        /* Фильтры юзернеймов */
+        /* Фильтры юзернеймов: слева валюта, справа Аренда и Цена — в одну строку */
         .usernames-filters {
             display: flex;
-            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
             padding: 0 20px 16px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            overflow: visible;
+        }
+        
+        .usernames-filter-currency {
+            flex-shrink: 0;
+        }
+        
+        .usernames-filters-right-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            overflow: visible;
         }
         
         .usernames-filter-group {
             position: relative;
+            overflow: visible;
         }
         
         .usernames-filter-btn {
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
+            min-width: 88px;
+            min-height: 42px;
             padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
             color: #fff;
             font-size: 0.9rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            white-space: nowrap;
         }
         
         .usernames-filter-btn:hover {
             background: rgba(0, 212, 255, 0.15);
-            border-color: rgba(0, 212, 255, 0.3);
+            border-color: rgba(0, 212, 255, 0.35);
+        }
+        
+        .usernames-filter-btn:active {
+            transform: scale(0.98);
         }
         
         .usernames-filter-btn i {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        @media (max-width: 360px) {
+            .usernames-filters {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .usernames-filter-btn {
+                min-width: 76px;
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
         }
         
         .usernames-dropdown {
@@ -1392,10 +1457,13 @@
             background: #1a1a2e;
             border: 1px solid rgba(0, 212, 255, 0.2);
             border-radius: 10px;
-            min-width: 180px;
+            min-width: 240px;
+            width: max-content;
+            max-width: calc(100vw - 32px);
             z-index: 50;
             display: none;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            overflow: visible;
         }
         
         .usernames-dropdown.active {
@@ -1408,6 +1476,7 @@
             font-size: 0.9rem;
             cursor: pointer;
             transition: background 0.2s;
+            white-space: nowrap;
         }
         
         .usernames-dropdown-item:hover {
@@ -1420,6 +1489,13 @@
         
         .usernames-dropdown-item:last-child {
             border-radius: 0 0 10px 10px;
+        }
+        
+        /* Выпадающие списки «Аренда» и «Цена» прижаты к правому краю кнопки, чтобы не выходили за экран */
+        #usernameTypeDropdown,
+        #usernameSortDropdown {
+            left: auto;
+            right: 0;
         }
         
         .auction-table-header {
@@ -1453,15 +1529,14 @@
         .auction-item {
             display: grid;
             grid-template-columns: 2fr 1fr auto;
-            gap: 10px;
-            padding: 16px;
+            gap: 8px;
+            padding: 12px;
             align-items: center;
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
-            align-items: center;
         }
         
         .auction-item:hover {
@@ -1473,18 +1548,18 @@
         .auction-item-name {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
         }
         
         .auction-item-title {
             color: #00d4ff;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
         }
         
         .auction-item-subtitle {
-            color: #00d4ff;
-            font-size: 0.8rem;
+            color: rgba(0, 212, 255, 0.7);
+            font-size: 0.72rem;
         }
         
         .auction-item-value {
@@ -1492,13 +1567,99 @@
             flex-direction: column;
             align-items: flex-end;
             justify-content: center;
-            gap: 4px;
+            gap: 2px;
             position: relative;
         }
         
         .auction-item-duration {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.72rem;
+        }
+        /* Аренда: срок + К оплате + кнопка в один ряд */
+        .rent-duration-row {
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        .rent-duration-row label {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.72rem;
+        }
+        .rent-duration-select {
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-size: 0.78rem;
+            cursor: pointer;
+            min-width: 0;
+        }
+        .rent-total {
+            color: #00d4ff;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .rent-rent-btn {
+            padding: 8px 14px;
+            min-height: 40px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);
+            color: #000;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .rent-rent-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 12px rgba(0, 212, 255, 0.4);
+        }
+        
+        .auction-item-price-line {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+        .auction-item-price-line.ton-line {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .rent-pay-choice {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .rent-pay-btn {
+            padding: 6px 12px;
+            min-height: 36px;
+            min-width: 44px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+            color: rgba(255, 255, 255, 0.7);
             font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .rent-pay-btn.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);
+            color: #000;
+            border-color: transparent;
+        }
+        .rent-pay-btn:hover:not(.active) {
+            background: rgba(0, 212, 255, 0.2);
+            color: #fff;
         }
         
         .auction-item-arrow {
@@ -1510,9 +1671,9 @@
         .auction-item-price {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             color: #ffffff;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 700;
         }
         
@@ -1521,20 +1682,20 @@
         }
         
         .auction-item-price .ton-icon {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: #ffffff;
         }
         
         .auction-price-icon {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             object-fit: contain;
             vertical-align: middle;
         }
@@ -1645,31 +1806,568 @@
             }
             
             .auction-table-header {
-                grid-template-columns: 1.5fr 1fr 1fr;
+                grid-template-columns: 1fr 1fr;
                 padding: 10px 12px;
+                font-size: 0.7rem;
             }
             
             .auction-table-header span {
-                font-size: 0.75rem;
+                font-size: 0.7rem;
             }
             
+            /* Карточка юзернейма: колонка на мобильных */
             .auction-item {
-                grid-template-columns: 1.5fr 1fr 1fr;
+                display: flex;
+                flex-direction: column;
                 padding: 12px;
+                gap: 10px;
+                align-items: stretch;
+            }
+            
+            .auction-item-name {
+                order: 1;
+            }
+            
+            .auction-item-value {
+                order: 2;
+                align-items: flex-start;
+                text-align: left;
+            }
+            
+            .auction-item-arrow {
+                order: 3;
+                align-self: flex-end;
             }
             
             .auction-item-title {
-                font-size: 0.9rem;
+                font-size: 0.95rem;
+            }
+            
+            .auction-item-subtitle {
+                font-size: 0.7rem;
             }
             
             .auction-item-price {
+                font-size: 0.85rem;
+                flex-wrap: wrap;
+            }
+            
+            .auction-item-price-line {
+                font-size: 0.85rem;
+            }
+            
+            .auction-item-price-line.ton-line {
+                font-size: 0.8rem;
+            }
+            
+            .auction-item-duration {
+                font-size: 0.68rem;
+            }
+            
+            /* Срок + выбор оплаты + К оплате: в два ряда на узком экране */
+            .rent-duration-row {
+                margin-top: 8px;
+                gap: 8px;
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            
+            .rent-duration-row label {
+                font-size: 0.75rem;
+                width: 100%;
+            }
+            
+            .rent-duration-select {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+                min-height: 40px;
+            }
+            
+            .rent-pay-choice {
+                gap: 8px;
+            }
+            
+            .rent-pay-btn {
+                min-height: 40px;
+                min-width: 48px;
+                padding: 8px 14px;
+                font-size: 0.85rem;
+            }
+            
+            .rent-total {
                 font-size: 0.9rem;
+                width: 100%;
+                margin-top: 2px;
+            }
+            
+            .rent-rent-btn {
+                padding: 10px 16px;
+                min-height: 44px;
+                font-size: 0.9rem;
+                width: 100%;
             }
             
             .auction-status-badge {
                 font-size: 0.75rem;
                 padding: 3px 8px;
             }
+        }
+        
+        @media (max-width: 360px) {
+            .usernames-filters {
+                padding: 0 12px 12px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .usernames-filter-btn {
+                min-width: 70px;
+                padding: 8px 10px;
+                font-size: 0.82rem;
+            }
+            
+            .auction-table-header {
+                padding: 8px 12px;
+            }
+            
+            .auction-item {
+                padding: 10px;
+            }
+            
+            .rent-duration-row {
+                gap: 6px;
+            }
+        }
+        
+        /* Модальное окно «Моя аренда» */
+        .my-rentals-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .my-rentals-overlay.active {
+            display: block;
+        }
+        .my-rentals-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 94%;
+            max-width: 420px;
+            max-height: 85vh;
+            background: linear-gradient(180deg, #0a0e27 0%, #1a1a3e 50%, #16213e 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            z-index: 1001;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+        .my-rentals-modal.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .my-rentals-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+        }
+        .my-rentals-title {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .my-rentals-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .my-rentals-close:hover {
+            background: rgba(255, 70, 70, 0.3);
+        }
+        .my-rentals-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .my-rentals-tab {
+            flex: 1;
+            padding: 14px 10px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .my-rentals-tab:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .my-rentals-tab.active {
+            color: #fff;
+        }
+        .my-rentals-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: linear-gradient(90deg, #00d4ff, #40e0d0);
+            border-radius: 3px 3px 0 0;
+        }
+        .my-rentals-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            max-height: 55vh;
+        }
+        .my-rentals-tab-content {
+            display: none;
+        }
+        .my-rentals-tab-content.active {
+            display: block;
+        }
+        .my-rentals-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .my-rentals-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 20px;
+            text-align: center;
+        }
+        .my-rentals-empty i {
+            font-size: 3rem;
+            color: rgba(0, 212, 255, 0.3);
+            margin-bottom: 16px;
+        }
+        .my-rentals-empty p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+        .my-rentals-empty span {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+        /* Карточка арендованного юзернейма */
+        .rented-item {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+        .rented-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .rented-item-username {
+            color: #00d4ff;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .rented-item-days {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+        .rented-item-days.expiring {
+            background: rgba(255, 100, 100, 0.2);
+            color: #ff6b6b;
+        }
+        .rented-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .rented-item-btn {
+            flex: 1;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rented-item-btn.extend {
+            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);
+            color: #000;
+        }
+        .rented-item-btn.extend:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        }
+        .rented-item-btn.buy {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        .rented-item-btn.buy:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(0, 212, 255, 0.4);
+        }
+        
+        /* Модальное окно «Мои покупки» (история покупок в активах) */
+        .assets-purchases-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .assets-purchases-overlay.active { display: block; }
+        .assets-purchases-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 94%;
+            max-width: 420px;
+            max-height: 85vh;
+            background: linear-gradient(180deg, #0a0e27 0%, #1a1a3e 50%, #16213e 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            z-index: 1001;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+        .assets-purchases-modal.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .assets-purchases-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+        }
+        .assets-purchases-title {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .assets-purchases-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .assets-purchases-close:hover {
+            background: rgba(255, 70, 70, 0.3);
+        }
+        .assets-purchases-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            max-height: 60vh;
+        }
+        .assets-purchases-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .assets-purchase-item {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 14px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .assets-purchase-item:hover {
+            border-color: rgba(0, 212, 255, 0.4);
+        }
+        .assets-purchase-name {
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .assets-purchase-date {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+        .assets-purchase-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .assets-purchase-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .assets-purchase-price {
+            color: #00d4ff;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .assets-purchases-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 20px;
+            text-align: center;
+        }
+        .assets-purchases-empty i {
+            font-size: 3rem;
+            color: rgba(0, 212, 255, 0.3);
+            margin-bottom: 16px;
+        }
+        .assets-purchases-empty p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+        .assets-purchases-empty span {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+        
+        /* Модальное окно пополнения TON (мин. 0.7 TON) */
+        .ton-topup-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .ton-topup-overlay.active { display: block; }
+        .ton-topup-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 94%;
+            max-width: 380px;
+            background: linear-gradient(180deg, #0a0e27 0%, #1a1a3e 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            z-index: 1001;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+        .ton-topup-modal.active { display: block; }
+        .ton-topup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+        }
+        .ton-topup-title { color: #fff; font-size: 1.15rem; font-weight: 700; margin: 0; }
+        .ton-topup-close {
+            width: 36px; height: 36px;
+            border: none; border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff; font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .ton-topup-close:hover { background: rgba(255, 70, 70, 0.3); }
+        .ton-topup-body { padding: 20px; }
+        .ton-topup-field { margin-bottom: 16px; }
+        .ton-topup-label { display: block; color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 8px; }
+        .ton-topup-input-wrap {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .ton-topup-input-wrap input {
+            flex: 1;
+            padding: 14px 16px;
+            border: none;
+            background: transparent;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .ton-topup-input-wrap input:focus { outline: none; }
+        .ton-topup-currency {
+            padding: 14px 16px;
+            color: #00d4ff;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .ton-topup-hint {
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+        }
+        .ton-topup-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);
+            color: #000;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ton-topup-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4); }
+        .ton-topup-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        /* Уведомления */
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 1; transform: translateX(-50%) translateY(0); }
+            to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
         }
     </style>
 </head>
@@ -1705,42 +2403,28 @@
         
         <!-- Контент для таба Usernames -->
         <div id="assetsTabUsernames" class="assets-content active">
-            <!-- Поиск -->
-            <div class="auction-search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="usernameSearchInput" placeholder="Enter a Telegram username..." oninput="filterUsernames()">
-            </div>
-            
-            <!-- Фильтры: валюта, тип сделки, сортировка -->
+            <!-- Фильтры: Аренда/Продажа и Цена (валюта и способ оплаты — в каждой карточке) -->
             <div class="usernames-filters">
-                <div class="usernames-filter-group">
-                    <button class="usernames-filter-btn" onclick="toggleUsernameCurrencyDropdown()">
-                        <span id="usernameCurrencyText">TON</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div id="usernameCurrencyDropdown" class="usernames-dropdown">
-                        <div class="usernames-dropdown-item" onclick="setUsernameCurrency('RUB')">₽</div>
-                        <div class="usernames-dropdown-item" onclick="setUsernameCurrency('TON')">TON</div>
+                <div class="usernames-filters-right-group" style="width: 100%; justify-content: flex-end;">
+                    <div class="usernames-filter-group">
+                        <button type="button" class="usernames-filter-btn" onclick="toggleUsernameTypeDropdown()">
+                            <span id="usernameTypeText">Аренда</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div id="usernameTypeDropdown" class="usernames-dropdown">
+                            <div class="usernames-dropdown-item" onclick="setUsernameType('rent')">Аренда</div>
+                            <div class="usernames-dropdown-item" onclick="setUsernameType('sale')">Продажа</div>
+                        </div>
                     </div>
-                </div>
-                <div class="usernames-filter-group">
-                    <button class="usernames-filter-btn" onclick="toggleUsernameTypeDropdown()">
-                        <span id="usernameTypeText">Аренда</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div id="usernameTypeDropdown" class="usernames-dropdown">
-                        <div class="usernames-dropdown-item" onclick="setUsernameType('rent')">Аренда</div>
-                        <div class="usernames-dropdown-item" onclick="setUsernameType('sale')">Продажа</div>
-                    </div>
-                </div>
-                <div class="usernames-filter-group">
-                    <button class="usernames-filter-btn" onclick="toggleUsernameSortDropdown()">
-                        <span id="usernameSortText">↑↓ Цена</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div id="usernameSortDropdown" class="usernames-dropdown">
-                        <div class="usernames-dropdown-item" onclick="setUsernameSort('price_high')">Цена: от высокой к низкой</div>
-                        <div class="usernames-dropdown-item" onclick="setUsernameSort('price_low')">Цена: от низкой к высокой</div>
+                    <div class="usernames-filter-group">
+                        <button type="button" class="usernames-filter-btn" onclick="toggleUsernameSortDropdown()">
+                            <span id="usernameSortText">Цена</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div id="usernameSortDropdown" class="usernames-dropdown">
+                            <div class="usernames-dropdown-item" onclick="setUsernameSort('price_high')">Цена: от высокой к низкой</div>
+                            <div class="usernames-dropdown-item" onclick="setUsernameSort('price_low')">Цена: от низкой к высокой</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1843,23 +2527,107 @@
                     <div class="assets-drawer-balance-item">
                         <div class="assets-drawer-balance-currency">TON</div>
                         <div class="assets-drawer-balance-amount" id="assetsDrawerBalanceTon">0</div>
+                        <button type="button" class="assets-drawer-ton-topup" onclick="closeAssetsDrawer(); openTonTopupModal();">Пополнить</button>
                     </div>
                 </div>
             </div>
         </div>
         <div class="assets-drawer-section">
-            <div class="assets-drawer-item" onclick="closeAssetsDrawer(); showNotification('Мои подарки');">
+            <div class="assets-drawer-item" onclick="closeAssetsDrawer(); sessionStorage.setItem('gift_from_assets', '1'); window.location.href='gift_user.html';">
                 <i class="fas fa-gift"></i>
                 <span>Мои подарки</span>
             </div>
-            <div class="assets-drawer-item" onclick="closeAssetsDrawer(); setUsernameType('rent');">
+            <div class="assets-drawer-item" onclick="closeAssetsDrawer(); sessionStorage.setItem('from_assets', '1'); window.location.href='resell.html';">
                 <i class="fas fa-clock"></i>
-                <span>Аренда</span>
+                <div class="assets-drawer-item-text">
+                    <span>Аренда</span>
+                    <span class="assets-drawer-item-hint">Мои арендованные активы</span>
+                </div>
             </div>
-            <div class="assets-drawer-item" onclick="closeAssetsDrawer(); showNotification('Мои покупки');">
+            <div class="assets-drawer-item" onclick="closeAssetsDrawer(); sessionStorage.setItem('from_assets', '1'); window.location.href='history_act.html';">
                 <i class="fas fa-shopping-bag"></i>
                 <span>Мои покупки</span>
             </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно «Моя аренда» -->
+    <div class="my-rentals-overlay" id="myRentalsOverlay" onclick="closeMyRentalsModal()"></div>
+    <div class="my-rentals-modal" id="myRentalsModal">
+        <div class="my-rentals-header">
+            <h2 class="my-rentals-title">Моя аренда</h2>
+            <button class="my-rentals-close" onclick="closeMyRentalsModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="my-rentals-tabs">
+            <button class="my-rentals-tab active" onclick="switchRentalsTab('usernames')">@Username</button>
+            <button class="my-rentals-tab" onclick="switchRentalsTab('numbers')">Номера</button>
+            <button class="my-rentals-tab" onclick="switchRentalsTab('nft')">NFT</button>
+        </div>
+        <div class="my-rentals-content">
+            <!-- Вкладка @Username -->
+            <div id="rentalsTabUsernames" class="my-rentals-tab-content active">
+                <div class="my-rentals-list" id="myRentedUsernamesList">
+                    <!-- Арендованные юзернеймы будут здесь -->
+                </div>
+                <div class="my-rentals-empty" id="myRentedUsernamesEmpty" style="display:none;">
+                    <i class="fas fa-at"></i>
+                    <p>Нет арендованных юзернеймов</p>
+                    <span>Арендуйте @username на странице «Юзернеймы»</span>
+                </div>
+            </div>
+            <!-- Вкладка Номера -->
+            <div id="rentalsTabNumbers" class="my-rentals-tab-content">
+                <div class="my-rentals-empty">
+                    <i class="fas fa-phone"></i>
+                    <p>Номера</p>
+                    <span>Раздел в разработке</span>
+                </div>
+            </div>
+            <!-- Вкладка NFT -->
+            <div id="rentalsTabNft" class="my-rentals-tab-content">
+                <div class="my-rentals-empty">
+                    <i class="fas fa-gem"></i>
+                    <p>NFT</p>
+                    <span>Раздел в разработке</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно «Мои покупки» (история покупок в активах) -->
+    <div class="assets-purchases-overlay" id="assetsPurchasesOverlay" onclick="closeAssetsPurchasesModal()"></div>
+    <div class="assets-purchases-modal" id="assetsPurchasesModal">
+        <div class="assets-purchases-header">
+            <h2 class="assets-purchases-title">История покупок в активах</h2>
+            <button class="assets-purchases-close" onclick="closeAssetsPurchasesModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="assets-purchases-content">
+            <div class="assets-purchases-list" id="assetsPurchasesList"></div>
+            <div class="assets-purchases-empty" id="assetsPurchasesEmpty" style="display:none;">
+                <i class="fas fa-shopping-bag"></i>
+                <p>Пока нет покупок</p>
+                <span>История покупок в активах появится здесь</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно пополнения TON (мин. 0.7 TON, через Tonkeeper) -->
+    <div class="ton-topup-overlay" id="tonTopupOverlay" onclick="closeTonTopupModal()"></div>
+    <div class="ton-topup-modal" id="tonTopupModal">
+        <div class="ton-topup-header">
+            <h2 class="ton-topup-title">Пополнение баланса TON</h2>
+            <button class="ton-topup-close" onclick="closeTonTopupModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="ton-topup-body">
+            <div class="ton-topup-field">
+                <label class="ton-topup-label">Сумма (TON)</label>
+                <div class="ton-topup-input-wrap">
+                    <input type="number" id="tonTopupAmount" placeholder="0.7" min="0.7" step="0.1" oninput="validateTonTopup()">
+                    <span class="ton-topup-currency">TON</span>
+                </div>
+                <p class="ton-topup-hint">Минимум 0.7 TON. Оплата через Tonkeeper.</p>
+            </div>
+            <button type="button" class="ton-topup-btn" id="tonTopupBtn" onclick="submitTonTopup()" disabled>Пополнить через Tonkeeper</button>
         </div>
     </div>
     
@@ -1898,6 +2666,17 @@
         document.addEventListener('DOMContentLoaded', function() {
             const animation = document.getElementById('graphAnimation');
             const hasSeenAssetsIntro = localStorage.getItem('jet_assets_intro_seen') === 'true';
+            
+            // Если вернулись из «Мои подарки» — открыть шторку меню
+            if (sessionStorage.getItem('assetsOpenDrawer') === '1') {
+                sessionStorage.removeItem('assetsOpenDrawer');
+                setTimeout(function() {
+                    const drawer = document.getElementById('assetsDrawer');
+                    if (drawer && !drawer.classList.contains('active') && typeof toggleAssetsDrawer === 'function') {
+                        toggleAssetsDrawer();
+                    }
+                }, 100);
+            }
             
             if (hasSeenAssetsIntro) {
                 // Пользователь уже видел анимацию — сразу скрываем её
@@ -2014,6 +2793,19 @@
             setInterval(loadBalanceForAssets, 2000);
             
             if (typeof loadUsernamesFromStorage === 'function') loadUsernamesFromStorage();
+            updateTonRateFromApi();
+            if (window._tonRateInterval) clearInterval(window._tonRateInterval);
+            window._tonRateInterval = setInterval(updateTonRateFromApi, 5 * 60 * 1000);
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') updateTonRateFromApi();
+            });
+        }
+        
+        function updateTonRateFromApi() {
+            if (typeof window.fetchTonToRubRateFromApi !== 'function') return;
+            window.fetchTonToRubRateFromApi().then(function(rate) {
+                if (rate != null && typeof renderUsernamesList === 'function') renderUsernamesList();
+            });
         }
         
         // Загрузка баланса для активов
@@ -2094,8 +2886,42 @@
             window.location.href = 'index.html';
         }
         
-        function showNotification(message) {
-            alert(message);
+        function showNotification(message, type) {
+            // Удаляем старые уведомления
+            const old = document.querySelector('.assets-notification');
+            if (old) old.remove();
+            
+            const colors = {
+                success: '#4ade80',
+                error: '#ff4757',
+                info: '#00d4ff'
+            };
+            const color = colors[type] || colors.info;
+            
+            const notif = document.createElement('div');
+            notif.className = 'assets-notification';
+            notif.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${color};
+                color: #fff;
+                padding: 14px 24px;
+                border-radius: 12px;
+                font-size: 0.95rem;
+                font-weight: 600;
+                z-index: 10000;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                animation: slideDown 0.3s ease;
+            `;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.style.animation = 'slideUp 0.3s ease';
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
         }
         
         // Функции для шторки меню
@@ -2363,16 +3189,31 @@
         // Usernames (аренда / продажа)
         // =============================================
         let usernamesData = [];
-        let usernameCurrencyFilter = 'TON'; // RUB, TON
         let usernameTypeFilter = 'rent'; // rent, sale
         let usernameSortFilter = 'price_low'; // price_low, price_high
         
+        function getTonToRubRate() {
+            try {
+                var db = window.Database;
+                if (db && typeof db.getCurrencyRates === 'function') {
+                    var rates = db.getCurrencyRates();
+                    return parseFloat(rates.TON) || 600;
+                }
+                var saved = localStorage.getItem('jetstore_currency_rates');
+                if (saved) {
+                    var o = JSON.parse(saved);
+                    return parseFloat(o.TON) || 600;
+                }
+            } catch (e) {}
+            return 600;
+        }
+        
         // Демо-данные (юзернейм может быть в аренде и/или в продаже)
         const defaultUsernamesDemo = [
-            { username: 'investbanker', rent: { rub: 250, ton: 3 }, sale: null, rentMonths: 1 },
-            { username: 'svarnoy', rent: { rub: 750, ton: 9 }, sale: null, rentMonths: 1 },
-            { username: 'manila', rent: { rub: 750, ton: 9 }, sale: null, rentMonths: 1 },
-            { username: 'premium_user', rent: { rub: 500, ton: 6 }, sale: { rub: 5000, ton: 60 }, rentMonths: 1 }
+            { username: 'investbanker', rent: { rub: 10, ton: 0.1 }, sale: null },
+            { username: 'svarnoy', rent: { rub: 25, ton: 0.3 }, sale: null },
+            { username: 'manila', rent: { rub: 25, ton: 0.3 }, sale: null },
+            { username: 'premium_user', rent: { rub: 17, ton: 0.2 }, sale: { rub: 5000, ton: 60 } }
         ];
         
         function loadUsernamesFromStorage() {
@@ -2391,13 +3232,10 @@
             renderUsernamesList();
         }
         
+        // Для сортировки используем цену в TON. Для отображения — рубль по курсу TON.
         function getUsernamePrice(u) {
-            if (usernameTypeFilter === 'rent' && u.rent) {
-                return usernameCurrencyFilter === 'RUB' ? u.rent.rub : u.rent.ton;
-            }
-            if (usernameTypeFilter === 'sale' && u.sale) {
-                return usernameCurrencyFilter === 'RUB' ? u.sale.rub : u.sale.ton;
-            }
+            if (usernameTypeFilter === 'rent' && u.rent) return u.rent.ton || 0;
+            if (usernameTypeFilter === 'sale' && u.sale) return u.sale.ton || 0;
             return null;
         }
         
@@ -2412,13 +3250,6 @@
                 return true;
             });
             
-            // Фильтрация по поиску
-            const searchInput = document.getElementById('usernameSearchInput');
-            if (searchInput && searchInput.value.trim()) {
-                const query = searchInput.value.trim().toLowerCase();
-                filtered = filtered.filter(u => u.username.toLowerCase().includes(query));
-            }
-            
             // Сортировка по цене
             filtered = filtered.filter(u => getUsernamePrice(u) !== null);
             if (usernameSortFilter === 'price_low') {
@@ -2427,9 +3258,9 @@
                 filtered.sort((a, b) => getUsernamePrice(b) - getUsernamePrice(a));
             }
             
-            // Обновляем заголовок колонки цены
+            // Обновляем заголовок колонки цены (аренда — за 1 день)
             if (priceColLabel) {
-                priceColLabel.textContent = usernameTypeFilter === 'rent' ? 'Минимальная аренда' : 'Цена';
+                priceColLabel.textContent = usernameTypeFilter === 'rent' ? 'Цена за 1 день' : 'Цена';
             }
             
             if (filtered.length === 0) {
@@ -2443,70 +3274,83 @@
                 return;
             }
             
-            const priceIcon = usernameCurrencyFilter === 'TON' 
-                ? '<img src="../assets/tonkeeper-icon.png" alt="TON" class="auction-price-icon">' 
-                : '<span class="auction-price-rub">₽</span>';
+            var tonRate = getTonToRubRate();
+            var priceIconTon = '<img src="../assets/tonkeeper-icon.png" alt="TON" class="auction-price-icon">';
+            var daysOptions = [1, 2, 3, 5, 7, 10, 14, 21, 30, 45, 60, 90, 120, 180];
             
-            container.innerHTML = filtered.map(u => {
+            container.innerHTML = filtered.map((u, idx) => {
                 const price = getUsernamePrice(u);
-                const priceStr = usernameCurrencyFilter === 'RUB' 
-                    ? priceIcon + '<span>' + price.toLocaleString('ru-RU') + '</span>' 
-                    : priceIcon + '<span>' + price + '</span>';
-                const duration = usernameTypeFilter === 'rent' && u.rentMonths 
-                    ? 'на ' + u.rentMonths + ' мес.' : '';
+                var priceStr, extraHtml;
+                if (usernameTypeFilter === 'rent') {
+                    var pricePerDayTon = u.rent ? (u.rent.ton || 0) : 0;
+                    var pricePerDayRub = Math.round(pricePerDayTon * tonRate * 10) / 10;
+                    var rubStr = (pricePerDayRub).toLocaleString('ru-RU');
+                    var tonStr = (Math.round(pricePerDayTon * 100) / 100) + '';
+                    priceStr = '<span class="auction-item-price-line"><span class="auction-price-rub">₽</span> ' + rubStr + ' ₽/день</span>' +
+                        '<span class="auction-item-price-line ton-line">' + priceIconTon + ' <span>' + tonStr + '</span> TON/день</span>';
+                    var opts = daysOptions.map(function(d) { return '<option value="' + d + '">' + d + ' дн.</option>'; }).join('');
+                    extraHtml = '<div class="rent-duration-row" onclick="event.stopPropagation()">' +
+                        '<label>Срок:</label>' +
+                        '<select class="rent-duration-select" onchange="updateRentTotal(this)">' + opts + '</select>' +
+                        '<div class="rent-pay-choice">' +
+                        '<button type="button" class="rent-pay-btn" data-currency="RUB" onclick="event.stopPropagation(); setRentPayCurrency(this, \'RUB\')">₽</button>' +
+                        '<button type="button" class="rent-pay-btn active" data-currency="TON" onclick="event.stopPropagation(); setRentPayCurrency(this, \'TON\')">TON</button>' +
+                        '</div>' +
+                        '<span class="rent-total" data-rent-total>К оплате: 0 TON</span>' +
+                        '<button type="button" class="rent-rent-btn" onclick="event.stopPropagation(); rentUsername(this)">Арендовать</button>' +
+                        '</div>';
+                } else {
+                    var salePrice = u.sale ? (u.sale.rub || 0) : 0;
+                    var saleTon = u.sale ? (u.sale.ton || 0) : 0;
+                    priceStr = '<span class="auction-item-price-line"><span class="auction-price-rub">₽</span> ' + (salePrice).toLocaleString('ru-RU') + '</span>' +
+                        '<span class="auction-item-price-line ton-line">' + priceIconTon + ' <span>' + saleTon + '</span> TON</span>';
+                    extraHtml = '';
+                }
+                var clickAttr = usernameTypeFilter === 'rent' ? '' : ' onclick="showNotification(\'@' + u.username + '\')"';
+                var payAttr = usernameTypeFilter === 'rent' ? ' data-pay-currency="TON" data-price-rub-per-day="' + pricePerDayRub + '" data-price-ton-per-day="' + pricePerDayTon + '"' : '';
                 return `
-                <div class="auction-item" onclick="showNotification('@${u.username}')">
+                <div class="auction-item" data-username="${u.username}"${payAttr}${clickAttr}>
                     <div class="auction-item-name">
                         <span class="auction-item-title">@${u.username}</span>
                         <span class="auction-item-subtitle">${u.username.toLowerCase()}.t.me</span>
                     </div>
                     <div class="auction-item-value">
                         <div class="auction-item-price">${priceStr}</div>
-                        ${duration ? '<span class="auction-item-duration">' + duration + '</span>' : ''}
+                        ${usernameTypeFilter === 'rent' ? '' : ''}
+                        ${extraHtml}
                     </div>
-                    <i class="fas fa-chevron-right auction-item-arrow"></i>
+                    ${usernameTypeFilter !== 'rent' ? '<i class="fas fa-chevron-right auction-item-arrow"></i>' : ''}
                 </div>
             `;
             }).join('');
+            
+            // Обновить «К оплате» при смене срока (уже выставлен 1 день по умолчанию)
+            if (usernameTypeFilter === 'rent') {
+                container.querySelectorAll('.rent-duration-select').forEach(function(sel) { updateRentTotal(sel); });
+            }
         }
         
         function filterUsernames() {
             renderUsernamesList();
         }
         
-        function toggleUsernameCurrencyDropdown() {
-            const dd = document.getElementById('usernameCurrencyDropdown');
-            document.getElementById('usernameTypeDropdown')?.classList.remove('active');
-            document.getElementById('usernameSortDropdown')?.classList.remove('active');
-            dd?.classList.toggle('active');
-        }
-        
         function toggleUsernameTypeDropdown() {
             const dd = document.getElementById('usernameTypeDropdown');
-            document.getElementById('usernameCurrencyDropdown')?.classList.remove('active');
             document.getElementById('usernameSortDropdown')?.classList.remove('active');
             dd?.classList.toggle('active');
         }
         
         function toggleUsernameSortDropdown() {
             const dd = document.getElementById('usernameSortDropdown');
-            document.getElementById('usernameCurrencyDropdown')?.classList.remove('active');
             document.getElementById('usernameTypeDropdown')?.classList.remove('active');
             dd?.classList.toggle('active');
         }
         
         function closeAllUsernameDropdowns() {
-            ['usernameCurrencyDropdown', 'usernameTypeDropdown', 'usernameSortDropdown'].forEach(id => {
+            ['usernameTypeDropdown', 'usernameSortDropdown'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.remove('active');
             });
-        }
-        
-        function setUsernameCurrency(val) {
-            usernameCurrencyFilter = val;
-            document.getElementById('usernameCurrencyText').textContent = val === 'RUB' ? '₽' : 'TON';
-            closeAllUsernameDropdowns();
-            renderUsernamesList();
         }
         
         function setUsernameType(val) {
@@ -2523,6 +3367,58 @@
             closeAllUsernameDropdowns();
             renderUsernamesList();
         }
+        
+        function updateRentTotal(selectEl) {
+            if (!selectEl) return;
+            var row = selectEl.closest('.auction-item');
+            if (!row) return;
+            var priceRub = parseFloat(row.getAttribute('data-price-rub-per-day')) || 0;
+            var priceTon = parseFloat(row.getAttribute('data-price-ton-per-day')) || 0;
+            var payCurrency = row.getAttribute('data-pay-currency') || 'TON';
+            var days = parseInt(selectEl.value, 10) || 1;
+            var totalRub = Math.round(priceRub * days * 10) / 10;
+            var totalTon = Math.round(priceTon * days * 100) / 100;
+            var totalStr = payCurrency === 'RUB' 
+                ? totalRub.toLocaleString('ru-RU') + ' ₽' 
+                : totalTon + ' TON';
+            var span = row.querySelector('[data-rent-total]');
+            if (span) span.textContent = 'К оплате: ' + totalStr;
+        }
+        
+        function setRentPayCurrency(btnEl, currency) {
+            if (!btnEl) return;
+            var row = btnEl.closest('.auction-item');
+            if (!row) return;
+            row.setAttribute('data-pay-currency', currency);
+            var choice = row.querySelector('.rent-pay-choice');
+            if (choice) {
+                choice.querySelectorAll('.rent-pay-btn').forEach(function(b) {
+                    b.classList.toggle('active', b.getAttribute('data-currency') === currency);
+                });
+            }
+            var select = row.querySelector('.rent-duration-select');
+            if (select) updateRentTotal(select);
+        }
+        
+        function rentUsername(btnEl) {
+            if (!btnEl) return;
+            var row = btnEl.closest('.auction-item');
+            if (!row) return;
+            var username = row.getAttribute('data-username') || '';
+            var select = row.querySelector('.rent-duration-select');
+            var days = select ? parseInt(select.value, 10) || 1 : 1;
+            var priceRub = parseFloat(row.getAttribute('data-price-rub-per-day')) || 0;
+            var priceTon = parseFloat(row.getAttribute('data-price-ton-per-day')) || 0;
+            var payCurrency = row.getAttribute('data-pay-currency') || 'TON';
+            var totalRub = Math.round(priceRub * days * 10) / 10;
+            var totalTon = Math.round(priceTon * days * 100) / 100;
+            var totalStr = payCurrency === 'RUB' ? totalRub.toLocaleString('ru-RU') + ' ₽' : totalTon + ' TON';
+            showNotification('Аренда @' + username + ' на ' + days + ' дн. — ' + totalStr + ' (в разработке)', 'info');
+        }
+        
+        window.updateRentTotal = updateRentTotal;
+        window.setRentPayCurrency = setRentPayCurrency;
+        window.rentUsername = rentUsername;
         
         // =============================================
         // Номера +888 (аукцион)
@@ -2647,6 +3543,197 @@
             }
         };
         
+        // =============================================
+        // Модальное окно «Моя аренда»
+        // =============================================
+        
+        // Демо-данные арендованных юзернеймов пользователя
+        let myRentedUsernames = [];
+        
+        function loadMyRentedUsernames() {
+            try {
+                const data = localStorage.getItem('jetstore_my_rented_usernames');
+                if (data) {
+                    myRentedUsernames = JSON.parse(data);
+                } else {
+                    // Демо: добавим пример арендованного юзернейма
+                    myRentedUsernames = [
+                        { username: 'Master', daysLeft: 5, rentedAt: Date.now() - 86400000 * 2, pricePerDay: { rub: 50, ton: 0.5 } },
+                        { username: 'CryptoKing', daysLeft: 12, rentedAt: Date.now() - 86400000, pricePerDay: { rub: 30, ton: 0.3 } }
+                    ];
+                }
+            } catch (e) {
+                myRentedUsernames = [];
+            }
+        }
+        
+        function saveMyRentedUsernames() {
+            try {
+                localStorage.setItem('jetstore_my_rented_usernames', JSON.stringify(myRentedUsernames));
+            } catch (e) {}
+        }
+        
+        function openMyRentalsModal() {
+            loadMyRentedUsernames();
+            renderMyRentedUsernames();
+            document.getElementById('myRentalsOverlay').classList.add('active');
+            document.getElementById('myRentalsModal').classList.add('active');
+        }
+        
+        function closeMyRentalsModal() {
+            document.getElementById('myRentalsOverlay').classList.remove('active');
+            document.getElementById('myRentalsModal').classList.remove('active');
+        }
+        
+        function switchRentalsTab(tabName) {
+            // Убираем active у всех табов и контента
+            document.querySelectorAll('.my-rentals-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.my-rentals-tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Активируем нужный таб
+            const tabBtn = document.querySelector(`.my-rentals-tab[onclick*="${tabName}"]`);
+            if (tabBtn) tabBtn.classList.add('active');
+            
+            // Активируем контент
+            if (tabName === 'usernames') {
+                document.getElementById('rentalsTabUsernames').classList.add('active');
+            } else if (tabName === 'numbers') {
+                document.getElementById('rentalsTabNumbers').classList.add('active');
+            } else if (tabName === 'nft') {
+                document.getElementById('rentalsTabNft').classList.add('active');
+            }
+        }
+        
+        function renderMyRentedUsernames() {
+            const listEl = document.getElementById('myRentedUsernamesList');
+            const emptyEl = document.getElementById('myRentedUsernamesEmpty');
+            if (!listEl) return;
+            
+            if (myRentedUsernames.length === 0) {
+                listEl.style.display = 'none';
+                emptyEl.style.display = 'flex';
+                return;
+            }
+            
+            listEl.style.display = 'flex';
+            emptyEl.style.display = 'none';
+            
+            listEl.innerHTML = myRentedUsernames.map((item, idx) => {
+                const daysClass = item.daysLeft <= 3 ? 'expiring' : '';
+                const daysText = item.daysLeft === 1 ? '1 день' : (item.daysLeft < 5 ? item.daysLeft + ' дня' : item.daysLeft + ' дней');
+                return `
+                    <div class="rented-item">
+                        <div class="rented-item-row">
+                            <span class="rented-item-username">@${item.username}</span>
+                            <span class="rented-item-days ${daysClass}">Осталось ${daysText}</span>
+                        </div>
+                        <div class="rented-item-actions">
+                            <button class="rented-item-btn extend" onclick="extendRental(${idx})">Продлить</button>
+                            <button class="rented-item-btn buy" onclick="buyForever(${idx})">Купить навсегда</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function extendRental(idx) {
+            if (!myRentedUsernames[idx]) return;
+            const item = myRentedUsernames[idx];
+            // Пока просто добавим 7 дней (в реальности — оплата)
+            myRentedUsernames[idx].daysLeft += 7;
+            saveMyRentedUsernames();
+            renderMyRentedUsernames();
+            showNotification(`Аренда @${item.username} продлена на 7 дней`, 'success');
+        }
+        
+        function buyForever(idx) {
+            if (!myRentedUsernames[idx]) return;
+            const item = myRentedUsernames[idx];
+            // Пока просто уведомление (в реальности — переход к оплате)
+            showNotification(`Покупка @${item.username} навсегда — в разработке`, 'info');
+        }
+        
+        // =============================================
+        // Модальное окно «Мои покупки» (история покупок в активах)
+        // =============================================
+        
+        function openAssetsPurchasesModal() {
+            renderAssetsPurchasesList();
+            document.getElementById('assetsPurchasesOverlay').classList.add('active');
+            document.getElementById('assetsPurchasesModal').classList.add('active');
+        }
+        
+        function closeAssetsPurchasesModal() {
+            document.getElementById('assetsPurchasesOverlay').classList.remove('active');
+            document.getElementById('assetsPurchasesModal').classList.remove('active');
+        }
+        
+        function renderAssetsPurchasesList() {
+            const listEl = document.getElementById('assetsPurchasesList');
+            const emptyEl = document.getElementById('assetsPurchasesEmpty');
+            if (!listEl) return;
+            
+            // Только покупки в активах (юзернеймы, NFT, номера). Не история главного меню.
+            let purchases = [];
+            try {
+                purchases = JSON.parse(localStorage.getItem('jetstore_assets_purchases') || '[]');
+            } catch (e) {
+                purchases = [];
+            }
+            
+            if (purchases.length === 0) {
+                listEl.style.display = 'none';
+                listEl.innerHTML = '';
+                emptyEl.style.display = 'flex';
+                return;
+            }
+            
+            listEl.style.display = 'flex';
+            emptyEl.style.display = 'none';
+            
+            const statusColors = {
+                'успешно': '#4CAF50',
+                'в процессе': '#FFC107',
+                'отменен': '#f44336'
+            };
+            
+            listEl.innerHTML = purchases.map(function(p, idx) {
+                const statusColor = statusColors[p.status] || '#888';
+                const date = p.date ? new Date(p.date).toLocaleDateString('ru-RU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'Дата не указана';
+                return `
+                    <div class="assets-purchase-item" data-purchase-index="${idx}" onclick="showAssetsPurchaseDetail(this)">
+                        <div class="assets-purchase-name">${p.productName || p.name || 'Товар'}</div>
+                        <div class="assets-purchase-date">${date}</div>
+                        <div class="assets-purchase-row">
+                            <span class="assets-purchase-status" style="background:${statusColor}20;color:${statusColor};border:1px solid ${statusColor}40;">${p.status || 'в процессе'}</span>
+                            <span class="assets-purchase-price">${(p.price || 0).toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function showAssetsPurchaseDetail(el) {
+            const idx = parseInt(el.getAttribute('data-purchase-index'), 10);
+            let purchases = [];
+            try {
+                purchases = JSON.parse(localStorage.getItem('jetstore_assets_purchases') || '[]');
+            } catch (e) {}
+            const p = purchases[idx];
+            if (!p) return;
+            const date = p.date ? new Date(p.date).toLocaleDateString('ru-RU', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            }) : '';
+            showNotification((p.productName || p.name || 'Товар') + ' — ' + (p.status || 'в процессе') + ', ' + (p.price || 0) + ' ₽', 'info');
+        }
+        
         // Экспорт функций
         window.filterUsernames = filterUsernames;
         window.toggleUsernameCurrencyDropdown = toggleUsernameCurrencyDropdown;
@@ -2660,6 +3747,61 @@
         window.toggleNumberSortFilter = toggleNumberSortFilter;
         window.loadUsernamesFromStorage = loadUsernamesFromStorage;
         window.loadNumbersFromStorage = loadNumbersFromStorage;
+        window.openMyRentalsModal = openMyRentalsModal;
+        window.closeMyRentalsModal = closeMyRentalsModal;
+        window.switchRentalsTab = switchRentalsTab;
+        window.extendRental = extendRental;
+        window.buyForever = buyForever;
+        window.openAssetsPurchasesModal = openAssetsPurchasesModal;
+        window.closeAssetsPurchasesModal = closeAssetsPurchasesModal;
+        window.showAssetsPurchaseDetail = showAssetsPurchaseDetail;
+        
+        // =============================================
+        // Пополнение баланса TON (мин. 0.7 TON, Tonkeeper)
+        // =============================================
+        var TON_TOPUP_MIN = 0.7;
+        
+        function openTonTopupModal() {
+            var modal = document.getElementById('tonTopupModal');
+            var overlay = document.getElementById('tonTopupOverlay');
+            var input = document.getElementById('tonTopupAmount');
+            if (input) input.value = '';
+            if (modal) modal.classList.add('active');
+            if (overlay) overlay.classList.add('active');
+            validateTonTopup();
+        }
+        
+        function closeTonTopupModal() {
+            var modal = document.getElementById('tonTopupModal');
+            var overlay = document.getElementById('tonTopupOverlay');
+            if (modal) modal.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+        }
+        
+        function validateTonTopup() {
+            var input = document.getElementById('tonTopupAmount');
+            var btn = document.getElementById('tonTopupBtn');
+            if (!input || !btn) return;
+            var val = parseFloat(input.value) || 0;
+            btn.disabled = val < TON_TOPUP_MIN;
+        }
+        
+        function submitTonTopup() {
+            var input = document.getElementById('tonTopupAmount');
+            var amount = parseFloat(input && input.value ? input.value.replace(',', '.') : 0) || 0;
+            if (amount < TON_TOPUP_MIN) {
+                showNotification('Минимальная сумма пополнения: ' + TON_TOPUP_MIN + ' TON', 'error');
+                return;
+            }
+            closeTonTopupModal();
+            // В реальном сценарии: открыть Tonkeeper для перевода на адрес пополнения или отправить транзакцию
+            showNotification('Переведите ' + amount + ' TON с кошелька Tonkeeper на адрес пополнения (в разработке)', 'info');
+        }
+        
+        window.openTonTopupModal = openTonTopupModal;
+        window.closeTonTopupModal = closeTonTopupModal;
+        window.validateTonTopup = validateTonTopup;
+        window.submitTonTopup = submitTonTopup;
     </script>
 </body>
 </html>

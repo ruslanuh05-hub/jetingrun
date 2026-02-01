@@ -214,16 +214,20 @@ function loadInitialData() {
         const usdtRateEl = document.getElementById('usdtRate');
         const usdRateEl = document.getElementById('usdRate');
         const eurRateEl = document.getElementById('eurRate');
+        const tonRateEl = document.getElementById('tonRate');
         const usdtInput = document.getElementById('usdtInput');
         const usdInput = document.getElementById('usdInput');
         const eurInput = document.getElementById('eurInput');
+        const tonInput = document.getElementById('tonInput');
         
         if (usdtRateEl) usdtRateEl.textContent = rates.USDT || 80;
         if (usdRateEl) usdRateEl.textContent = rates.USD || 90;
         if (eurRateEl) eurRateEl.textContent = rates.EUR || 100;
+        if (tonRateEl) tonRateEl.textContent = rates.TON || 600;
         if (usdtInput) usdtInput.value = rates.USDT || 80;
         if (usdInput) usdInput.value = rates.USD || 90;
         if (eurInput) eurInput.value = rates.EUR || 100;
+        if (tonInput) tonInput.value = rates.TON || 600;
     }
     
     // Загружаем товары текущей категории
@@ -622,7 +626,8 @@ function saveCurrencyRates() {
             RUB: 1,
             USDT: parseFloat(document.getElementById('usdtInput')?.value) || 80,
             USD: parseFloat(document.getElementById('usdInput')?.value) || 90,
-            EUR: parseFloat(document.getElementById('eurInput')?.value) || 100
+            EUR: parseFloat(document.getElementById('eurInput')?.value) || 100,
+            TON: parseFloat(document.getElementById('tonInput')?.value) || 600
         };
         
         console.log('Новые курсы валют:', rates);
@@ -633,10 +638,12 @@ function saveCurrencyRates() {
         const usdtRateEl = document.getElementById('usdtRate');
         const usdRateEl = document.getElementById('usdRate');
         const eurRateEl = document.getElementById('eurRate');
+        const tonRateEl = document.getElementById('tonRate');
         
         if (usdtRateEl) usdtRateEl.textContent = rates.USDT;
         if (usdRateEl) usdRateEl.textContent = rates.USD;
         if (eurRateEl) eurRateEl.textContent = rates.EUR;
+        if (tonRateEl) tonRateEl.textContent = rates.TON;
         
         showNotification('Курсы валют обновлены', 'success');
     } else {
@@ -739,18 +746,22 @@ function loadSettings() {
         const usdtInput = document.getElementById('usdtInput');
         const usdInput = document.getElementById('usdInput');
         const eurInput = document.getElementById('eurInput');
+        const tonInput = document.getElementById('tonInput');
         
         const usdtRateEl = document.getElementById('usdtRate');
         const usdRateEl = document.getElementById('usdRate');
         const eurRateEl = document.getElementById('eurRate');
+        const tonRateEl = document.getElementById('tonRate');
         
         if (usdtInput) usdtInput.value = rates.USDT || 80;
         if (usdInput) usdInput.value = rates.USD || 90;
         if (eurInput) eurInput.value = rates.EUR || 100;
+        if (tonInput) tonInput.value = rates.TON || 600;
         
         if (usdtRateEl) usdtRateEl.textContent = rates.USDT || 80;
         if (usdRateEl) usdRateEl.textContent = rates.USD || 90;
         if (eurRateEl) eurRateEl.textContent = rates.EUR || 100;
+        if (tonRateEl) tonRateEl.textContent = rates.TON || 600;
     }
     
     // Загружаем курс скупки звезды
@@ -1134,7 +1145,7 @@ function loadUsernamesAdmin() {
         }
         
         container.innerHTML = usernames.map((u, index) => {
-            const rentStr = u.rent ? `Аренда: ${u.rent.rub || 0} ₽ / ${u.rent.ton || 0} TON` : '';
+            const rentStr = u.rent ? `Аренда (за 1 день): ${u.rent.rub || 0} ₽ / ${u.rent.ton || 0} TON` : '';
             const saleStr = u.sale ? `Продажа: ${u.sale.rub || 0} ₽ / ${u.sale.ton || 0} TON` : '';
             const parts = [rentStr, saleStr].filter(Boolean).join(' · ');
             return `
@@ -1142,7 +1153,6 @@ function loadUsernamesAdmin() {
                 <div class="product-info">
                     <div class="product-title">@${u.username}</div>
                     <div style="color: #00d4ff; font-weight: 600; font-size: 0.9rem;">${parts || '—'}</div>
-                    ${u.rentMonths ? `<div style="color: #888; font-size: 0.85rem;">Срок аренды: ${u.rentMonths} мес.</div>` : ''}
                 </div>
                 <div class="product-actions">
                     <button class="action-btn edit" onclick="editUsername(${index})">
@@ -1181,7 +1191,7 @@ function addUsername() {
         const rentRub = parseFloat(document.getElementById('newUsernameRentRub')?.value) || 0;
         const rentTon = parseFloat(document.getElementById('newUsernameRentTon')?.value) || 0;
         if (rentRub <= 0 && rentTon <= 0) {
-            showNotification('Укажите цену аренды (₽ или TON)', 'error');
+            showNotification('Укажите цену за 1 день (₽ или TON)', 'error');
             return;
         }
         rent = { rub: rentRub, ton: rentTon };
@@ -1198,8 +1208,6 @@ function addUsername() {
         sale = { rub: saleRub, ton: saleTon };
     }
     
-    const rentMonths = parseInt(document.getElementById('newUsernameRentMonths')?.value) || 1;
-    
     try {
         let usernames = JSON.parse(localStorage.getItem('jetstore_usernames') || '[]');
         const existingIndex = usernames.findIndex(u => (u.username || '').toLowerCase() === username.toLowerCase());
@@ -1210,15 +1218,14 @@ function addUsername() {
                 username: existing.username,
                 rent: rent || existing.rent || null,
                 sale: sale || existing.sale || null,
-                rentMonths: rent ? rentMonths : (existing.rentMonths || 1)
+                rentMonths: existing.rentMonths
             };
             showNotification('Username обновлён (добавлены аренда/продажа)', 'success');
         } else {
             usernames.push({
                 username,
                 rent,
-                sale,
-                rentMonths: rent ? rentMonths : 1
+                sale
             });
             showNotification('Username добавлен в список', 'success');
         }
@@ -1230,7 +1237,6 @@ function addUsername() {
         document.getElementById('newUsernameSale').checked = false;
         document.getElementById('newUsernameRentRub').value = '';
         document.getElementById('newUsernameRentTon').value = '';
-        document.getElementById('newUsernameRentMonths').value = '1';
         document.getElementById('newUsernameSaleRub').value = '';
         document.getElementById('newUsernameSaleTon').value = '';
         toggleUsernameRentFields();
@@ -1260,9 +1266,9 @@ function editUsername(index) {
         const sale = u.sale ? { ...u.sale } : null;
         
         if (u.rent) {
-            const rub = prompt('Цена аренды (₽):', (u.rent.rub || 0).toString());
+            const rub = prompt('Цена за 1 день (₽):', (u.rent.rub || 0).toString());
             if (rub !== null) rent.rub = parseFloat(rub) || 0;
-            const ton = prompt('Цена аренды (TON):', (u.rent.ton || 0).toString());
+            const ton = prompt('Цена за 1 день (TON):', (u.rent.ton || 0).toString());
             if (ton !== null) rent.ton = parseFloat(ton) || 0;
         }
         if (u.sale) {
@@ -1272,13 +1278,11 @@ function editUsername(index) {
             if (ton !== null) sale.ton = parseFloat(ton) || 0;
         }
         
-        const rentMonths = parseInt(prompt('Срок аренды (мес.):', (u.rentMonths || 1).toString())) || 1;
-        
         usernames[index] = {
             username: newUsername.replace('@', '').trim() || u.username,
             rent: rent && (rent.rub > 0 || rent.ton > 0) ? rent : null,
             sale: sale && (sale.rub > 0 || sale.ton > 0) ? sale : null,
-            rentMonths
+            rentMonths: u.rentMonths
         };
         
         localStorage.setItem('jetstore_usernames', JSON.stringify(usernames));

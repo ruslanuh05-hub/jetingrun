@@ -414,13 +414,14 @@ class Database {
                 RUB: 1,
                 USDT: 80,
                 USD: 90,
-                EUR: 100
+                EUR: 100,
+                TON: 600
             };
             const saved = JSON.parse(localStorage.getItem('jetstore_currency_rates') || '{}');
             return { ...defaultRates, ...saved };
         } catch (error) {
             console.error('Ошибка получения курсов валют:', error);
-            return { RUB: 1, USDT: 80, USD: 90, EUR: 100 };
+            return { RUB: 1, USDT: 80, USD: 90, EUR: 100, TON: 600 };
         }
     }
     

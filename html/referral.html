@@ -72,20 +72,15 @@
         }
         
         .referral-header-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: #0a0a0a;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
-            overflow: hidden;
         }
         
         .referral-header-icon img {
-            width: 65%;
-            height: 65%;
+            width: 120px;
+            height: 120px;
             object-fit: contain;
         }
         
@@ -96,15 +91,16 @@
         
         .referral-header-title {
             color: #ffffff;
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .referral-header-subtitle {
             color: rgba(255, 255, 255, 0.7);
-            font-size: 1rem;
+            font-size: 0.95rem;
             line-height: 1.5;
+            margin-bottom: 20px;
         }
         
         .referral-header-subtitle strong {
@@ -576,7 +572,7 @@
 </head>
 <body>
     <div class="referral-page-header">
-        <button class="referral-back-btn" onclick="window.history.back()">
+        <button class="referral-back-btn" onclick="window.location.href='index.html'">
             <i class="fas fa-chevron-left"></i>
         </button>
         <h1 class="referral-page-title">Реферальная программа</h1>
@@ -586,10 +582,10 @@
         <!-- Заголовок -->
         <div class="referral-header-section">
             <div class="referral-header-icon">
-                <img src="../assets/jet-logo.png" alt="JET" style="width:72px;height:72px;object-fit:contain;">
+                <img src="../assets/jet-logo.png" alt="JET">
             </div>
-            <h2 class="referral-header-title">🎁 Присоединяйся к JET!</h2>
-            <p class="referral-header-subtitle">⚡ Покупай и управляй цифровыми товарами прямо в Telegram.</p>
+            <h2 class="referral-header-title">Пригласи друга</h2>
+            <p class="referral-header-subtitle">Получай 4% с каждой покупки своего друга</p>
         </div>
         
         <!-- Статистика приглашенных друзей -->
@@ -823,17 +819,17 @@
         }
         
         function shareReferralLink() {
-            const linkText = document.getElementById('referralLinkText').textContent;
+            const linkText = document.getElementById('referralLinkText').textContent.trim();
+            const shareText = '🎁 Присоединяйся к JET!\n\n⚡ Покупай и управляй цифровыми товарами прямо в Telegram.\n\n' + linkText + '\n\n⸻';
             const tg = window.Telegram?.WebApp;
             
             if (tg && tg.openTelegramLink) {
-                // Открываем Telegram для отправки
-                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(linkText)}&text=${encodeURIComponent('Присоединяйся к JET!')}`;
+                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(linkText)}&text=${encodeURIComponent('🎁 Присоединяйся к JET!\n\n⚡ Покупай и управляй цифровыми товарами прямо в Telegram.\n\n⸻')}`;
                 tg.openTelegramLink(shareUrl);
             } else if (navigator.share) {
                 navigator.share({
                     title: 'Реферальная ссылка JET',
-                    text: 'Присоединяйся к JET!',
+                    text: shareText,
                     url: linkText
                 }).catch(() => {
                     copyReferralLink();

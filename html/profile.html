@@ -17,7 +17,9 @@
             if (typeof TonConnectSDK === 'undefined') return;
             var manifestUrl = (window.location.origin || 'https://jetstoreapp.ru') + '/tonconnect-manifest.json';
             window.tonConnectConnector = new TonConnectSDK.TonConnect({ manifestUrl: manifestUrl });
-            window.tonConnectConnector.restoreConnection().catch(function() {});
+            window.tonConnectConnector.restoreConnection().then(function() {
+                if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
+            }).catch(function() {});
             window.tonConnectConnector.onStatusChange(function(wallet) {
                 if (wallet && wallet.account) {
                     try {
@@ -484,8 +486,8 @@
         }
         
         .tonkeeper-icon {
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             background: #0a0a0a;
             border-radius: 50%;
             display: flex;
@@ -496,8 +498,8 @@
         }
         
         .tonkeeper-icon img {
-            width: 70%;
-            height: 70%;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
         }
         
@@ -506,19 +508,26 @@
             flex-direction: column;
             align-items: flex-start;
             flex-grow: 1;
+            min-width: 0;
         }
         
         .tonkeeper-title {
             color: #ffffff;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 600;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .tonkeeper-subtitle {
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.85rem;
             margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .btn-tonkeeper .tonkeeper-arrow {
@@ -548,8 +557,11 @@
         }
         .tonkeeper-connected-value {
             color: #fff;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 500;
+            word-break: break-all;
+            text-align: right;
+            max-width: 65%;
         }
         .btn-tonkeeper-unbind {
             width: 100%;
@@ -1281,6 +1293,54 @@
             color: rgba(255, 255, 255, 0.5);
             font-weight: 600;
             background: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* СБП: блок суммы и подсказка */
+        .sbp-amount-section .usdt-input-wrapper {
+            margin-top: 8px;
+        }
+        .sbp-amount-label-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            position: relative;
+        }
+        .sbp-info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .sbp-info-icon i {
+            font-size: 0.9rem;
+        }
+        .sbp-info-tooltip {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 100%;
+            margin-top: 8px;
+            padding: 12px 14px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.85rem;
+            line-height: 1.45;
+            max-width: 320px;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        .sbp-info-tooltip.visible {
+            display: block;
         }
         
         .usdt-conversion {
@@ -2355,13 +2415,18 @@
                 <button class="close-btn" onclick="closeSbpPopup()">×</button>
             </div>
             <div class="popup-body">
-                <div class="usdt-input-section">
-                    <label class="usdt-label">Сумма в рублях</label>
-                    <input type="number" id="sbpAmount" placeholder="Введите сумму" min="1" oninput="updateSbpAmount()">
-                </div>
-                <div class="promo-info">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Минимум: 100 ₽. Комиссия 10%</span>
+                <div class="usdt-input-section sbp-amount-section">
+                    <div class="sbp-amount-label-row">
+                        <label class="usdt-label" for="sbpAmount">Сумма пополнения</label>
+                        <span class="sbp-info-icon" id="sbpInfoIcon" title="Что это за сумма?" aria-label="Подсказка" onclick="var t=document.getElementById('sbpInfoTooltip');t.classList.toggle('visible');event.stopPropagation();"><i class="fas fa-info-circle"></i></span>
+                        <div class="sbp-info-tooltip" id="sbpInfoTooltip" onclick="event.stopPropagation()">
+                            Сумма, которую вы хотите зачислить на баланс. С этой суммы удерживается комиссия 10%. Минимальная сумма: 100 ₽. На баланс поступит сумма минус комиссия.
+                        </div>
+                    </div>
+                    <div class="usdt-input-wrapper">
+                        <input type="number" id="sbpAmount" placeholder="1000" min="100" oninput="updateSbpAmount()">
+                        <span class="usdt-currency">₽</span>
+                    </div>
                 </div>
             </div>
             <div class="popup-footer">
@@ -2468,26 +2533,42 @@
                 .catch(function() { return '0.00'; });
         }
         
-        // Обновление блока TonKeeper: подключено (адрес, баланс из TonKeeper), отвязать или кнопка подключения
+        // Обновление блока TonKeeper: берём актуальный адрес из коннектора или localStorage, баланс — из API
         window.updateTonkeeperButton = function() {
             const connectedBlock = document.getElementById('tonkeeperConnectedBlock');
             const connectBtn = document.getElementById('tonkeeperConnectBtn');
             const addressEl = document.getElementById('tonkeeperAddress');
             const balanceEl = document.getElementById('tonkeeperBalance');
             
-            const isConnected = localStorage.getItem('jetstore_tonkeeper_connected') === 'true';
-            const address = localStorage.getItem('jetstore_tonkeeper_address') || '';
+            var address = '';
+            var connector = window.tonConnectConnector;
+            if (connector && connector.connected) {
+                var acc = (connector.account || (connector.wallet && connector.wallet.account));
+                if (acc && acc.address) {
+                    address = acc.address;
+                    try {
+                        localStorage.setItem('jetstore_tonkeeper_connected', 'true');
+                        localStorage.setItem('jetstore_tonkeeper_address', address);
+                    } catch (e) {}
+                }
+            }
+            if (!address) {
+                address = localStorage.getItem('jetstore_tonkeeper_address') || '';
+            }
+            var isConnected = localStorage.getItem('jetstore_tonkeeper_connected') === 'true' && address;
             
-            if (connectedBlock) connectedBlock.style.display = isConnected && address ? 'block' : 'none';
-            if (connectBtn) connectBtn.style.display = isConnected && address ? 'none' : 'flex';
+            if (connectedBlock) connectedBlock.style.display = isConnected ? 'block' : 'none';
+            if (connectBtn) connectBtn.style.display = isConnected ? 'none' : 'flex';
             
-            if (addressEl) addressEl.textContent = address ? (address.length > 18 ? address.slice(0, 6) + '…' + address.slice(-6) : address) : '—';
+            var displayAddress = address ? (address.length > 18 ? address.slice(0, 8) + '…' + address.slice(-8) : address) : '—';
+            if (addressEl) addressEl.textContent = displayAddress;
             if (balanceEl) balanceEl.textContent = '… TON';
             
             if (isConnected && address && balanceEl) {
                 fetchTonBalance(address).then(function(balanceText) {
                     try { localStorage.setItem('jetstore_tonkeeper_balance', balanceText); } catch (e) {}
-                    if (balanceEl) balanceEl.textContent = balanceText + ' TON';
+                    var el = document.getElementById('tonkeeperBalance');
+                    if (el) el.textContent = balanceText + ' TON';
                 });
             }
         };
@@ -2642,10 +2723,30 @@
             // Обновление баланса в шапке
             updateHeaderBalance();
             
-            // Обновляем статус TonKeeper на кнопке
+            // Открыть вкладку «История» (покупки), если перешли из меню «Мои покупки»
+            if (sessionStorage.getItem('profileOpenTab') === 'purchases') {
+                sessionStorage.removeItem('profileOpenTab');
+                setTimeout(function() {
+                    if (typeof switchTab === 'function') switchTab('purchases');
+                }, 150);
+            }
+            
+            // Обновляем статус TonKeeper на кнопке (адрес и баланс актуальные)
             if (typeof window.updateTonkeeperButton === 'function') {
                 window.updateTonkeeperButton();
             }
+            
+            // При возврате на вкладку — обновить адрес и баланс TonKeeper
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible' && typeof window.updateTonkeeperButton === 'function') {
+                    window.updateTonkeeperButton();
+                }
+            });
+            window.addEventListener('focus', function() {
+                if (typeof window.updateTonkeeperButton === 'function') {
+                    window.updateTonkeeperButton();
+                }
+            });
             
             // Инициализация реферальной программы
             if (typeof initializeReferralProgram === 'function') {

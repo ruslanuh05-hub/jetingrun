@@ -739,6 +739,8 @@ function closeSbpPopup() {
     if (popup) {
         popup.classList.remove('active');
     }
+    const tooltip = document.getElementById('sbpInfoTooltip');
+    if (tooltip) tooltip.classList.remove('visible');
 }
 
 // Обновление суммы СБП (для будущих проверок)
@@ -755,6 +757,10 @@ function processSbpDeposit() {
     
     if (amount <= 0) {
         showNotification('Введите сумму больше 0', 'error');
+        return;
+    }
+    if (amount < 100) {
+        showNotification('Минимальная сумма пополнения: 100 ₽', 'error');
         return;
     }
     

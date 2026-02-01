@@ -1031,10 +1031,10 @@
             </div>
         </div>
         
-        <!-- Табы -->
+        <!-- Табы: В боте (не выставлены) / На продаже / История -->
         <div class="gifts-tabs">
             <button class="gifts-tab active" onclick="switchGiftsTab('available')">
-                Доступные
+                В боте
                 <span class="gifts-tab-badge" id="availableCount">0</span>
             </button>
             <button class="gifts-tab" onclick="switchGiftsTab('on-sale')">
@@ -1046,15 +1046,15 @@
             </button>
         </div>
         
-        <!-- Контент: Доступные подарки -->
+        <!-- Контент: В боте (подарки, не выставленные на продажу) -->
         <div id="availableGifts" class="gifts-content active">
             <div class="user-gifts-grid" id="availableGiftsGrid">
                 <!-- Карточки будут добавлены динамически -->
             </div>
             <div class="empty-state" id="availableEmpty" style="display: none;">
                 <i class="fas fa-gift"></i>
-                <div class="empty-state-title">Нет доступных подарков</div>
-                <div class="empty-state-text">Отправьте NFT подарок боту, чтобы он появился здесь</div>
+                <div class="empty-state-title">Нет подарков в боте</div>
+                <div class="empty-state-text">Отправьте NFT подарок боту — он появится здесь. Выставите на продажу в разделе «На продаже».</div>
             </div>
         </div>
         
@@ -1066,7 +1066,7 @@
             <div class="empty-state" id="onSaleEmpty" style="display: none;">
                 <i class="fas fa-store"></i>
                 <div class="empty-state-title">Нет подарков на продаже</div>
-                <div class="empty-state-text">Выставите подарок на продажу, чтобы он появился здесь</div>
+                <div class="empty-state-text">Выставите подарок из раздела «В боте» на продажу</div>
             </div>
         </div>
         
@@ -1623,8 +1623,14 @@
             }, 3000);
         }
         
-        // Навигация назад
+        // Навигация назад: если пришли из шторки активов — возврат в активы с открытой шторкой
         function goBack() {
+            if (sessionStorage.getItem('gift_from_assets') === '1') {
+                sessionStorage.removeItem('gift_from_assets');
+                sessionStorage.setItem('assetsOpenDrawer', '1');
+                window.location.href = 'assets.html';
+                return;
+            }
             const referrer = document.referrer;
             if (referrer && (referrer.includes('assets.html') || referrer.includes('profile.html'))) {
                 window.history.back();

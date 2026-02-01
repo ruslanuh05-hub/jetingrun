@@ -38,13 +38,19 @@ window.currentGameCategory = null;
 let currentSupercellGame = null;
 window.currentSupercellGame = null;
 
-// API бота: из config.js. При открытии с localhost — всегда localhost:3000 (для теста). С jetstoreapp.ru — тот же домен.
+// API бота: при открытии с localhost — localhost:3000; с GitHub Pages — из localStorage (нужно указать вручную).
 (function() {
     var host = (typeof window !== 'undefined' && window.location?.hostname) ? window.location.hostname.toLowerCase() : '';
     if (host === 'localhost' || host === '127.0.0.1') {
         window.JET_API_BASE = 'http://localhost:3000';
+    } else if (host.indexOf('github') !== -1) {
+        // Сайт на GitHub Pages — бот может быть локально: укажите адрес API в настройках (или через ngrok).
+        window.JET_API_BASE = localStorage.getItem('jet_api_base') || '';
     } else if ((host === 'jetstoreapp.ru' || host === 'www.jetstoreapp.ru') && !(window.JET_API_BASE && window.JET_API_BASE !== '')) {
         window.JET_API_BASE = window.location.origin || 'https://jetstoreapp.ru';
+    } else if (!(window.JET_API_BASE && window.JET_API_BASE !== '')) {
+        // Сайт на своём домене (например cloud4box): API = тот же домен (бот и сайт на одном сервере).
+        window.JET_API_BASE = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : '';
     }
 })();
 
@@ -519,15 +525,14 @@ function switchStoreTab(tab) {
     document.querySelectorAll('.store-section').forEach(s => s.classList.remove('active'));
     
     // Активируем выбранную вкладку
+    const tabBtn = document.querySelector('.store-tab[data-tab="' + tab + '"]');
     if (event && event.currentTarget) {
         event.currentTarget.classList.add('active');
+    } else if (tabBtn) {
+        tabBtn.classList.add('active');
     } else {
-        // Если вызвано программно, находим кнопку по tab
-        const tabButtons = document.querySelectorAll('.store-tab');
-        tabButtons.forEach(btn => {
-            if (btn.textContent.includes(tab === 'stars' ? 'Звёзды' : 'Рейтинг')) {
-                btn.classList.add('active');
-            }
+        document.querySelectorAll('.store-tab').forEach(btn => {
+            if (btn.textContent.includes(tab === 'stars' ? 'Звёзды' : 'Рейтинг')) btn.classList.add('active');
         });
     }
     
@@ -882,6 +887,103 @@ function clearStarsRecipient() {
         input.value = '';
     }
     setStarsRecipientState('empty');
+}
+
+function lookupStarsRecipient() {
+    const input = document.getElementById('starsRecipient');
+    if (!input) return;
+    let username = (input.value || '').trim().replace(/^@/, '');
+    if (!username) {
+        setStarsRecipientState('empty');
+        return;
+    }
+    setStarsRecipientState('loading', { username: username });
+    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var url = (apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '');
+    if (!url) {
+        setStarsRecipientState('found', { username: username, firstName: username });
+        return;
+    }
+    fetch(url)
+        .then(function(r) { return r.json().catch(function() { return null; }); })
+        .then(function(data) {
+            if (data && (data.username || data.firstName)) {
+                setStarsRecipientState('found', data);
+            } else {
+                setStarsRecipientState('not_found');
+            }
+        })
+        .catch(function() { setStarsRecipientState('not_found'); });
+}
+
+function setPremiumRecipientState(state, userData) {
+    var wrapper = document.getElementById('premiumRecipientWrapper');
+    var input = document.getElementById('premiumRecipient');
+    var chip = document.getElementById('premiumUserPreview');
+    var errorText = document.getElementById('premiumUserError');
+    var avatarImg = document.getElementById('premiumUserAvatar');
+    var nameSpan = document.getElementById('premiumUserName');
+    if (!wrapper || !input || !chip || !errorText) return;
+    wrapper.classList.remove('tg-user-input-error');
+    chip.style.display = 'none';
+    errorText.style.display = 'none';
+    input.style.display = 'block';
+    if (state === 'empty') return;
+    if (state === 'loading') {
+        if (avatarImg) avatarImg.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userData?.username || '') + '&background=00d4ff&color=fff&size=128';
+        if (nameSpan) nameSpan.textContent = 'Поиск пользователя...';
+        chip.style.display = 'flex';
+        input.style.display = 'none';
+        return;
+    }
+    if (state === 'found' && userData) {
+        if (avatarImg) avatarImg.src = userData.avatar || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(userData.username || userData.firstName || '') + '&background=00d4ff&color=fff&size=128');
+        if (nameSpan) {
+            var uname = userData.username ? '@' + userData.username : '';
+            var fname = (userData.firstName || '').trim();
+            nameSpan.textContent = fname ? (fname + ' ' + uname).trim() : uname;
+        }
+        chip.style.display = 'flex';
+        input.style.display = 'none';
+        return;
+    }
+    if (state === 'not_found') {
+        wrapper.classList.add('tg-user-input-error');
+        errorText.style.display = 'block';
+    }
+}
+
+function clearPremiumRecipient() {
+    var input = document.getElementById('premiumRecipient');
+    if (input) input.value = '';
+    setPremiumRecipientState('empty');
+}
+
+function lookupPremiumRecipient() {
+    var input = document.getElementById('premiumRecipient');
+    if (!input) return;
+    var username = (input.value || '').trim().replace(/^@/, '');
+    if (!username) {
+        setPremiumRecipientState('empty');
+        return;
+    }
+    setPremiumRecipientState('loading', { username: username });
+    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var url = apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '';
+    if (!url) {
+        setPremiumRecipientState('found', { username: username, firstName: username });
+        return;
+    }
+    fetch(url)
+        .then(function(r) { return r.json().catch(function() { return null; }); })
+        .then(function(data) {
+            if (data && (data.username || data.firstName)) {
+                setPremiumRecipientState('found', data);
+            } else {
+                setPremiumRecipientState('not_found');
+            }
+        })
+        .catch(function() { setPremiumRecipientState('not_found'); });
 }
 
 // Уведомления в магазине
@@ -1971,6 +2073,21 @@ function clearSteamInput(inputId) {
     }
 }
 
+// Модальное окно «Как узнать свой логин Steam?»
+function openSteamLoginHelpModal() {
+    const overlay = document.getElementById('steamLoginHelpOverlay');
+    const modal = document.getElementById('steamLoginHelpModal');
+    if (overlay) overlay.style.display = 'block';
+    if (modal) modal.style.display = 'block';
+}
+
+function closeSteamLoginHelpModal() {
+    const overlay = document.getElementById('steamLoginHelpOverlay');
+    const modal = document.getElementById('steamLoginHelpModal');
+    if (overlay) overlay.style.display = 'none';
+    if (modal) modal.style.display = 'none';
+}
+
 // Глобальные переменные для текущей покупки
 let currentPurchase = {
     type: null, // 'steam', 'game', 'stars', 'premium'
@@ -2236,7 +2353,14 @@ function confirmPayment() {
     var confirmBtn = document.getElementById('paymentWaitingConfirmBtn');
     var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) {
-        if (typeof showStoreNotification === 'function') showStoreNotification('API не настроен', 'error');
+        var url = typeof prompt !== 'undefined' ? prompt('Сайт на GitHub — укажите адрес API бота.\n\nБот локально: используйте ngrok (https://ngrok.com) и вставьте ссылку вида https://xxxx.ngrok.io\n\nИли введите адрес вашего сервера:') : '';
+        if (url && (url = url.trim().replace(/\/$/, ''))) {
+            try { localStorage.setItem('jet_api_base', url); } catch (e) {}
+            window.JET_API_BASE = url;
+            if (typeof showStoreNotification === 'function') showStoreNotification('Адрес API сохранён. Нажмите «Подтвердить оплату» снова.', 'success');
+        } else {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Укажите адрес API бота (сервер, где запущен бот).', 'error');
+        }
         return;
     }
     if (confirmBtn) {
@@ -2245,24 +2369,38 @@ function confirmPayment() {
     }
     if (statusEl) statusEl.textContent = 'Проверка оплаты...';
 
+    var purchase = data.purchase || {};
     var checkPayload = {
         method: data.method,
         totalAmount: data.totalAmount,
         baseAmount: data.baseAmount,
-        purchase: data.purchase || {}
+        purchase: purchase
     };
     if (data.order_id) checkPayload.order_id = data.order_id;
     if (data.transaction_id) checkPayload.transaction_id = data.transaction_id;
-    fetch(apiBase + '/api/payment/check', {
+    var url = (apiBase.replace(/\/$/, '') + '/api/payment/check');
+    fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(checkPayload)
     })
-        .then(function(r) { return r.json().catch(function() { return {}; }); })
-        .then(function(res) {
+        .then(function(r) {
+            return r.json().catch(function() { return {}; }).then(function(json) {
+                return { ok: r.ok, status: r.status, json: json };
+            });
+        })
+        .then(function(result) {
+            var res = result.json;
             if (confirmBtn) {
                 confirmBtn.disabled = false;
                 confirmBtn.textContent = 'Подтвердить оплату';
+            }
+            if (!result.ok) {
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (typeof showStoreNotification === 'function') {
+                    showStoreNotification('Ошибка связи с сервером (HTTP ' + result.status + '). Проверьте адрес API в настройках.', 'error');
+                }
+                return;
             }
             if (res.paid === true) {
                 if (statusEl) statusEl.textContent = res.delivered_by_fragment ? 'Оплата подтверждена.' : 'Оплата подтверждена. Выдача...';
@@ -2281,7 +2419,7 @@ function confirmPayment() {
             }
             if (statusEl) statusEl.textContent = 'Ожидание...';
             if (typeof showStoreNotification === 'function') {
-                showStoreNotification('Оплата не найдена.', 'error');
+                showStoreNotification('Ошибка связи с сервером. Проверьте адрес API в настройках.', 'error');
             }
         });
 }
@@ -2560,6 +2698,8 @@ window.closeSteamTopup = closeSteamTopup;
 window.clearSteamInput = clearSteamInput;
 window.setSteamAmount = setSteamAmount;
 window.processSteamPayment = processSteamPayment;
+window.openSteamLoginHelpModal = openSteamLoginHelpModal;
+window.closeSteamLoginHelpModal = closeSteamLoginHelpModal;
 window.showAssetsView = showAssetsView;
 window.showNFTGifts = showNFTGifts;
 window.closeNFTGifts = closeNFTGifts;

@@ -876,6 +876,15 @@
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
+        .premium-card-badge-above {
+            display: block;
+            color: #4CAF50;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
         
         .premium-card-price {
             color: #ffffff;
@@ -1677,6 +1686,42 @@
             display: block;
         }
         
+        /* Шапка магазина: кнопка «Назад» в левом верхнем углу */
+        .store-view-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+        }
+        .store-back-btn {
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .store-back-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
+            transform: translateX(-2px);
+        }
+        .store-back-btn:active {
+            transform: scale(0.96);
+        }
+        .store-view-header-title {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
         /* Маркет */
         .market-view {
             min-height: 100vh;
@@ -2104,6 +2149,17 @@
             font-size: 0.8rem;
         }
         
+        .steam-topup-hint.clickable {
+            color: rgba(0, 212, 255, 0.8);
+            cursor: pointer;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+        
+        .steam-topup-hint.clickable:hover {
+            color: #00d4ff;
+        }
+        
         .steam-topup-input-wrap {
             display: flex;
             align-items: center;
@@ -2259,6 +2315,151 @@
             text-decoration: underline;
         }
         
+        /* Модальное окно «Как узнать свой логин Steam?» */
+        .steam-login-help-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 92%;
+            max-width: 420px;
+            background: linear-gradient(180deg, #1b2838 0%, #171a21 100%);
+            border: 1px solid rgba(102, 192, 244, 0.3);
+            border-radius: 16px;
+            z-index: 10001;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+        }
+        
+        .steam-login-help-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(102, 192, 244, 0.2);
+        }
+        
+        .steam-login-help-title {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .steam-login-help-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .steam-login-help-close:hover {
+            background: rgba(255, 70, 70, 0.3);
+        }
+        
+        .steam-login-help-body {
+            padding: 24px 20px;
+        }
+        
+        .steam-login-help-text {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin: 0 0 20px 0;
+        }
+        
+        .steam-login-help-example {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(102, 192, 244, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .steam-login-help-example-url {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+        
+        .steam-login-help-breadcrumb {
+            color: #66c0f4;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+        }
+        
+        .steam-login-help-account-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .steam-login-help-account-label {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        .steam-login-help-account-login {
+            color: #66c0f4;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-decoration: underline;
+            text-decoration-color: #f44;
+            text-underline-offset: 4px;
+        }
+        
+        .steam-login-help-arrow {
+            color: #f44;
+            font-size: 1.2rem;
+            margin-left: 4px;
+            animation: arrowPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes arrowPulse {
+            0%, 100% { transform: translateX(0); opacity: 1; }
+            50% { transform: translateX(-4px); opacity: 0.7; }
+        }
+        
+        
+        .steam-login-help-note {
+            color: rgba(255, 100, 100, 0.9);
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin: 0 0 20px 0;
+        }
+        
+        .steam-login-help-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #66c0f4 0%, #4a9fd8 100%);
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .steam-login-help-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 192, 244, 0.4);
+        }
+        
+        .steam-login-help-btn:active {
+            transform: translateY(0);
+        }
+        
         /* Общие стили для других попапов (steam-popup-*) */
         .steam-popup-content {
             background: rgba(30, 30, 46, 0.98);
@@ -2308,6 +2509,33 @@
         .steam-currency-icon { color: rgba(255, 255, 255, 0.5); margin-right: 12px; font-weight: 600; }
         
         /* Окно выбора способа оплаты */
+        .payment-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(0,212,255,0.3);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .payment-back-btn:hover { background: rgba(255,255,255,0.12); }
+        .payment-method-item-compact {
+            padding: 10px 12px !important;
+            min-height: auto !important;
+        }
+        .payment-method-icon-compact {
+            width: 36px !important;
+            height: 36px !important;
+            min-width: 36px !important;
+            border-radius: 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 0.9rem !important;
+        }
         .payment-category {
             margin-bottom: 30px;
         }
@@ -4066,13 +4294,20 @@
         
         <!-- Магазин звёзд (скрыт по умолчанию) -->
         <div class="store-view" id="storeView">
+            <!-- Кнопка «Назад» в левом верхнем углу — ведёт в главное меню -->
+            <div class="store-view-header">
+                <button class="store-back-btn" onclick="showMainMenuView()" aria-label="В главное меню">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="store-view-header-title">Магазин</span>
+            </div>
             <!-- Вкладки навигации -->
         <div class="store-tabs">
-            <button class="store-tab active" onclick="switchStoreTab('stars')">
+            <button class="store-tab active" data-tab="stars" onclick="switchStoreTab('stars')">
                 <i class="fas fa-star"></i>
                 <span>Звёзды</span>
             </button>
-            <button class="store-tab" onclick="switchStoreTab('rating')">
+            <button class="store-tab" data-tab="rating" onclick="switchStoreTab('rating')">
                 <i class="fas fa-trophy"></i>
                 <span>Рейтинг</span>
             </button>
@@ -4103,8 +4338,15 @@
                                     type="text"
                                     id="starsRecipient"
                                     class="store-input"
-                                    placeholder="@username получателя">
+                                    placeholder="@username получателя"
+                                    onkeydown="if(event.key==='Enter'){event.preventDefault();lookupStarsRecipient();}">
+                                <div id="starsUserPreview" class="tg-user-chip" style="display:none;align-items:center;gap:10px;flex:1;min-width:0;">
+                                    <img id="starsUserAvatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+                                    <span id="starsUserName" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                                    <button type="button" onclick="clearStarsRecipient()" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;padding:4px;"><i class="fas fa-times"></i></button>
+                                </div>
                             </div>
+                            <span id="starsUserError" class="store-field-error" style="display:none;color:#ff4757;font-size:0.8rem;margin-top:4px;">Пользователь не найден</span>
                             <button type="button" class="store-input-action" onclick="fillOwnUsername('starsRecipient')">/купить себе</button>
                         </div>
                         <p class="store-field-hint" style="margin-top: 8px; color: rgba(255,255,255,0.6); font-size: 0.85rem;">Если указан неверный @username — ответственность несёт покупатель.</p>
@@ -4149,8 +4391,14 @@
                         <div class="store-input-row">
                             <div class="store-input-wrapper" id="premiumRecipientWrapper">
                                 <i class="fas fa-user store-input-icon"></i>
-                                <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя">
+                                <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupPremiumRecipient();}">
+                                <div id="premiumUserPreview" class="tg-user-chip" style="display:none;align-items:center;gap:10px;flex:1;min-width:0;">
+                                    <img id="premiumUserAvatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+                                    <span id="premiumUserName" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                                    <button type="button" onclick="clearPremiumRecipient()" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;padding:4px;"><i class="fas fa-times"></i></button>
+                                </div>
                             </div>
+                            <span id="premiumUserError" class="store-field-error" style="display:none;color:#ff4757;font-size:0.8rem;margin-top:4px;">Пользователь не найден</span>
                             <button type="button" class="store-input-action" onclick="fillOwnUsername('premiumRecipient')">/купить себе</button>
                         </div>
                         <p class="store-field-hint" style="margin-top: 8px; color: rgba(255,255,255,0.6); font-size: 0.85rem;">Если указан неверный @username — ответственность несёт покупатель.</p>
@@ -4184,8 +4432,8 @@
                     </div>
                     
                     <div class="premium-card" data-months="12" onclick="selectPremiumByMonths(12)">
-                        <div class="premium-card-badge">выгодно</div>
                         <div class="premium-card-left">
+                            <span class="premium-card-badge-above">Выгодно</span>
                             <div class="premium-card-duration">12 мес.</div>
                         </div>
                         <div class="premium-card-prices">
@@ -4237,7 +4485,7 @@
                         <div class="steam-topup-input-group">
                             <div class="steam-topup-label">
                                 <span>Логин Steam</span>
-                                <span class="steam-topup-hint">где найти?</span>
+                                <span class="steam-topup-hint clickable" onclick="openSteamLoginHelpModal()">где найти?</span>
                             </div>
                             <div class="steam-topup-input-wrap">
                                 <i class="fas fa-user"></i>
@@ -4292,6 +4540,37 @@
             </div>
         </div>
         
+        <!-- Модальное окно «Как узнать свой логин Steam?» -->
+        <div id="steamLoginHelpOverlay" class="popup-overlay" onclick="closeSteamLoginHelpModal()" style="display: none;"></div>
+        <div id="steamLoginHelpModal" class="steam-login-help-modal" style="display: none;">
+            <div class="steam-login-help-header">
+                <h2 class="steam-login-help-title">Как узнать свой логин?</h2>
+                <button class="steam-login-help-close" onclick="closeSteamLoginHelpModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="steam-login-help-body">
+                <p class="steam-login-help-text">
+                    Логин — это не ваш никнейм. Логин это то, что вы указываете при входе в Steam.
+                </p>
+                <div class="steam-login-help-example">
+                    <div class="steam-login-help-example-url">https://store.steampowered.com/account/</div>
+                    <div class="steam-login-help-breadcrumb">Главная &gt; Аккаунт</div>
+                    <div class="steam-login-help-account-row">
+                        <span class="steam-login-help-account-label">АККАУНТ</span>
+                        <span class="steam-login-help-account-login">Login</span>
+                        <span class="steam-login-help-arrow">←</span>
+                    </div>
+                </div>
+                <p class="steam-login-help-note">
+                    Если вы укажете неверный логин, то средства уйдут другому пользователю.
+                </p>
+                <button class="steam-login-help-btn" onclick="window.open('https://store.steampowered.com/account/', '_blank')">
+                    Посмотреть свой логин Steam
+                </button>
+            </div>
+        </div>
+        
         <!-- Окно выбора способа оплаты -->
         <div id="paymentMethodPopup" class="popup">
             <div class="popup-content supercell-popup-content">
@@ -4303,54 +4582,41 @@
                     <div style="width: 40px;"></div>
                 </div>
                 
-                <div class="steam-popup-body payment-method-body" style="padding: 20px;">
-                    <!-- СБП (БЫСТРЫЕ ПЛАТЕЖИ) -->
+                <div class="steam-popup-body payment-method-body" style="padding: 16px;">
+                    <button class="payment-back-btn" onclick="closePaymentMethodPopup()" style="margin-bottom:12px;">
+                        <i class="fas fa-chevron-left"></i> Назад
+                    </button>
+                    <!-- СБП / Банковские карты — одна кнопка -->
                     <div class="payment-category">
-                        <h3 class="payment-category-title">СБП (БЫСТРЫЕ ПЛАТЕЖИ)</h3>
-                        <div class="payment-methods-list">
-                            <button class="payment-method-item" onclick="selectPaymentMethod('sbp', 10)">
-                                <div class="payment-method-icon" style="background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);">
+                        <h3 class="payment-category-title">СБП / Банковские карты</h3>
+                        <div class="payment-methods-list payment-methods-compact">
+                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('sbp', 10)">
+                                <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);">
                                     <i class="fas fa-building" style="color: #fff;"></i>
                                 </div>
                                 <div class="payment-method-info">
-                                    <span class="payment-method-name">СБП</span>
+                                    <span class="payment-method-name">СБП / Карты</span>
                                     <span class="payment-method-bonus">+10%</span>
                                 </div>
                             </button>
                         </div>
                     </div>
                     
-                    <!-- БАНКОВСКАЯ КАРТА -->
+                    <!-- Криптовалюта -->
                     <div class="payment-category">
-                        <h3 class="payment-category-title">БАНКОВСКАЯ КАРТА</h3>
-                        <div class="payment-methods-list">
-                            <button class="payment-method-item" onclick="selectPaymentMethod('card', 10)">
-                                <div class="payment-method-icon" style="background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);">
-                                    <i class="fas fa-credit-card" style="color: #333;"></i>
-                                </div>
-                                <div class="payment-method-info">
-                                    <span class="payment-method-name">Карта</span>
-                                    <span class="payment-method-bonus">+10%</span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- КРИПТОВАЛЮТА -->
-                    <div class="payment-category">
-                        <h3 class="payment-category-title">КРИПТОВАЛЮТА</h3>
-                        <div class="payment-methods-list">
-                            <button class="payment-method-item" onclick="selectPaymentMethod('ton', 0)">
-                                <div class="payment-method-icon" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
+                        <h3 class="payment-category-title">Криптовалюта</h3>
+                        <div class="payment-methods-list payment-methods-compact">
+                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('ton', 0)">
+                                <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
                                     <i class="fas fa-gem" style="color: #fff;"></i>
                                 </div>
                                 <div class="payment-method-info">
-                                    <span class="payment-method-name">TON Wallet</span>
+                                    <span class="payment-method-name">TON</span>
                                     <span class="payment-method-bonus">0%</span>
                                 </div>
                             </button>
-                            <button class="payment-method-item" onclick="selectPaymentMethod('cryptobot', 2)">
-                                <div class="payment-method-icon" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
+                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('cryptobot', 2)">
+                                <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
                                     <i class="fas fa-robot" style="color: #fff;"></i>
                                 </div>
                                 <div class="payment-method-info">
@@ -4810,8 +5076,8 @@
                         </div>
                         
                         <div class="premium-card-compact" data-months="12" onclick="selectPremiumByMonthsPopup(12)">
-                            <div class="premium-card-badge-compact">выгодно</div>
                             <div class="premium-card-left">
+                                <span class="premium-card-badge-above-compact">Выгодно</span>
                                 <div class="premium-card-duration">12 мес.</div>
                             </div>
                             <div class="premium-card-prices">

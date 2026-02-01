@@ -178,6 +178,14 @@
             z-index: 10;
             text-transform: uppercase;
         }
+        .premium-card-badge-above-compact {
+            display: block;
+            color: #4CAF50;
+            font-size: 0.55rem;
+            font-weight: 700;
+            margin-bottom: 1px;
+            text-transform: uppercase;
+        }
         .continue-btn {
             width: 100%;
             padding: 16px 20px;
@@ -228,10 +236,16 @@
                 <div class="store-field">
                     <label class="store-label">Получатель</label>
                     <div class="store-input-row">
-                        <div class="store-input-wrapper">
+                        <div class="store-input-wrapper" id="premiumRecipientWrapper">
                             <i class="fas fa-user store-input-icon"></i>
-                            <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя">
+                            <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupPremiumRecipientPage();}">
+                            <div id="premiumUserPreview" class="tg-user-chip" style="display:none;align-items:center;gap:8px;flex:1;min-width:0;">
+                                <img id="premiumUserAvatar" src="" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                                <span id="premiumUserName" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                                <button type="button" onclick="clearPremiumRecipientPage()" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;padding:4px;"><i class="fas fa-times"></i></button>
+                            </div>
                         </div>
+                        <span id="premiumUserError" class="store-field-error" style="display:none;color:#ff4757;font-size:0.8rem;">Пользователь не найден</span>
                         <button type="button" class="store-input-action" onclick="fillOwnUsername()">/купить себе</button>
                     </div>
                     <p class="store-field-hint">Если указан неверный @username — ответственность несёт покупатель.</p>
@@ -260,8 +274,8 @@
                     <div class="premium-card-radio"></div>
                 </div>
                 <div class="premium-card-compact" data-months="12" onclick="selectPremium(12)">
-                    <div class="premium-card-badge-compact">выгодно</div>
                     <div class="premium-card-left">
+                        <span class="premium-card-badge-above-compact">Выгодно</span>
                         <div class="premium-card-duration">12 мес.</div>
                     </div>
                     <div class="premium-card-prices">
@@ -334,6 +348,55 @@
                 var username = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.username) || '';
                 if (username && !username.startsWith('@')) username = '@' + username;
                 input.value = username || '';
+            };
+            function setPremiumRecipientStatePage(state, userData) {
+                var w = document.getElementById('premiumRecipientWrapper');
+                var inp = document.getElementById('premiumRecipient');
+                var chip = document.getElementById('premiumUserPreview');
+                var err = document.getElementById('premiumUserError');
+                var av = document.getElementById('premiumUserAvatar');
+                var nm = document.getElementById('premiumUserName');
+                if (!w || !inp || !chip || !err) return;
+                w.classList.remove('tg-user-input-error');
+                chip.style.display = 'none';
+                err.style.display = 'none';
+                inp.style.display = 'block';
+                if (state === 'empty') return;
+                if (state === 'loading') {
+                    if (av) av.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent((userData && userData.username) || '') + '&background=00d4ff&color=fff&size=128';
+                    if (nm) nm.textContent = 'Поиск...';
+                    chip.style.display = 'flex';
+                    inp.style.display = 'none';
+                    return;
+                }
+                if (state === 'found' && userData) {
+                    if (av) av.src = (userData.avatar) || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(userData.username || userData.firstName || '') + '&background=00d4ff&color=fff&size=128');
+                    if (nm) nm.textContent = (userData.firstName || '').trim() ? ((userData.firstName || '').trim() + ' ' + (userData.username ? '@' + userData.username : '')).trim() : (userData.username ? '@' + userData.username : '');
+                    chip.style.display = 'flex';
+                    inp.style.display = 'none';
+                    return;
+                }
+                if (state === 'not_found') { w.classList.add('tg-user-input-error'); err.style.display = 'block'; }
+            }
+            window.clearPremiumRecipientPage = function() {
+                var inp = document.getElementById('premiumRecipient');
+                if (inp) inp.value = '';
+                setPremiumRecipientStatePage('empty');
+            };
+            window.lookupPremiumRecipientPage = function() {
+                var inp = document.getElementById('premiumRecipient');
+                if (!inp) return;
+                var username = (inp.value || '').trim().replace(/^@/, '');
+                if (!username) { setPremiumRecipientStatePage('empty'); return; }
+                setPremiumRecipientStatePage('loading', { username: username });
+                var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || window.location.origin || '';
+                var url = apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '';
+                if (!url) { setPremiumRecipientStatePage('found', { username: username, firstName: username }); return; }
+                fetch(url).then(function(r) { return r.json().catch(function() { return null; }); })
+                    .then(function(d) {
+                        if (d && (d.username || d.firstName)) setPremiumRecipientStatePage('found', d);
+                        else setPremiumRecipientStatePage('not_found');
+                    }).catch(function() { setPremiumRecipientStatePage('not_found'); });
             };
             window.proceedPay = function() {
                 if (selectedPremium.months <= 0) return;
