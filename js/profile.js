@@ -591,9 +591,6 @@ function showEmptyOrders() {
 }
 
 // ==================== НАСТРОЙКИ ПОПОЛНЕНИЯ ====================
-// Crypto Bot API ключ
-const CRYPTO_BOT_API_KEY = '521302:AAAt11BOmPk1WpTxVX6QsualPSVCqY6pDRk';
-
 // Курс USDT к рублю (по умолчанию)
 let USDT_RATE = parseFloat(localStorage.getItem('jetstore_usdt_rate')) || 80;
 
@@ -694,59 +691,55 @@ async function processUsdtDeposit() {
     
     showNotification('Создаём счёт для оплаты...', 'info');
     
+    const apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) {
+        showNotification('Укажите адрес API бота в настройках', 'error');
+        return;
+    }
+    
     try {
-        // Создаём инвойс через Crypto Bot API
-        const response = await fetch('https://pay.crypt.bot/api/createInvoice', {
+        const response = await fetch(apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Crypto-Pay-API-Token': CRYPTO_BOT_API_KEY
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                asset: 'USDT',
-                amount: usdtAmount,
+                amount: rubAmount,
                 description: `Пополнение баланса JET Store на ${rubAmount} ₽`,
-                hidden_message: `user_deposit_${Date.now()}`,
-                paid_btn_name: 'callback',
-                paid_btn_url: window.location.href,
-                payload: JSON.stringify({
+                payload: {
                     userId: window.userData?.id || 'unknown',
                     rubAmount: rubAmount,
                     usdtAmount: usdtAmount,
+                    type: 'deposit',
                     timestamp: Date.now()
-                })
+                }
             })
         });
         
         const data = await response.json();
         
-        if (data.ok && data.result) {
-            // Сохраняем информацию о платеже для проверки
+        if (data.success && data.invoice_id && (data.payment_url || data.pay_url)) {
+            const payUrl = data.payment_url || data.pay_url;
             const pendingPayment = {
-                invoiceId: data.result.invoice_id,
+                invoiceId: data.invoice_id,
                 rubAmount: rubAmount,
                 usdtAmount: usdtAmount,
                 createdAt: Date.now()
             };
             localStorage.setItem('jetstore_pending_payment', JSON.stringify(pendingPayment));
             
-            // Открываем ссылку на оплату
-            const payUrl = data.result.pay_url;
             const tg = window.Telegram?.WebApp;
-            
             if (tg && tg.openTelegramLink) {
                 tg.openTelegramLink(payUrl);
-        } else {
+            } else if (tg && tg.openLink) {
+                tg.openLink(payUrl);
+            } else {
                 window.open(payUrl, '_blank');
             }
             
             closeUsdtPopup();
             showNotification('Перейдите в CryptoBot для оплаты', 'success');
-            
-            // Запускаем проверку статуса платежа
-            startPaymentCheck(data.result.invoice_id, rubAmount);
+            startPaymentCheck(data.invoice_id, rubAmount);
         } else {
-            throw new Error(data.error?.name || 'Ошибка создания счёта');
+            throw new Error(data.message || 'Ошибка создания счёта');
         }
     } catch (error) {
         console.error('Ошибка создания инвойса:', error);
@@ -881,14 +874,16 @@ function processSbpDeposit() {
     showNotification(`Баланс пополнен на ${amount.toLocaleString('ru-RU')} ₽`, 'success');
 }
 
-// Проверка статуса платежа
+// Проверка статуса платежа CryptoBot через бэкенд
 async function startPaymentCheck(invoiceId, rubAmount) {
+    const apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) return;
+    
     let attempts = 0;
-    const maxAttempts = 60; // Проверяем 5 минут (каждые 5 секунд)
+    const maxAttempts = 60;
     
     const checkInterval = setInterval(async () => {
         attempts++;
-        
         if (attempts > maxAttempts) {
             clearInterval(checkInterval);
             localStorage.removeItem('jetstore_pending_payment');
@@ -896,35 +891,23 @@ async function startPaymentCheck(invoiceId, rubAmount) {
         }
         
         try {
-            const response = await fetch('https://pay.crypt.bot/api/getInvoices', {
+            const response = await fetch(apiBase.replace(/\/$/, '') + '/api/cryptobot/check-invoice', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Crypto-Pay-API-Token': CRYPTO_BOT_API_KEY
-                },
-                body: JSON.stringify({
-                    invoice_ids: [invoiceId]
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ invoice_id: invoiceId })
             });
-            
             const data = await response.json();
             
-            if (data.ok && data.result?.items?.length > 0) {
-                const invoice = data.result.items[0];
-                
-                if (invoice.status === 'paid') {
-                    clearInterval(checkInterval);
-                    localStorage.removeItem('jetstore_pending_payment');
-                    
-                    // Зачисляем средства
-                    processDeposit(rubAmount);
-                    showNotification(`Оплата получена! +${rubAmount} ₽`, 'success');
-                }
+            if (data.paid) {
+                clearInterval(checkInterval);
+                localStorage.removeItem('jetstore_pending_payment');
+                processDeposit(rubAmount);
+                showNotification(`Оплата получена! +${rubAmount} ₽`, 'success');
             }
         } catch (error) {
             console.error('Ошибка проверки платежа:', error);
         }
-    }, 5000); // Проверяем каждые 5 секунд
+    }, 5000);
 }
 
 // Проверяем незавершённые платежи при загрузке

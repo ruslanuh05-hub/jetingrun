@@ -4,4 +4,7 @@ node_modules/
 *.pyc
 __pycache__/
 
+# Конфиги с секретами (создать из .example)
+cryptobot_config.json
+
 # Не игнорируем html/, css/, js/, assets/ — они должны быть в репозитории для GitHub Pages
