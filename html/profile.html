@@ -2517,14 +2517,17 @@
             const addressEl = document.getElementById('tonkeeperAddress');
             const balanceEl = document.getElementById('tonkeeperBalance');
             
-            var address = typeof window.getTonkeeperAddress === 'function' ? window.getTonkeeperAddress() : (localStorage.getItem('jetstore_tonkeeper_address') || '');
+            var addrKey = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_address') : 'jetstore_tonkeeper_address';
+            var connKey = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_connected') : 'jetstore_tonkeeper_connected';
+            var balKey = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_balance') : 'jetstore_tonkeeper_balance';
+            var address = typeof window.getTonkeeperAddress === 'function' ? window.getTonkeeperAddress() : (localStorage.getItem(addrKey) || '');
             if (address && window.tonConnectConnector && window.tonConnectConnector.connected) {
                 try {
-                    localStorage.setItem('jetstore_tonkeeper_connected', 'true');
-                    localStorage.setItem('jetstore_tonkeeper_address', address);
+                    localStorage.setItem(connKey, 'true');
+                    localStorage.setItem(addrKey, address);
                 } catch (e) {}
             }
-            var isConnected = (localStorage.getItem('jetstore_tonkeeper_connected') === 'true' && address);
+            var isConnected = (localStorage.getItem(connKey) === 'true' && address);
             
             if (connectedBlock) connectedBlock.style.display = isConnected ? 'block' : 'none';
             if (connectBtn) connectBtn.style.display = isConnected ? 'none' : 'flex';
@@ -2535,7 +2538,7 @@
             
             if (isConnected && address && balanceEl) {
                 fetchTonBalance(address).then(function(balanceText) {
-                    try { localStorage.setItem('jetstore_tonkeeper_balance', balanceText); } catch (e) {}
+                    try { localStorage.setItem(balKey, balanceText); } catch (e) {}
                     var el = document.getElementById('tonkeeperBalance');
                     if (el) el.textContent = balanceText + ' TON';
                 });
@@ -2545,9 +2548,12 @@
         // Отвязать TonKeeper
         window.disconnectTonkeeper = function() {
             try {
-                localStorage.removeItem('jetstore_tonkeeper_connected');
-                localStorage.removeItem('jetstore_tonkeeper_address');
-                localStorage.removeItem('jetstore_tonkeeper_balance');
+                var addrKey = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_address') : 'jetstore_tonkeeper_address';
+                var connKey = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_connected') : 'jetstore_tonkeeper_connected';
+                var balKey = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_balance') : 'jetstore_tonkeeper_balance';
+                localStorage.removeItem(connKey);
+                localStorage.removeItem(addrKey);
+                localStorage.removeItem(balKey);
                 Object.keys(localStorage).forEach(function(key) {
                     if (key.indexOf('tonconnect') !== -1 || key.indexOf('ton-connect') !== -1) {
                         localStorage.removeItem(key);
@@ -2573,9 +2579,12 @@
             }
             function doConnect() {
                 try {
-                    localStorage.removeItem('jetstore_tonkeeper_address');
-                    localStorage.removeItem('jetstore_tonkeeper_connected');
-                    localStorage.removeItem('jetstore_tonkeeper_balance');
+                    var ak = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_address') : 'jetstore_tonkeeper_address';
+                    var ck = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_connected') : 'jetstore_tonkeeper_connected';
+                    var bk = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_balance') : 'jetstore_tonkeeper_balance';
+                    localStorage.removeItem(ak);
+                    localStorage.removeItem(ck);
+                    localStorage.removeItem(bk);
                     Object.keys(localStorage).forEach(function(key) {
                         if (key.indexOf('tonconnect') !== -1 || key.indexOf('ton-connect') !== -1) {
                             localStorage.removeItem(key);

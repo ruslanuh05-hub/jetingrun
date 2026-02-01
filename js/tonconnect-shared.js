@@ -1,10 +1,35 @@
 /**
  * Общая инициализация TonConnect для profile.html и assets.html.
- * Единый источник адреса — conn.account (выбранный пользователем в Tonkeeper).
+ * Хранилище изолировано по Telegram user ID — чтобы не показывать чужой адрес.
  */
 (function() {
     if (window.tonConnectSharedLoaded) return;
     window.tonConnectSharedLoaded = true;
+
+    function getTgUserId() {
+        try {
+            var tg = window.Telegram && window.Telegram.WebApp;
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                return String(tg.initDataUnsafe.user.id);
+            }
+            var saved = sessionStorage.getItem('jet_tg_user');
+            if (saved) {
+                var u = JSON.parse(saved);
+                if (u && u.id) return String(u.id);
+            }
+            if (window.userData && window.userData.id && window.userData.id !== 'test_user_default') {
+                return String(window.userData.id);
+            }
+        } catch (e) {}
+        return '';
+    }
+
+    var tgId = getTgUserId();
+    var storagePrefix = tgId ? ('tonconnect_tg_' + tgId + '_') : 'tonconnect_';
+
+    window.getTonkeeperStorageKey = function(base) {
+        return tgId ? (base + '_' + tgId) : base;
+    };
 
     var TonConnectClass = (typeof TonConnectSDK !== 'undefined' && TonConnectSDK.TonConnect) ? TonConnectSDK.TonConnect : (typeof TonConnect !== 'undefined' ? TonConnect : null);
     if (!TonConnectClass) {
@@ -23,14 +48,23 @@
     }
     var manifestUrl = origin + repoPath + '/tonconnect-manifest.json';
 
+    var customStorage = {
+        setItem: function(k, v) { try { localStorage.setItem(storagePrefix + k, v); } catch (e) {} return Promise.resolve(); },
+        getItem: function(k) { try { return Promise.resolve(localStorage.getItem(storagePrefix + k)); } catch (e) { return Promise.resolve(null); } },
+        removeItem: function(k) { try { localStorage.removeItem(storagePrefix + k); } catch (e) {} return Promise.resolve(); }
+    };
+
     try {
-        window.tonConnectConnector = new TonConnectClass({ manifestUrl: manifestUrl });
+        window.tonConnectConnector = new TonConnectClass({ manifestUrl: manifestUrl, storage: customStorage });
     } catch (e) {
         console.error('[TonConnect] Ошибка создания connector:', e);
         return;
     }
 
-    // Единственный источник адреса — connector.account (официальный API SDK)
+    var addrKey = window.getTonkeeperStorageKey('jetstore_tonkeeper_address');
+    var connectedKey = window.getTonkeeperStorageKey('jetstore_tonkeeper_connected');
+    var balanceKey = window.getTonkeeperStorageKey('jetstore_tonkeeper_balance');
+
     window.getTonkeeperAddress = function() {
         var conn = window.tonConnectConnector;
         var addr = '';
@@ -42,7 +76,7 @@
             }
         }
         if (!addr) {
-            var saved = localStorage.getItem('jetstore_tonkeeper_address') || '';
+            var saved = localStorage.getItem(addrKey) || '';
             if (saved && saved.trim()) addr = saved.trim();
         }
         return addr;
@@ -58,17 +92,17 @@
         function saveAddr(addr) {
             if (addr) {
                 try {
-                    localStorage.setItem('jetstore_tonkeeper_connected', 'true');
-                    localStorage.setItem('jetstore_tonkeeper_address', addr);
-                    if (!localStorage.getItem('jetstore_tonkeeper_balance')) {
-                        localStorage.setItem('jetstore_tonkeeper_balance', '0');
+                    localStorage.setItem(connectedKey, 'true');
+                    localStorage.setItem(addrKey, addr);
+                    if (!localStorage.getItem(balanceKey)) {
+                        localStorage.setItem(balanceKey, '0');
                     }
                 } catch (e) {}
             } else {
                 try {
-                    localStorage.removeItem('jetstore_tonkeeper_connected');
-                    localStorage.removeItem('jetstore_tonkeeper_address');
-                    localStorage.removeItem('jetstore_tonkeeper_balance');
+                    localStorage.removeItem(connectedKey);
+                    localStorage.removeItem(addrKey);
+                    localStorage.removeItem(balanceKey);
                 } catch (e) {}
             }
             if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();

@@ -2962,7 +2962,8 @@
             nicknameEl.textContent = nickname;
             usernameEl.textContent = username;
             if (walletEl) {
-                var addr = (typeof window.getTonkeeperAddress === 'function') ? window.getTonkeeperAddress() : (localStorage.getItem('jetstore_tonkeeper_address') || '');
+                var addrKey = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_address') : 'jetstore_tonkeeper_address';
+                var addr = (typeof window.getTonkeeperAddress === 'function') ? window.getTonkeeperAddress() : (localStorage.getItem(addrKey) || '');
                 if (addr && addr.trim()) {
                     var short = addr.length > 12 ? addr.slice(0, 8) + '…' + addr.slice(-10) : addr;
                     walletEl.textContent = short;
@@ -2980,7 +2981,8 @@
             if (balanceRubEl) balanceRubEl.textContent = typeof rub === 'number' ? rub.toLocaleString('ru-RU') : String(rub);
             let ton = 0;
             try {
-                const tonBal = localStorage.getItem('jetstore_tonkeeper_balance');
+                var balKey = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_balance') : 'jetstore_tonkeeper_balance';
+                const tonBal = localStorage.getItem(balKey);
                 if (tonBal != null && tonBal !== '') ton = parseFloat(tonBal) || 0;
             } catch (e) {}
             if (balanceTonEl) balanceTonEl.textContent = typeof ton === 'number' ? ton.toFixed(2) : '0';
@@ -3076,10 +3078,13 @@
             // Статус TonKeeper: адрес только из TonConnect/сохранённый при подключении (никогда не случайный)
             const tonkeeperContentEl = document.getElementById('assetsProfileTonkeeperContent');
             if (tonkeeperContentEl) {
-                var isConnected = localStorage.getItem('jetstore_tonkeeper_connected') === 'true';
-                var tonkeeperAddress = (typeof window.getTonkeeperAddress === 'function') ? window.getTonkeeperAddress() : (localStorage.getItem('jetstore_tonkeeper_address') || '');
+                var connKey = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_connected') : 'jetstore_tonkeeper_connected';
+                var addrKey2 = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_address') : 'jetstore_tonkeeper_address';
+                var balKey2 = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_balance') : 'jetstore_tonkeeper_balance';
+                var isConnected = localStorage.getItem(connKey) === 'true';
+                var tonkeeperAddress = (typeof window.getTonkeeperAddress === 'function') ? window.getTonkeeperAddress() : (localStorage.getItem(addrKey2) || '');
                 if (!tonkeeperAddress || !tonkeeperAddress.trim()) isConnected = false;
-                var tonkeeperBalance = localStorage.getItem('jetstore_tonkeeper_balance') || '0';
+                var tonkeeperBalance = localStorage.getItem(balKey2) || '0';
                 
                 if (isConnected && tonkeeperAddress) {
                     tonkeeperContentEl.innerHTML = `

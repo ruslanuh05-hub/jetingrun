@@ -1261,7 +1261,8 @@
         function loadUserData() {
             // Загружаем баланс TON
             try {
-                const tonkeeperBalance = localStorage.getItem('jetstore_tonkeeper_balance');
+                var balK = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_balance') : 'jetstore_tonkeeper_balance';
+                const tonkeeperBalance = localStorage.getItem(balK);
                 if (tonkeeperBalance) {
                     userTonBalance = parseFloat(tonkeeperBalance) || 0;
                 }
@@ -1584,7 +1585,8 @@
                 if (!userData.currencies) userData.currencies = {};
                 userData.currencies.TON = userTonBalance;
                 localStorage.setItem('jetstore_user_data', JSON.stringify(userData));
-                localStorage.setItem('jetstore_tonkeeper_balance', userTonBalance.toString());
+                var balK2 = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_balance') : 'jetstore_tonkeeper_balance';
+                localStorage.setItem(balK2, userTonBalance.toString());
             } catch (e) {
                 console.error('Ошибка сохранения баланса:', e);
             }

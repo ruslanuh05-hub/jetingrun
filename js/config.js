@@ -2,6 +2,20 @@
 // Подробная инструкция: SETUP_API.md
 window.JET_API_BASE = 'https://jetstoreapp.ru';
 
+// Ключ localStorage для Tonkeeper, изолированный по Telegram user ID
+window.getTonkeeperStorageKey = window.getTonkeeperStorageKey || function(base) {
+    try {
+        var tg = window.Telegram && window.Telegram.WebApp;
+        var tgId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) ? String(tg.initDataUnsafe.user.id) : null;
+        if (!tgId) {
+            var saved = sessionStorage.getItem('jet_tg_user');
+            if (saved) { var u = JSON.parse(saved); if (u && u.id) tgId = String(u.id); }
+        }
+        if (!tgId && window.userData && window.userData.id && window.userData.id !== 'test_user_default') tgId = String(window.userData.id);
+        return tgId ? (base + '_' + tgId) : base;
+    } catch (e) { return base; }
+};
+
 // Курс TON ↔ RUB: источник CoinPaprika (агрегация с бирж, бесплатный API).
 // Документация: https://api.coinpaprika.com/
 window.TON_RATE_API_URL = 'https://api.coinpaprika.com/v1/tickers/ton-toncoin?quotes=RUB';
