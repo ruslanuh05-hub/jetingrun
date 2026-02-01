@@ -2751,7 +2751,7 @@
                 }
                 // Подгрузка аватарки через API, если в initData её не было
                 if (userData.id && !userData.photoUrl) {
-                    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+                    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
                     if (apiBase) {
                         fetch(apiBase.replace(/\/$/, '') + '/api/telegram/avatar?user_id=' + encodeURIComponent(String(userData.id)))
                             .then(function(r) { return r.json().catch(function() { return null; }); })

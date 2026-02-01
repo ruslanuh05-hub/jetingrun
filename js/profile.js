@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Загрузка аватарки через Bot API (в initData photo_url часто отсутствует)
 function fetchProfileAvatar() {
     if (!userData.id || userData.photoUrl) return;
-    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) return;
     var url = apiBase.replace(/\/$/, '') + '/api/telegram/avatar?user_id=' + encodeURIComponent(String(userData.id));
     fetch(url)
@@ -691,7 +691,7 @@ async function processUsdtDeposit() {
     
     showNotification('Создаём счёт для оплаты...', 'info');
     
-    const apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    const apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) {
         showNotification('Укажите адрес API бота в настройках', 'error');
         return;
@@ -876,7 +876,7 @@ function processSbpDeposit() {
 
 // Проверка статуса платежа CryptoBot через бэкенд
 async function startPaymentCheck(invoiceId, rubAmount) {
-    const apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    const apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) return;
     
     let attempts = 0;

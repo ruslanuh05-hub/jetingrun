@@ -42,26 +42,26 @@ window.currentGameCategory = null;
 let currentSupercellGame = null;
 window.currentSupercellGame = null;
 
-// API бота: при открытии с localhost — localhost:3000; с GitHub Pages — из localStorage (нужно указать вручную).
+// API бота: при открытии с localhost — localhost:3000; с GitHub Pages — из localStorage.
+// Если бот на другом домене — укажите JET_BOT_API_URL в config.js или jet_bot_api_url в localStorage.
 (function() {
     var host = (typeof window !== 'undefined' && window.location?.hostname) ? window.location.hostname.toLowerCase() : '';
     if (host === 'localhost' || host === '127.0.0.1') {
         window.JET_API_BASE = 'http://localhost:3000';
     } else if (host.indexOf('github') !== -1) {
-        // Сайт на GitHub Pages — бот может быть локально: укажите адрес API в настройках (или через ngrok).
-        window.JET_API_BASE = localStorage.getItem('jet_api_base') || '';
-    } else if ((host === 'jetstoreapp.ru' || host === 'www.jetstoreapp.ru') && !(window.JET_API_BASE && window.JET_API_BASE !== '')) {
-        window.JET_API_BASE = window.location.origin || 'https://jetstoreapp.ru';
-    } else if (!(window.JET_API_BASE && window.JET_API_BASE !== '')) {
-        // Сайт на своём домене (например cloud4box): API = тот же домен (бот и сайт на одном сервере).
-        window.JET_API_BASE = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : '';
+        window.JET_API_BASE = localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '';
+    } else if ((host === 'jetstoreapp.ru' || host === 'www.jetstoreapp.ru') && !(window.JET_BOT_API_URL && window.JET_BOT_API_URL !== '')) {
+        // По умолчанию бот на том же домене; если бот на другом — задайте JET_BOT_API_URL в config.js
+        if (!(window.JET_API_BASE && window.JET_API_BASE !== '')) {
+            window.JET_API_BASE = window.location.origin || 'https://jetstoreapp.ru';
+        }
     }
 })();
 
 // Загрузка аватарки текущего пользователя через Bot API (в initData photo_url часто отсутствует)
 function fetchCurrentUserAvatar() {
     if (!window.userData?.id || window.userData.photoUrl) return;
-    var apiBase = window.JET_API_BASE || '';
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || '';
     if (!apiBase) return;
     var url = apiBase.replace(/\/$/, '') + '/api/telegram/avatar?user_id=' + encodeURIComponent(String(window.userData.id));
     fetch(url)
@@ -952,7 +952,7 @@ function lookupStarsRecipient() {
         return;
     }
     setStarsRecipientState('loading', { username: username });
-    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var url = (apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '');
     if (!url) {
         setStarsRecipientState('found', { username: username, firstName: username });
@@ -1022,7 +1022,7 @@ function lookupPremiumRecipient() {
         return;
     }
     setPremiumRecipientState('loading', { username: username });
-    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var url = apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '';
     if (!url) {
         setPremiumRecipientState('found', { username: username, firstName: username });
@@ -2408,11 +2408,11 @@ function confirmPayment() {
     var data = window.paymentData;
     var statusEl = document.getElementById('paymentDetailStatus');
     var confirmBtn = document.getElementById('paymentWaitingConfirmBtn');
-    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) {
-        var url = typeof prompt !== 'undefined' ? prompt('Сайт на GitHub — укажите адрес API бота.\n\nБот локально: используйте ngrok (https://ngrok.com) и вставьте ссылку вида https://xxxx.ngrok.io\n\nИли введите адрес вашего сервера:') : '';
+        var url = typeof prompt !== 'undefined' ? prompt('Укажите адрес API бота (сервер, где запущен Python-бот).\n\nБот может быть на другом домене, например: https://api.jetstoreapp.ru') : '';
         if (url && (url = url.trim().replace(/\/$/, ''))) {
-            try { localStorage.setItem('jet_api_base', url); } catch (e) {}
+            try { localStorage.setItem('jet_bot_api_url', url); localStorage.setItem('jet_api_base', url); } catch (e) {}
             window.JET_API_BASE = url;
             if (typeof showStoreNotification === 'function') showStoreNotification('Адрес API сохранён. Нажмите «Подтвердить оплату» снова.', 'success');
         } else {
@@ -2484,7 +2484,7 @@ function confirmPayment() {
 
 // Выдача товара после подтверждённой оплаты (Steam = DonateHub, звёзды/премиум = Fragment.com)
 function runDeliveryAfterPayment(data, checkResponse) {
-    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var statusEl = document.getElementById('paymentDetailStatus');
     // Оплата через Fragment (TonKeeper): товар уже выдан по вебхуку order.completed
     if (checkResponse && checkResponse.delivered_by_fragment === true) {
@@ -2627,7 +2627,7 @@ function openPaymentPage() {
 
     // Звёзды: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
     if (data.purchase?.type === 'stars') {
-        var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
         var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
         if (!apiBase || !recipient || !starsAmount) {
@@ -2665,17 +2665,18 @@ function openPaymentPage() {
                     if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа.', 'error');
                 }
             })
-            .catch(function() {
+            .catch(function(err) {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания заказа.', 'error');
+                var msg = 'Ошибка создания заказа. Проверьте адрес API бота (config.js: JET_BOT_API_URL или jet_bot_api_url в localStorage).';
+                if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
             });
         return;
     }
 
     // Premium: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
     if (data.purchase?.type === 'premium') {
-        var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
         var months = data.purchase.months || 3;
         if ([3, 6, 12].indexOf(months) === -1) months = 3;
@@ -2717,13 +2718,14 @@ function openPaymentPage() {
             .catch(function() {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания заказа.', 'error');
+                var msg = 'Ошибка связи с ботом. Укажите URL API (config.js: JET_BOT_API_URL).';
+                if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
             });
         return;
     }
     
     if (data.method === 'cryptobot') {
-        var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (!apiBase) {
             if (typeof showStoreNotification === 'function') showStoreNotification('Укажите адрес API бота.', 'error');
             return;
@@ -2772,7 +2774,8 @@ function openPaymentPage() {
             .catch(function() {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания счёта CryptoBot', 'error');
+                var msg = 'Ошибка связи с ботом. Укажите URL API бота в config.js (JET_BOT_API_URL).';
+                if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
             });
         return;
     } else if (data.method === 'sbp') {

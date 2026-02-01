@@ -1,6 +1,14 @@
-// Конфиг для хостинга. API бота — тот же домен, что и сайт.
-// Подробная инструкция: SETUP_API.md
+// Конфиг для хостинга.
+// API бота — сервер, где запущен Python (bot.py) с эндпоинтами /api/*.
+// Если бот и сайт на РАЗНЫХ доменах — укажите URL бота (например https://api.jetstoreapp.ru):
+window.JET_BOT_API_URL = '';
+// Если бот на том же домене, что и сайт:
 window.JET_API_BASE = 'https://jetstoreapp.ru';
+// Возвращает URL для API-запросов. Бот может быть на другом домене — укажите JET_BOT_API_URL или jet_bot_api_url.
+window.getJetApiBase = function() {
+    var url = (window.JET_BOT_API_URL || window.JET_API_BASE || localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '').trim();
+    return url ? url.replace(/\/$/, '') : '';
+};
 
 // Ключ localStorage для Tonkeeper, изолированный по Telegram user ID
 window.getTonkeeperStorageKey = window.getTonkeeperStorageKey || function(base) {
