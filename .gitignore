@@ -1,0 +1,7 @@
+# Зависимости и окружение
+node_modules/
+.env
+*.pyc
+__pycache__/
+
+# Не игнорируем html/, css/, js/, assets/ — они должны быть в репозитории для GitHub Pages

@@ -1,5 +1,5 @@
 {
-  "api_key": "YOUR_ISTAR_API_KEY",
+  "api_key": "6aef8b00-480e-40d4-b0a2-4a3fa4160ea1",
   "base_url": "https://v1.fragmentapi.com/api/v1/partner",
   "webhook_url": "https://jetstoreapp.ru/api/fragment/webhook"
 }
