@@ -557,6 +557,25 @@
         .btn-tonkeeper-unbind:active {
             transform: scale(0.98);
         }
+        .btn-tonkeeper-reconnect {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-tonkeeper-reconnect:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        .btn-tonkeeper-reconnect:active {
+            transform: scale(0.98);
+        }
         
         .tonkeeper-arrow {
             color: rgba(255, 255, 255, 0.8);
@@ -2198,7 +2217,10 @@
                         <span class="tonkeeper-connected-label">Баланс</span>
                         <span id="tonkeeperBalance" class="tonkeeper-connected-value">0.00 TON</span>
                     </div>
-                    <button type="button" class="btn-tonkeeper-unbind" onclick="disconnectTonkeeper()">Отвязать</button>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <button type="button" class="btn-tonkeeper-unbind" onclick="disconnectTonkeeper()">Отвязать</button>
+                        <button type="button" class="btn-tonkeeper-reconnect" onclick="reconnectTonkeeper()">Переподключить</button>
+                    </div>
                 </div>
                 <button id="tonkeeperConnectBtn" class="btn-tonkeeper" onclick="connectTonkeeper()">
                     <div class="tonkeeper-icon">
@@ -2579,7 +2601,53 @@
             if (typeof showNotification === 'function') showNotification('TonKeeper отвязан', 'info');
         };
         
-        // Подключение TonKeeper через TonConnect
+        function doConnectTonkeeper() {
+            var connector = window.tonConnectConnector;
+            if (!connector) return;
+            try {
+                var ak = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_address') : 'jetstore_tonkeeper_address';
+                var ck = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_connected') : 'jetstore_tonkeeper_connected';
+                var bk = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_balance') : 'jetstore_tonkeeper_balance';
+                localStorage.removeItem(ak);
+                localStorage.removeItem(ck);
+                localStorage.removeItem(bk);
+            } catch (e) {}
+            Object.keys(localStorage).forEach(function(key) {
+                if (key.indexOf('tonconnect') !== -1 || key.indexOf('ton-connect') !== -1) {
+                    localStorage.removeItem(key);
+                }
+            });
+            if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
+            var walletSource = {
+                universalLink: 'https://app.tonkeeper.com/ton-connect',
+                bridgeUrl: 'https://bridge.tonapi.io/bridge'
+            };
+            var linkToOpen;
+            try {
+                linkToOpen = connector.connect(walletSource);
+            } catch (e) {
+                if (typeof showNotification === 'function') {
+                    showNotification('Ошибка: ' + (e && e.message ? e.message : 'попробуйте позже'), 'error');
+                }
+                return;
+            }
+            if (!linkToOpen) {
+                if (typeof showNotification === 'function') {
+                    showNotification('Не удалось сформировать ссылку подключения', 'error');
+                }
+                return;
+            }
+            if (typeof showNotification === 'function') {
+                showNotification('Выберите нужный кошелёк в TonKeeper и подтвердите подключение', 'info');
+            }
+            var tg = window.Telegram && window.Telegram.WebApp;
+            if (tg && typeof tg.openLink === 'function') {
+                tg.openLink(linkToOpen);
+            } else {
+                window.open(linkToOpen, '_blank');
+            }
+        }
+
         window.connectTonkeeper = function() {
             var connector = window.tonConnectConnector;
             if (!connector) {
@@ -2588,7 +2656,20 @@
                 }
                 return;
             }
-            function doConnect() {
+            if (connector.connected) {
+                if (typeof showNotification === 'function') showNotification('TonKeeper уже подключен. Нажмите «Переподключить», если адрес неверный.', 'info');
+                return;
+            }
+            doConnectTonkeeper();
+        };
+
+        window.reconnectTonkeeper = function() {
+            var connector = window.tonConnectConnector;
+            if (!connector) return;
+            if (typeof showNotification === 'function') {
+                showNotification('Отключаем и подключаем заново...', 'info');
+            }
+            connector.disconnect().then(function() {
                 try {
                     var ak = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_address') : 'jetstore_tonkeeper_address';
                     var ck = (typeof window.getTonkeeperStorageKey === 'function') ? window.getTonkeeperStorageKey('jetstore_tonkeeper_connected') : 'jetstore_tonkeeper_connected';
@@ -2597,42 +2678,16 @@
                     localStorage.removeItem(ck);
                     localStorage.removeItem(bk);
                 } catch (e) {}
-                if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
-                var walletSource = {
-                    universalLink: 'https://app.tonkeeper.com/ton-connect',
-                    bridgeUrl: 'https://bridge.tonapi.io/bridge'
-                };
-                var linkToOpen;
-                try {
-                    linkToOpen = connector.connect(walletSource);
-                } catch (e) {
-                    if (typeof showNotification === 'function') {
-                        showNotification('Ошибка подключения: ' + (e && e.message ? e.message : 'попробуйте позже'), 'error');
+                Object.keys(localStorage).forEach(function(key) {
+                    if (key.indexOf('tonconnect') !== -1 || key.indexOf('ton-connect') !== -1) {
+                        localStorage.removeItem(key);
                     }
-                    return;
-                }
-                if (!linkToOpen) {
-                    if (typeof showNotification === 'function') {
-                        showNotification('Не удалось сформировать ссылку подключения', 'error');
-                    }
-                    return;
-                }
-                if (typeof showNotification === 'function') {
-                    showNotification('Подтвердите подключение в TonKeeper и вернитесь в приложение', 'info');
-                }
-                var tg = window.Telegram && window.Telegram.WebApp;
-                if (tg && typeof tg.openLink === 'function') {
-                    tg.openLink(linkToOpen);
-                } else {
-                    window.open(linkToOpen, '_blank');
-                }
-            }
-            if (connector.connected) {
+                });
                 if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
-                if (typeof showNotification === 'function') showNotification('TonKeeper уже подключен', 'info');
-                return;
-            }
-            doConnect();
+                setTimeout(doConnectTonkeeper, 300);
+            }).catch(function() {
+                doConnectTonkeeper();
+            });
         };
         
         // Переход на страницу подарков пользователя
