@@ -420,6 +420,42 @@ class Database {
             return {};
         }
     }
+
+    getUsers() {
+        return this.getAllUsers();
+    }
+
+    // Настройки админки (пароль хранится в jetStoreAdminSettings)
+    getAdminSettings() {
+        try {
+            const defaultSettings = {
+                password: 'admin',
+                currencyRates: { USDT: 80, USD: 90, EUR: 100, TON: 600 }
+            };
+            const saved = localStorage.getItem('jetStoreAdminSettings');
+            if (!saved) return defaultSettings;
+            const parsed = JSON.parse(saved);
+            return { ...defaultSettings, ...parsed };
+        } catch (e) {
+            return { password: 'admin' };
+        }
+    }
+
+    checkAdminPassword(inputPassword) {
+        const settings = this.getAdminSettings();
+        return settings.password && String(inputPassword) === String(settings.password);
+    }
+
+    changeAdminPassword(newPassword) {
+        try {
+            const settings = this.getAdminSettings();
+            settings.password = String(newPassword);
+            localStorage.setItem('jetStoreAdminSettings', JSON.stringify(settings));
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
     
     // Получение курсов валют
     getCurrencyRates() {
