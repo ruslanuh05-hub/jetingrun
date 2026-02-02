@@ -2787,7 +2787,14 @@ window.showSteamTopup = showSteamTopup;
 window.closeSteamTopup = closeSteamTopup;
 window.clearSteamInput = clearSteamInput;
 window.setSteamAmount = setSteamAmount;
-window.processSteamPayment = processSteamPayment;
+window.processSteamPayment = function processSteamPayment() {
+    if (typeof showStoreNotification === 'function') {
+        showStoreNotification('Выберите способ оплаты и нажмите «Оплатить»', 'info');
+    }
+    if (typeof showPaymentMethodSelection === 'function') {
+        showPaymentMethodSelection('steam');
+    }
+};
 window.openSteamLoginHelpModal = openSteamLoginHelpModal;
 window.closeSteamLoginHelpModal = closeSteamLoginHelpModal;
 window.showAssetsView = showAssetsView;

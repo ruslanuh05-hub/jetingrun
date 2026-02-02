@@ -732,12 +732,14 @@
                 Database.init();
             }
             // Загружаем username бота с сервера
-            const apiBase = window.JET_API_BASE || (typeof localStorage !== 'undefined' && localStorage.getItem('jet_api_base')) || window.location.origin;
-            fetch(apiBase + '/api/config').then(r => r.json()).then(c => {
-                if (c && c.bot_username) {
-                    window.JET_BOT_USERNAME = c.bot_username;
-                }
-            }).catch(() => {});
+            var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+            if (apiBase && /^https?:\/\//i.test(apiBase)) {
+                fetch(apiBase.replace(/\/$/, '') + '/api/config').then(r => r.json()).then(c => {
+                    if (c && c.bot_username) {
+                        window.JET_BOT_USERNAME = c.bot_username;
+                    }
+                }).catch(() => {});
+            }
             // Загружаем данные из localStorage
             loadReferralData();
         });

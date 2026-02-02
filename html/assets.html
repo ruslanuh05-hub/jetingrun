@@ -38,73 +38,6 @@
             overflow-y: visible;
         }
         
-        /* Анимация видео при загрузке */
-        .assets-graph-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 10000;
-            animation: fadeOut 0.5s ease 2.5s forwards;
-            overflow: hidden;
-        }
-        .assets-graph-animation.animation-done {
-            pointer-events: none;
-        }
-        
-        .assets-video-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 0;
-        }
-        
-        .assets-graph-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1;
-        }
-        
-        .assets-graph-text {
-            color: #ffffff;
-            font-size: 1.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            animation: textFadeIn 0.8s ease 1.5s both;
-            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-            position: relative;
-            z-index: 2;
-        }
-        
-        @keyframes textFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes fadeOut {
-            to {
-                opacity: 0;
-                visibility: hidden;
-                pointer-events: none;
-            }
-        }
-        
         /* Шапка */
         .assets-header {
             display: flex;
@@ -2389,16 +2322,6 @@
     </style>
 </head>
 <body>
-    <!-- Анимация видео при загрузке -->
-    <div class="assets-graph-animation" id="graphAnimation">
-        <video class="assets-video-background" autoplay muted loop playsinline>
-            <source src="../assets/video.mp4" type="video/mp4">
-        </video>
-        <div class="assets-graph-wrapper">
-            <div class="assets-graph-text">JET NFT</div>
-        </div>
-    </div>
-    
     <div class="assets-container">
         <!-- Шапка -->
         <div class="assets-header">
@@ -2683,12 +2606,11 @@
     <script src="../js/config.js"></script>
     <script src="../js/database.js"></script>
     <script>
+        window.toggleAssetsDrawer = window.toggleAssetsDrawer || function(){};
+        window.toggleUsernameTypeDropdown = window.toggleUsernameTypeDropdown || function(){};
+        window.toggleUsernameSortDropdown = window.toggleUsernameSortDropdown || function(){};
         (function(){ if (typeof window.fetchTonToRubRateFromApi === 'function') window.fetchTonToRubRateFromApi(); })();
         document.addEventListener('DOMContentLoaded', function() {
-            const animation = document.getElementById('graphAnimation');
-            const hasSeenAssetsIntro = localStorage.getItem('jet_assets_intro_seen') === 'true';
-            
-            // Если вернулись из «Мои подарки» — открыть шторку меню
             if (sessionStorage.getItem('assetsOpenDrawer') === '1') {
                 sessionStorage.removeItem('assetsOpenDrawer');
                 setTimeout(function() {
@@ -2698,30 +2620,7 @@
                     }
                 }, 100);
             }
-            
-            if (hasSeenAssetsIntro) {
-                if (animation) {
-                    animation.style.display = 'none';
-                    animation.style.pointerEvents = 'none';
-                }
-                loadUserDataForAssets();
-            } else {
-                if (animation) {
-                    animation.addEventListener('animationend', function fn() {
-                        animation.removeEventListener('animationend', fn);
-                        animation.classList.add('animation-done');
-                        animation.style.pointerEvents = 'none';
-                    });
-                }
-                setTimeout(function() {
-                    if (animation) {
-                        animation.style.display = 'none';
-                        animation.style.pointerEvents = 'none';
-                    }
-                    localStorage.setItem('jet_assets_intro_seen', 'true');
-                }, 3000);
-                loadUserDataForAssets();
-            }
+            loadUserDataForAssets();
         });
         
         // Загрузка данных пользователя для активов
@@ -2993,7 +2892,7 @@
             usernameEl.textContent = username;
             if (walletEl) {
                 var addr = localStorage.getItem('jetstore_tonkeeper_address') || '';
-                if (addr && /^(-1|0):[0-9a-fA-F]{32,64}$/.test(String(addr).trim()) {
+                if (addr && (new RegExp('^(-1|0):[0-9a-fA-F]{32,64}$')).test(String(addr).trim())) {
                     addr = (typeof window.ensureUserFriendlyAddress === 'function') ? window.ensureUserFriendlyAddress(addr) : addr;
                     try { if (addr) localStorage.setItem('jetstore_tonkeeper_address', addr); } catch (e) {}
                 }
@@ -3116,7 +3015,7 @@
                 
                 if (isConnected && tonkeeperAddress) {
                     var displayAddr = tonkeeperAddress;
-                    if (/^(-1|0):[0-9a-fA-F]{32,64}$/.test(String(tonkeeperAddress).trim())) {
+                    if ((new RegExp('^(-1|0):[0-9a-fA-F]{32,64}$')).test(String(tonkeeperAddress).trim())) {
                         displayAddr = (typeof window.ensureUserFriendlyAddress === 'function') ? window.ensureUserFriendlyAddress(tonkeeperAddress) : tonkeeperAddress;
                         try { if (displayAddr !== tonkeeperAddress) localStorage.setItem('jetstore_tonkeeper_address', displayAddr); } catch (e) {}
                     }

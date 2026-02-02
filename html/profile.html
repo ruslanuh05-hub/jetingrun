@@ -36,6 +36,10 @@
                 }
             });
         })();
+        window.connectTonkeeper = window.connectTonkeeper || function(){
+            if (typeof showNotification === 'function') showNotification('Загрузка TonConnect...', 'info');
+        };
+        window.disconnectTonkeeper = window.disconnectTonkeeper || function(){};
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -2564,7 +2568,7 @@
             if (connectBtn) connectBtn.style.display = isConnected ? 'none' : 'flex';
             
             var displayAddr = address;
-            if (address && /^(-1|0):[0-9a-fA-F]{32,64}$/.test(String(address).trim()) {
+            if (address && (new RegExp('^(-1|0):[0-9a-fA-F]{32,64}$')).test(String(address).trim())) {
                 displayAddr = (typeof window.ensureUserFriendlyAddress === 'function') ? window.ensureUserFriendlyAddress(address) : address;
                 try { if (displayAddr !== address) localStorage.setItem('jetstore_tonkeeper_address', displayAddr); } catch (e) {}
                 if (typeof window.fetchUserFriendlyAddress === 'function') {
@@ -2999,12 +3003,14 @@
         // Загружаем покупки при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             // Загружаем username бота с сервера
-            const apiBase = window.JET_API_BASE || (typeof localStorage !== 'undefined' && localStorage.getItem('jet_api_base')) || window.location.origin;
-            fetch(apiBase + '/api/config').then(r => r.json()).then(c => {
+            var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+            if (apiBase && /^https?:\/\//i.test(apiBase)) {
+                fetch(apiBase.replace(/\/$/, '') + '/api/config').then(r => r.json()).then(c => {
                 if (c && c.bot_username) {
                     window.JET_BOT_USERNAME = c.bot_username;
                 }
             }).catch(() => {});
+            }
             setTimeout(() => {
                 if (document.getElementById('purchasesTab')?.classList.contains('active')) {
                     loadPurchases();

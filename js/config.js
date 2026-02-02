@@ -7,12 +7,15 @@ window.getJetApiBase = function() {
     var url = (window.JET_BOT_API_URL || window.JET_API_BASE || localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '').trim();
     if (!url) {
         var host = (window.location && window.location.hostname || '').toLowerCase();
-        if (host && host !== 'localhost' && host !== '127.0.0.1') {
+        var proto = (window.location && window.location.protocol || '').toLowerCase();
+        if (!host || host === 'null' || proto === 'file:' || proto === '') {
+            url = window.JET_BOT_API_FALLBACK || window.JET_BOT_API_URL || '';
+        } else if (host !== 'localhost' && host !== '127.0.0.1') {
             url = window.JET_BOT_API_FALLBACK || '';
         }
     }
     if (!url) return '';
-    url = url.replace(/\/$/, '');
+    url = String(url).replace(/\/$/, '');
     if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
     return url;
 };
