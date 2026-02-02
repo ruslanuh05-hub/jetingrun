@@ -2882,7 +2882,7 @@ function openPaymentPage() {
                 window.paymentData = window.paymentData || {};
                 window.paymentData.order_id = orderId;
                 try { savePendingPayment(window.paymentData); } catch (e) {}
-                var messages = [{ address: address, amount: amountNanoton }];
+                var messages = [{ address: address, amount: String(amountNanoton) }];
                 if (payloadB64) messages[0].payload = payloadB64;
                 var tx = { validUntil: Math.floor(Date.now() / 1000) + 300, messages: messages };
                 var sendPromise = connector.sendTransaction ? connector.sendTransaction(tx) : null;
