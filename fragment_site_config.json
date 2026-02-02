@@ -1,4 +1,6 @@
 {
   "cookies": "stel_token=7f83f49017199de617faa506dd1d92c27f83f48b7f83f4e15b33f170b8c23d299922c; stel_ssid=dacf5ce82b75923f1e_4290708827285472767; stel_ton_token=qpXXtv67JNXnzgX8xP0EDGtjboPt0EG3JmNpgj_aTi_NHY-ExLQP3yPlnj4Y0jWAfNjrY-tWYNh4Eu6A9A3cw9U20-HcWirvBZfpaozskXgYXgE4XcU0GYpCJA6Brc1mkDL9v8eRxMR9FdmNfwDFUT5A13AolHSnRLJzzYLLQ-K1FjJP24dcG0rOL89vEOzBl75kbKoo",
-  "hash": "ad2f2efb0793971515"
+  "hash": "ad2f2efb0793971515",
+  "tonapi_key": "AFDXGZQ5Y4AY7ZAAAAAOZXGCYWGSNZKN2PXSQWTQUVXF5GDNDU4GKBRLNVZL2S45NVJXLXI",
+  "mnemonic": ["left", "dose", "daughter", "mountain", "clever", "record", "pluck", "drive", "swim", "choice", "mansion", "west", "laundry", "artefact", "robust", "repeat", "auto", "ridge", "price", "sleep", "master", "van", "option", "cigar"]
 }

@@ -12,6 +12,7 @@ telethon_config.json
 telethon_session.txt
 donatehub_config.json
 fragment_config.json
+fragment_site_config.json
 
 # Логи
 *.log

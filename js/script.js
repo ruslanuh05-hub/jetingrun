@@ -2601,18 +2601,37 @@ function runDeliveryAfterPayment(data, checkResponse) {
         return;
     }
 
-    // Fragment: заказ уже создан и оплачен (order_id из вебхука) — выдача уже выполнена Fragment
-    if (data.order_id && data.purchase && (data.purchase.type === 'stars' || data.purchase.type === 'premium')) {
-        if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
-        closePaymentWaiting();
-        return;
-    }
-
-    // Fragment.com (cookies+hash): звёзды выдаются автоматически Fragment.com после оплаты
-    // Если дошли сюда и это Stars — значит оплата подтверждена, звёзды уже выданы
+    // Fragment (ezstar): после оплаты CryptoBot вызываем deliver-stars — бот отправляет TON с кошелька, звёзды приходят получателю
     if (data.purchase && data.purchase.type === 'stars') {
-        if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
-        closePaymentWaiting();
+        var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
+        var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
+        if (!recipient || !starsAmount) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка: укажите получателя и количество звёзд.', 'error');
+            if (statusEl) statusEl.textContent = 'Ожидание...';
+            return;
+        }
+        if (statusEl) statusEl.textContent = 'Отправка звёзд...';
+        fetch(apiBase.replace(/\/$/, '') + '/api/fragment/deliver-stars', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stars_amount: starsAmount, recipient: recipient })
+        })
+            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(res) {
+                if (res.success) {
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+                    closePaymentWaiting();
+                } else {
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification(res.message || 'Ошибка выдачи звёзд.', 'error');
+                    }
+                    if (statusEl) statusEl.textContent = 'Ожидание...';
+                }
+            })
+            .catch(function() {
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка выдачи звёзд.', 'error');
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+            });
         return;
     }
 
@@ -2799,17 +2818,19 @@ function openPaymentPage() {
             .then(function(res) {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (res.success && res.order_id) {
+                if (res.success && (res.order_id != null || res.mode === 'wallet')) {
                     window.paymentData = window.paymentData || {};
                     window.paymentData.order_id = res.order_id;
-                    if (res.payment_url) window.paymentData.payment_url = res.payment_url;
+                    window.paymentData.payment_url = res.payment_url || null;
                     try { savePendingPayment(window.paymentData); } catch (e) {}
                     var payUrl = res.payment_url || res.pay_url || data.payment_url || data.pay_url;
                     if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
                         if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
                         else window.open(payUrl, '_blank');
                     } else {
-                        if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment, затем нажмите «Подтвердить оплату».', 'info');
+                        if (typeof showStoreNotification === 'function') {
+                            showStoreNotification(res.message || 'Оплатите через CryptoBot; после оплаты нажмите «Подтвердить оплату» — звёзды будут отправлены.', 'info');
+                        }
                     }
                 } else {
                     if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа.', 'error');
