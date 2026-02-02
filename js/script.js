@@ -2829,7 +2829,84 @@ function openPaymentPage() {
         return;
     }
 
-    // Звёзды: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
+    // TON (Tonkeeper): оплата сразу через привязанный Tonkeeper, без CryptoBot
+    if (data.method === 'ton') {
+        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (!apiBase) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в настройках.', 'error');
+            return;
+        }
+        var totalRub = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
+        if (totalRub <= 0) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Сумма должна быть больше 0.', 'error');
+            return;
+        }
+        var connector = window.tonConnectConnector;
+        if (!connector || !connector.connected) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Подключите Tonkeeper в профиле (Профиль → Подключить TonKeeper), затем выберите оплату TON снова.', 'error');
+            return;
+        }
+        if (statusEl) statusEl.textContent = 'Создаём заказ...';
+        if (primaryBtn) primaryBtn.disabled = true;
+        fetch(apiBase.replace(/\/$/, '') + '/api/ton/create-order', {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount_rub: totalRub,
+                purchase: data.purchase || {},
+                user_id: (window.userData && window.userData.id) ? String(window.userData.id) : (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.id ? String(window.Telegram.WebApp.initDataUnsafe.user.id) : 'unknown')
+            })
+        })
+            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(res) {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (!res.success || !res.order_id || !res.payment_address || res.amount_nanoton == null) {
+                    if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа TON.', 'error');
+                    return;
+                }
+                var orderId = res.order_id;
+                var address = res.payment_address;
+                var amountNanoton = res.amount_nanoton;
+                var comment = res.comment || orderId;
+                var payloadB64 = (function() {
+                    var arr = [0, 0, 0, 0];
+                    for (var i = 0; i < comment.length; i++) arr.push(comment.charCodeAt(i));
+                    try {
+                        return btoa(String.fromCharCode.apply(null, arr));
+                    } catch (e) {
+                        return '';
+                    }
+                })();
+                window.paymentData = window.paymentData || {};
+                window.paymentData.order_id = orderId;
+                try { savePendingPayment(window.paymentData); } catch (e) {}
+                var messages = [{ address: address, amount: amountNanoton }];
+                if (payloadB64) messages[0].payload = payloadB64;
+                var tx = { validUntil: Math.floor(Date.now() / 1000) + 300, messages: messages };
+                var sendPromise = connector.sendTransaction ? connector.sendTransaction(tx) : null;
+                if (sendPromise && typeof sendPromise.then === 'function') {
+                    sendPromise.then(function() {
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Транзакция отправлена. Нажмите «Подтвердить оплату».', 'success');
+                        if (statusEl) statusEl.textContent = 'Транзакция отправлена. Нажмите «Подтвердить оплату».';
+                    }).catch(function(err) {
+                        if (typeof showStoreNotification === 'function') showStoreNotification(err && err.message ? err.message : 'Ошибка отправки в Tonkeeper.', 'error');
+                        if (statusEl) statusEl.textContent = 'Ожидание...';
+                    });
+                } else {
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Tonkeeper: подтвердите перевод в приложении, затем нажмите «Подтвердить оплату».', 'info');
+                }
+            })
+            .catch(function() {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка связи с сервером.', 'error');
+            });
+        return;
+    }
+
+    // Звёзды: Fragment.com (только при выборе CryptoBot — при TON оплата уже выше через Tonkeeper)
     if (data.purchase?.type === 'stars') {
         var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
@@ -2921,83 +2998,9 @@ function openPaymentPage() {
     }
     
     if (data.method === 'sbp') {
-        // Здесь будет логика для СБП
         showStoreNotification('Открываем страницу оплаты СБП...', 'info');
     } else if (data.method === 'card') {
         showStoreNotification('Открываем страницу оплаты картой...', 'info');
-    } else if (data.method === 'ton') {
-        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-        if (!apiBase) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в настройках.', 'error');
-            return;
-        }
-        var totalRub = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
-        if (totalRub <= 0) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Сумма должна быть больше 0.', 'error');
-            return;
-        }
-        var connector = window.tonConnectConnector;
-        if (!connector || !connector.connected) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Подключите Tonkeeper в профиле (Профиль → Подключить TonKeeper), затем выберите оплату TON снова.', 'error');
-            return;
-        }
-        if (statusEl) statusEl.textContent = 'Создаём заказ...';
-        if (primaryBtn) primaryBtn.disabled = true;
-        fetch(apiBase.replace(/\/$/, '') + '/api/ton/create-order', {
-            method: 'POST',
-            mode: 'cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount_rub: totalRub,
-                purchase: data.purchase || {},
-                user_id: (window.userData && window.userData.id) ? String(window.userData.id) : (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.id ? String(window.Telegram.WebApp.initDataUnsafe.user.id) : 'unknown')
-            })
-        })
-            .then(function(r) { return r.json().catch(function() { return {}; }); })
-            .then(function(res) {
-                if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (!res.success || !res.order_id || !res.payment_address || res.amount_nanoton == null) {
-                    if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа TON.', 'error');
-                    return;
-                }
-                var orderId = res.order_id;
-                var address = res.payment_address;
-                var amountNanoton = res.amount_nanoton;
-                var comment = res.comment || orderId;
-                var payloadB64 = (function() {
-                    var arr = [0, 0, 0, 0];
-                    for (var i = 0; i < comment.length; i++) arr.push(comment.charCodeAt(i));
-                    try {
-                        return btoa(String.fromCharCode.apply(null, arr));
-                    } catch (e) {
-                        return '';
-                    }
-                })();
-                window.paymentData = window.paymentData || {};
-                window.paymentData.order_id = orderId;
-                try { savePendingPayment(window.paymentData); } catch (e) {}
-                var messages = [{ address: address, amount: amountNanoton }];
-                if (payloadB64) messages[0].payload = payloadB64;
-                var tx = { validUntil: Math.floor(Date.now() / 1000) + 300, messages: messages };
-                var sendPromise = connector.sendTransaction ? connector.sendTransaction(tx) : null;
-                if (sendPromise && typeof sendPromise.then === 'function') {
-                    sendPromise.then(function() {
-                        if (typeof showStoreNotification === 'function') showStoreNotification('Транзакция отправлена. Нажмите «Подтвердить оплату».', 'success');
-                        if (statusEl) statusEl.textContent = 'Транзакция отправлена. Нажмите «Подтвердить оплату».';
-                    }).catch(function(err) {
-                        if (typeof showStoreNotification === 'function') showStoreNotification(err && err.message ? err.message : 'Ошибка отправки в Tonkeeper.', 'error');
-                        if (statusEl) statusEl.textContent = 'Ожидание...';
-                    });
-                } else {
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Tonkeeper: подтвердите перевод в приложении, затем нажмите «Подтвердить оплату».', 'info');
-                }
-            })
-            .catch(function() {
-                if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка связи с сервером.', 'error');
-            });
     }
 }
 
