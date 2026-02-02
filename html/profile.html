@@ -9,7 +9,6 @@
     <title>JET - официальный бот</title>
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- TonConnect dApp SDK -->
     <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <script>
         // Инициализация TonConnect для реального подключения кошелька (не просто переход в приложение)
@@ -2226,7 +2225,7 @@
                     </div>
                     <button type="button" class="btn-tonkeeper-unbind" onclick="disconnectTonkeeper()">Отвязать</button>
                 </div>
-                <button id="tonkeeperConnectBtn" class="btn-tonkeeper" onclick="connectTonkeeper()">
+                <button type="button" id="tonkeeperConnectBtn" class="btn-tonkeeper" onclick="connectTonkeeper()">
                     <div class="tonkeeper-icon">
                         <img src="../assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;">
                     </div>
@@ -2605,8 +2604,14 @@
             if (typeof showNotification === 'function') showNotification('TonKeeper отвязан', 'info');
         };
         
-        // Подключение TonKeeper через TonConnect: генерируем ссылку-запрос и открываем её.
-        // После подтверждения в TonKeeper кошелёк привяжется, при возврате в приложение restoreConnection подхватит связь.
+        function openTonkeeperLink(url) {
+            var tg = window.Telegram && window.Telegram.WebApp;
+            if (tg && typeof tg.openLink === 'function') {
+                try { tg.openLink(url); } catch (e) { window.open(url, '_blank'); }
+            } else {
+                window.open(url, '_blank');
+            }
+        }
         window.connectTonkeeper = function() {
             var connector = window.tonConnectConnector;
             if (!connector) {
@@ -2631,24 +2636,41 @@
                 linkToOpen = connector.connect(walletSource);
             } catch (e) {
                 if (typeof showNotification === 'function') {
-                    showNotification('Ошибка подключения: ' + (e && e.message ? e.message : 'попробуйте позже'), 'error');
-                }
-                return;
-            }
-            if (!linkToOpen) {
-                if (typeof showNotification === 'function') {
-                    showNotification('Не удалось сформировать ссылку подключения', 'error');
+                    showNotification('Ошибка: ' + (e && e.message ? e.message : 'попробуйте позже'), 'error');
                 }
                 return;
             }
             if (typeof showNotification === 'function') {
                 showNotification('Подтвердите подключение в TonKeeper и вернитесь в приложение', 'info');
             }
-            var tg = window.Telegram && window.Telegram.WebApp;
-            if (tg && typeof tg.openLink === 'function') {
-                tg.openLink(linkToOpen);
+            function doOpen(link) {
+                if (!link || typeof link !== 'string') return;
+                openTonkeeperLink(link);
+            }
+            if (linkToOpen && typeof linkToOpen.then === 'function') {
+                linkToOpen.then(function(link) {
+                    doOpen(link);
+                    if (link) {
+                        var btn = document.getElementById('tonkeeperConnectBtn');
+                        if (btn) {
+                            btn.innerHTML = '<div class="tonkeeper-icon"><img src="../assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;"></div><div class="tonkeeper-text"><span class="tonkeeper-title" style="color:#00d4ff;text-decoration:underline;">Открыть Tonkeeper</span><span class="tonkeeper-subtitle">Нажмите если не открылось</span></div><i class="fas fa-chevron-right tonkeeper-arrow"></i>';
+                            btn.onclick = function() { openTonkeeperLink(link); };
+                        }
+                    }
+                }).catch(function(e) {
+                    if (typeof showNotification === 'function') {
+                        showNotification('Ошибка: ' + (e && e.message ? e.message : 'не удалось'), 'error');
+                    }
+                });
+            } else if (linkToOpen && typeof linkToOpen === 'string') {
+                doOpen(linkToOpen);
+                var btn = document.getElementById('tonkeeperConnectBtn');
+                if (btn) {
+                    btn.innerHTML = '<div class="tonkeeper-icon"><img src="../assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;"></div><div class="tonkeeper-text"><span class="tonkeeper-title" style="color:#00d4ff;text-decoration:underline;">Открыть Tonkeeper</span><span class="tonkeeper-subtitle">Нажмите если не открылось</span></div><i class="fas fa-chevron-right tonkeeper-arrow"></i>';
+                    btn.onclick = function() { openTonkeeperLink(linkToOpen); };
+                }
             } else {
-                window.open(linkToOpen, '_blank');
+                openTonkeeperLink('https://app.tonkeeper.com/ton-connect');
             }
         };
         
@@ -2660,7 +2682,15 @@
     <script>
         // Дополнительный скрипт для мобильной оптимизации и реферальной программы
         document.addEventListener('DOMContentLoaded', function() {
-            // Улучшение касаний на мобильных
+            if (sessionStorage.getItem('jet_open_tonkeeper_connect') === '1') {
+                sessionStorage.removeItem('jet_open_tonkeeper_connect');
+                setTimeout(function() {
+                    if (typeof window.connectTonkeeper === 'function') {
+                        var c = window.tonConnectConnector;
+                        if (c && !c.connected) window.connectTonkeeper();
+                    }
+                }, 500);
+            }
             const buttons = document.querySelectorAll('button, .info-link, .deposit-option');
             buttons.forEach(btn => {
                 btn.addEventListener('touchstart', function() {

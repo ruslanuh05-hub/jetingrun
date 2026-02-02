@@ -49,6 +49,9 @@
             animation: fadeOut 0.5s ease 2.5s forwards;
             overflow: hidden;
         }
+        .assets-graph-animation.animation-done {
+            pointer-events: none;
+        }
         
         .assets-video-background {
             position: absolute;
@@ -98,6 +101,7 @@
             to {
                 opacity: 0;
                 visibility: hidden;
+                pointer-events: none;
             }
         }
         
@@ -196,12 +200,14 @@
             z-index: 999;
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
         
         .assets-drawer-overlay.active {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
         }
         
         .assets-drawer {
@@ -2694,21 +2700,26 @@
             }
             
             if (hasSeenAssetsIntro) {
-                // Пользователь уже видел анимацию — сразу скрываем её
                 if (animation) {
                     animation.style.display = 'none';
+                    animation.style.pointerEvents = 'none';
                 }
                 loadUserDataForAssets();
             } else {
-                // Первый заход в активы — показываем анимацию, затем скрываем и запоминаем
+                if (animation) {
+                    animation.addEventListener('animationend', function fn() {
+                        animation.removeEventListener('animationend', fn);
+                        animation.classList.add('animation-done');
+                        animation.style.pointerEvents = 'none';
+                    });
+                }
                 setTimeout(function() {
                     if (animation) {
                         animation.style.display = 'none';
+                        animation.style.pointerEvents = 'none';
                     }
                     localStorage.setItem('jet_assets_intro_seen', 'true');
                 }, 3000);
-                
-                // Параллельно загружаем данные пользователя
                 loadUserDataForAssets();
             }
         });
@@ -3128,11 +3139,11 @@
         }
         
         function goToProfileForTonkeeper() {
-            // Закрываем меню и переходим в профиль
             const dropdown = document.getElementById('assetsProfileDropdown');
             if (dropdown) {
                 dropdown.classList.remove('active');
             }
+            sessionStorage.setItem('jet_open_tonkeeper_connect', '1');
             window.location.href = 'profile.html';
         }
         
