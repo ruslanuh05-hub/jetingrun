@@ -731,7 +731,15 @@
                             1 USDT = <span id="usdtRate">80</span> RUB
                         </label>
                         <input type="number" id="usdtInput" class="form-group" placeholder="Курс USDT (по умолчанию: 80)" min="1" step="0.01" value="80">
-                        <small style="color: #888; display: block; margin-top: 5px;">Используется для оплаты через CryptoBot</small>
+                        <small style="color: #888; display: block; margin-top: 5px;">Используется для расчётов</small>
+                    </div>
+                    <div class="currency-rate-item" style="background: linear-gradient(135deg, rgba(38, 161, 123, 0.15) 0%, rgba(26, 143, 110, 0.08) 100%); border: 1px solid rgba(38, 161, 123, 0.4); border-radius: 12px; padding: 15px; margin-top: 10px;">
+                        <label style="color: #26A17B; font-weight: 600;">
+                            <i class="fas fa-robot" style="margin-right: 8px;"></i>
+                            CryptoBot: сумма счёта (USDT)
+                        </label>
+                        <input type="number" id="cryptobotUsdtAmount" placeholder="Сумма в USDT (по умолчанию: 1)" min="0.1" step="0.1" value="1">
+                        <small style="color: #888; display: block; margin-top: 5px;">Сумма создаваемого счёта CryptoBot в USDT. На проде задаётся через CRYPTOBOT_USDT_AMOUNT в Railway.</small>
                     </div>
                     
                     <div class="currency-rate-item">

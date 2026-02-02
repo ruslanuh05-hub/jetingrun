@@ -75,7 +75,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Обновляем цены из админки
     updatePricesDisplay();
     
-    // Загружаем курс TON↔RUB (для активов, аренды)
+    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || '';
+    if (apiBase && /^https?:\/\//i.test(apiBase)) {
+        fetch(apiBase.replace(/\/$/, '') + '/api/config').then(function(r) { return r.json(); }).then(function(c) {
+            if (c && c.cryptobot_usdt_amount != null) window.JET_CRYPTOBOT_USDT_AMOUNT = parseFloat(c.cryptobot_usdt_amount) || 1;
+            if (c && c.bot_username) window.JET_BOT_USERNAME = c.bot_username;
+        }).catch(function() {});
+    }
+    if (window.JET_CRYPTOBOT_USDT_AMOUNT == null) window.JET_CRYPTOBOT_USDT_AMOUNT = 1;
     if (typeof window.fetchTonToRubRateFromApi === 'function') {
         window.fetchTonToRubRateFromApi().then(function(rate) {
             if (rate != null) updatePricesDisplay();
@@ -2669,18 +2676,16 @@ function openPaymentPage() {
             if (data.purchase.type === 'stars') desc = 'Звёзды Telegram — ' + (data.purchase.stars_amount || data.baseAmount || 0) + ' шт.';
             else if (data.purchase.type === 'premium') desc = 'Premium Telegram — ' + (data.purchase.months || 3) + ' мес.';
         }
-        var amountRub = data.totalAmount || data.baseAmount || (data.purchase && data.purchase.amount) || 0;
-        if (!amountRub || amountRub < 1) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Сумма должна быть не менее 1 ₽', 'error');
-            return;
-        }
+        var amountUsdt = parseFloat(localStorage.getItem('jetstore_cryptobot_usdt_amount')) || 
+            (window.JET_CRYPTOBOT_USDT_AMOUNT != null ? parseFloat(window.JET_CRYPTOBOT_USDT_AMOUNT) : null) || 1;
+        if (amountUsdt < 0.1) amountUsdt = 1;
         var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
         fetch(createUrl, {
             method: 'POST',
             mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                amount: amountRub,
+                amount_usdt: amountUsdt,
                 description: desc,
                 payload: JSON.stringify({
                     purchase: data.purchase,

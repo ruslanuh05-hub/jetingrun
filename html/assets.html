@@ -2607,8 +2607,10 @@
     <script src="../js/database.js"></script>
     <script>
         window.toggleAssetsDrawer = window.toggleAssetsDrawer || function(){};
+        window.toggleUsernameCurrencyDropdown = window.toggleUsernameCurrencyDropdown || function(){};
         window.toggleUsernameTypeDropdown = window.toggleUsernameTypeDropdown || function(){};
         window.toggleUsernameSortDropdown = window.toggleUsernameSortDropdown || function(){};
+        window.setUsernameCurrency = window.setUsernameCurrency || function(){};
         (function(){ if (typeof window.fetchTonToRubRateFromApi === 'function') window.fetchTonToRubRateFromApi(); })();
         document.addEventListener('DOMContentLoaded', function() {
             if (sessionStorage.getItem('assetsOpenDrawer') === '1') {
@@ -3293,11 +3295,25 @@
         function toggleUsernameSortDropdown() {
             const dd = document.getElementById('usernameSortDropdown');
             document.getElementById('usernameTypeDropdown')?.classList.remove('active');
+            document.getElementById('usernameCurrencyDropdown')?.classList.remove('active');
             dd?.classList.toggle('active');
         }
         
+        function toggleUsernameCurrencyDropdown() {
+            const dd = document.getElementById('usernameCurrencyDropdown');
+            document.getElementById('usernameTypeDropdown')?.classList.remove('active');
+            document.getElementById('usernameSortDropdown')?.classList.remove('active');
+            if (dd) dd.classList.toggle('active');
+        }
+        
+        function setUsernameCurrency(val) {
+            if (typeof usernameCurrencyFilter !== 'undefined') usernameCurrencyFilter = val;
+            closeAllUsernameDropdowns();
+            if (typeof renderUsernamesList === 'function') renderUsernamesList();
+        }
+        
         function closeAllUsernameDropdowns() {
-            ['usernameTypeDropdown', 'usernameSortDropdown'].forEach(id => {
+            ['usernameTypeDropdown', 'usernameSortDropdown', 'usernameCurrencyDropdown'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.remove('active');
             });

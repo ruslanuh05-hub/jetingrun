@@ -633,8 +633,10 @@ function saveCurrencyRates() {
         console.log('Новые курсы валют:', rates);
         
         db.updateCurrencyRates(rates);
+        var cryptobotUsdt = parseFloat(document.getElementById('cryptobotUsdtAmount')?.value) || 1;
+        if (cryptobotUsdt < 0.1) cryptobotUsdt = 1;
+        try { localStorage.setItem('jetstore_cryptobot_usdt_amount', cryptobotUsdt.toString()); } catch (e) {}
         
-        // Обновляем отображение
         const usdtRateEl = document.getElementById('usdtRate');
         const usdRateEl = document.getElementById('usdRate');
         const eurRateEl = document.getElementById('eurRate');
@@ -762,6 +764,11 @@ function loadSettings() {
         if (usdRateEl) usdRateEl.textContent = rates.USD || 90;
         if (eurRateEl) eurRateEl.textContent = rates.EUR || 100;
         if (tonRateEl) tonRateEl.textContent = rates.TON || 600;
+    }
+    var cryptobotEl = document.getElementById('cryptobotUsdtAmount');
+    if (cryptobotEl) {
+        var saved = localStorage.getItem('jetstore_cryptobot_usdt_amount');
+        cryptobotEl.value = saved ? parseFloat(saved) || 1 : 1;
     }
     
     // Загружаем курс скупки звезды
