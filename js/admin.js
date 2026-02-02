@@ -1,5 +1,4 @@
-// admin.js - Скрипт для админ-панели 
-
+// admin.js - Скрипт для админ-панели
 // Текущее состояние
 let currentAdminSection = 'stats';
 let currentCategory = 'telegram';
@@ -84,25 +83,19 @@ function setupEventListeners() {
 
 // Показать панель входа
 function showLoginPanel() {
-    console.log('Показываем панель входа');
     const loginContainer = document.getElementById('loginContainer');
     const adminPanel = document.getElementById('adminPanel');
-    
-    if (loginContainer) loginContainer.style.display = 'block';
-    if (adminPanel) adminPanel.style.display = 'none';
+    if (loginContainer) { loginContainer.style.display = 'flex'; loginContainer.classList.add('visible'); }
+    if (adminPanel) { adminPanel.style.display = 'none'; adminPanel.classList.remove('visible'); }
 }
 
 // Показать админ-панель
 function showAdminPanel() {
-    console.log('Показываем админ-панель');
     const loginContainer = document.getElementById('loginContainer');
     const adminPanel = document.getElementById('adminPanel');
-    
-    if (loginContainer) loginContainer.style.display = 'none';
-    if (adminPanel) adminPanel.style.display = 'block';
-    
-    // Обновляем статистику
-    refreshStatistics();
+    if (loginContainer) { loginContainer.style.display = 'none'; loginContainer.classList.remove('visible'); }
+    if (adminPanel) { adminPanel.style.display = 'block'; adminPanel.classList.add('visible'); }
+    loadSettings();
 }
 
 // Вход в админку
@@ -111,28 +104,22 @@ function login(password) {
     console.log('Введен пароль:', password);
     
     // Проверяем доступ к Database
-    if (typeof Database === 'undefined') {
+    if (typeof window.Database === 'undefined') {
         console.error('Database не загружен!');
         showNotification('Ошибка: база данных не загружена', 'error');
         return;
     }
     
     console.log('Проверяем пароль...');
-    const isCorrect = Database.checkAdminPassword(password);
+    const isCorrect = (window.Database || {}).checkAdminPassword(password);
     console.log('Пароль правильный?', isCorrect);
     
     if (isCorrect) {
         localStorage.setItem('jetStoreAdminLoggedIn', 'true');
         showAdminPanel();
-        showNotification('Успешный вход в админ-панель', 'success');
-        
-        // Переключаемся на раздел статистики
-        showAdminSection('stats');
+        showNotification('Успешный вход', 'success');
     } else {
-        showNotification('Неверный пароль администратора', 'error');
-        // Показываем правильный пароль для отладки
-        const settings = Database.getAdminSettings();
-        console.log('Текущий пароль в настройках:', settings.password);
+        showNotification('Неверный пароль', 'error');
     }
 }
 
@@ -207,7 +194,7 @@ function loadInitialData() {
     console.log('Загружаем начальные данные...');
     
     // Загружаем курсы валют
-    const db = window.Database || Database;
+    const db = window.Database;
     if (db && typeof db.getCurrencyRates === 'function') {
         const rates = db.getCurrencyRates();
         
@@ -230,42 +217,21 @@ function loadInitialData() {
         if (tonInput) tonInput.value = rates.TON || 600;
     }
     
-    // Загружаем товары текущей категории
-    loadProducts(currentCategory);
-    
-    // Загружаем пользователей
-    loadUsers();
-    
-    // Загружаем настройки
     loadSettings();
-    
-    // Загружаем товары Supercell
-    loadSupercellProducts(currentSupercellCategory);
-    
-    // Обновляем статистику
-    refreshStatistics();
-    
-    console.log('Начальные данные загружены');
 }
 
-// Обновление статистики
+// Обновление статистики (оставлено для совместимости)
 function refreshStatistics() {
-    console.log('Обновляем статистику...');
-    
-    if (typeof Database !== 'undefined') {
-        const stats = Database.getStatistics();
-        
+    if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
+        const stats = (window.Database || {}).getStatistics();
         const statUsers = document.getElementById('statUsers');
         const statProducts = document.getElementById('statProducts');
         const statBalance = document.getElementById('statBalance');
         const statUpdated = document.getElementById('statUpdated');
-        
-        if (statUsers) statUsers.textContent = stats.totalUsers;
-        if (statProducts) statProducts.textContent = stats.totalProducts;
-        if (statBalance) statBalance.textContent = stats.totalBalance + ' ₽';
-        if (statUpdated) statUpdated.textContent = stats.lastUpdated;
-        
-        showNotification('Статистика обновлена', 'success');
+        if (statUsers) statUsers.textContent = stats.totalUsers || 0;
+        if (statProducts) statProducts.textContent = stats.totalProducts || 0;
+        if (statBalance) statBalance.textContent = (stats.totalBalance || 0) + ' ₽';
+        if (statUpdated) statUpdated.textContent = stats.lastUpdated || '-';
     }
 }
 
@@ -273,8 +239,8 @@ function refreshStatistics() {
 function loadProducts(category) {
     console.log('Загружаем товары категории:', category);
     
-    if (typeof Database !== 'undefined') {
-        const products = Database.getProductsByCategory(category);
+    if (typeof window.Database !== 'undefined') {
+        const products = (window.Database || {}).getProductsByCategory(category);
         const productsList = document.getElementById('productsList');
         
         if (!productsList) {
@@ -361,8 +327,8 @@ function resetProductForm() {
 function editProduct(category, productId) {
     console.log('Редактируем товар:', productId, 'в категории:', category);
     
-    if (typeof Database !== 'undefined') {
-        const products = Database.getProductsByCategory(category);
+    if (typeof window.Database !== 'undefined') {
+        const products = (window.Database || {}).getProductsByCategory(category);
         const product = products.find(p => p.id === productId);
         
         if (product) {
@@ -400,7 +366,7 @@ function editProduct(category, productId) {
 function saveProduct() {
     console.log('Сохраняем товар...');
     
-    if (typeof Database !== 'undefined') {
+    if (typeof window.Database !== 'undefined') {
         const productId = document.getElementById('productId')?.value;
         const category = document.getElementById('productCategory')?.value || currentCategory;
         
@@ -422,11 +388,11 @@ function saveProduct() {
         
         if (productId) {
             // Обновление существующего товара
-            success = Database.updateProduct(category, productId, productData);
+            success = (window.Database || {}).updateProduct(category, productId, productData);
             message = success ? 'Товар успешно обновлен' : 'Ошибка обновления товара';
         } else {
             // Добавление нового товара
-            const newProduct = Database.addProduct(category, productData);
+            const newProduct = (window.Database || {}).addProduct(category, productData);
             success = !!newProduct;
             message = success ? 'Товар успешно добавлен' : 'Ошибка добавления товара';
         }
@@ -449,8 +415,8 @@ function deleteProduct(category, productId) {
     console.log('Удаляем товар:', productId, 'из категории:', category);
     
     if (confirm('Вы уверены, что хотите удалить этот товар?')) {
-        if (typeof Database !== 'undefined') {
-            const success = Database.deleteProduct(category, productId);
+        if (typeof window.Database !== 'undefined') {
+            const success = (window.Database || {}).deleteProduct(category, productId);
             
             if (success) {
                 showNotification('Товар успешно удален', 'success');
@@ -467,8 +433,8 @@ function deleteProduct(category, productId) {
 function loadUsers() {
     console.log('Загружаем пользователей...');
     
-    if (typeof Database !== 'undefined') {
-        const users = Database.getUsers();
+    if (typeof window.Database !== 'undefined') {
+        const users = (window.Database || {}).getUsers();
         const usersTableBody = document.getElementById('usersTableBody');
         
         if (!usersTableBody) {
@@ -509,8 +475,8 @@ function loadUsers() {
 function editUser(userId) {
     console.log('Редактируем пользователя:', userId);
     
-    if (typeof Database !== 'undefined') {
-        const user = Database.getUser(userId);
+    if (typeof window.Database !== 'undefined') {
+        const user = (window.Database || {}).getUser(userId);
         
         if (user) {
             currentEditingUser = user;
@@ -540,9 +506,9 @@ function editUser(userId) {
 function saveUser() {
     console.log('Сохраняем пользователя...');
     
-    if (typeof Database !== 'undefined') {
+    if (typeof window.Database !== 'undefined') {
         const userId = document.getElementById('userId')?.value;
-        const user = Database.getUser(userId);
+        const user = (window.Database || {}).getUser(userId);
         
         if (user) {
             const updates = {
@@ -559,7 +525,7 @@ function saveUser() {
             
             // Обновляем пользователя
             const updatedUser = { ...user, ...updates };
-            Database.saveUser(updatedUser);
+            (window.Database || {}).saveUser(updatedUser);
             
             showNotification('Данные пользователя обновлены', 'success');
             loadUsers();
@@ -583,13 +549,13 @@ function resetUserForm() {
 function changePassword() {
     console.log('Изменяем пароль...');
     
-    if (typeof Database !== 'undefined') {
+    if (typeof window.Database !== 'undefined') {
         const currentPassword = document.getElementById('currentPassword')?.value;
         const newPassword = document.getElementById('newPassword')?.value;
         const confirmPassword = document.getElementById('confirmPassword')?.value;
         
         // Проверка текущего пароля
-        if (!Database.checkAdminPassword(currentPassword)) {
+        if (!(window.Database || {}).checkAdminPassword(currentPassword)) {
             showNotification('Текущий пароль неверен', 'error');
             return;
         }
@@ -607,7 +573,7 @@ function changePassword() {
         }
         
         // Изменение пароля
-        Database.changeAdminPassword(newPassword);
+        (window.Database || {}).changeAdminPassword(newPassword);
         
         showNotification('Пароль успешно изменен', 'success');
         
@@ -620,7 +586,7 @@ function changePassword() {
 function saveCurrencyRates() {
     console.log('Сохраняем курсы валют...');
     
-    const db = window.Database || Database;
+    const db = window.Database;
     if (db && typeof db.updateCurrencyRates === 'function') {
         const rates = {
             RUB: 1,
@@ -741,7 +707,7 @@ function savePremiumPrices() {
 function loadSettings() {
     console.log('Загружаем настройки...');
     
-    const db = window.Database || Database;
+    const db = window.Database;
     if (db && typeof db.getCurrencyRates === 'function') {
         const rates = db.getCurrencyRates();
         
@@ -815,11 +781,11 @@ function loadSettings() {
 function exportData() {
     console.log('Экспортируем данные...');
     
-    if (typeof Database !== 'undefined') {
+    if (typeof window.Database !== 'undefined') {
         const data = {
-            products: Database.getProducts(),
-            users: Database.getUsers(),
-            settings: Database.getAdminSettings(),
+            products: (window.Database || {}).getProducts(),
+            users: (window.Database || {}).getAllUsers ? (window.Database || {}).getAllUsers() : ((window.Database || {}).getProducts ? {} : {}),
+            settings: (window.Database || {}).getAdminSettings(),
             exportDate: new Date().toISOString(),
             version: '1.0'
         };
@@ -860,24 +826,15 @@ function importDataFile(file) {
                 const data = JSON.parse(e.target.result);
                 
                 // Проверяем структуру данных
-                if (data.products && data.users && data.settings) {
-                    // Сохраняем данные
-                    localStorage.setItem('jetStoreProducts', JSON.stringify(data.products));
-                    localStorage.setItem('jetStoreUsers', JSON.stringify(data.users));
-                    localStorage.setItem('jetStoreAdminSettings', JSON.stringify(data.settings));
+                if (data.products || data.users || data.settings) {
+                    if (data.products) localStorage.setItem('jetstore_products', JSON.stringify(data.products));
+                    if (data.users) localStorage.setItem('jetstore_users', JSON.stringify(data.users));
+                    if (data.settings) localStorage.setItem('jetstore_admin_settings', JSON.stringify(data.settings));
                     
                     showNotification('Данные успешно импортированы', 'success');
                     
                     // Обновляем отображение
-                    if (currentAdminSection === 'products') {
-                        loadProducts(currentCategory);
-                    } else if (currentAdminSection === 'users') {
-                        loadUsers();
-                    } else if (currentAdminSection === 'settings') {
-                        loadSettings();
-                    }
-                    
-                    refreshStatistics();
+                    loadSettings();
                 } else {
                     showNotification('Неверный формат файла данных', 'error');
                 }
@@ -895,14 +852,14 @@ function importDataFile(file) {
 function resetData() {
     if (confirm('ВНИМАНИЕ: Это удалит ВСЕ данные (товары, пользователей, настройки). Действие необратимо. Продолжить?')) {
         // Сбрасываем базу данных
-        localStorage.removeItem('jetStoreProducts');
-        localStorage.removeItem('jetStoreUsers');
-        localStorage.removeItem('jetStoreAdminSettings');
+        localStorage.removeItem('jetstore_products');
+        localStorage.removeItem('jetstore_users');
+        localStorage.removeItem('jetstore_admin_settings');
         localStorage.removeItem('jetStoreAdminLoggedIn');
         
         // Инициализируем заново
-        if (typeof Database !== 'undefined') {
-            Database.init();
+        if (typeof window.Database !== 'undefined') {
+            (window.Database || {}).init();
         }
         
         // Сбрасываем формы

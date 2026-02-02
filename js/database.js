@@ -1,5 +1,5 @@
-// database.js - База данных для хранения данных пользователей и товаров
-class Database {
+// database.js - База данных (анонимный класс, чтобы не конфликтовать с admin.js)
+const Database = class {
     constructor() {
         this.storageKey = 'jetstore_db';
         this.usersKey = 'jetstore_users';
@@ -439,6 +439,33 @@ class Database {
             console.error('Ошибка сохранения курсов валют:', error);
             return false;
         }
+    }
+    
+    getAdminSettings() {
+        try {
+            const raw = localStorage.getItem('jetstore_admin_settings');
+            const defaultRates = { RUB: 1, USDT: 80, USD: 90, EUR: 100, TON: 600 };
+            const savedRates = JSON.parse(localStorage.getItem('jetstore_currency_rates') || '{}');
+            const currencyRates = { ...defaultRates, ...savedRates };
+            if (!raw) return { password: 'admin', currencyRates };
+            const parsed = JSON.parse(raw);
+            return { ...parsed, password: parsed.password || 'admin' };
+        } catch (e) { return { password: 'admin' }; }
+    }
+    checkAdminPassword(inputPassword) {
+        if (!inputPassword || typeof inputPassword !== 'string') return false;
+        const settings = this.getAdminSettings();
+        const saved = (settings && settings.password) || 'admin';
+        return String(inputPassword).trim() === String(saved).trim();
+    }
+    changeAdminPassword(newPassword) {
+        if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 4) return false;
+        try {
+            const settings = this.getAdminSettings();
+            settings.password = String(newPassword).trim();
+            localStorage.setItem('jetstore_admin_settings', JSON.stringify(settings));
+            return true;
+        } catch (e) { console.error('Ошибка смены пароля:', e); return false; }
     }
 }
 

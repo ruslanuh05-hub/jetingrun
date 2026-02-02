@@ -2560,6 +2560,98 @@ function openPaymentPage() {
     const statusEl = document.getElementById('paymentDetailStatus');
     const primaryBtn = document.getElementById('paymentWaitingPrimaryBtn');
 
+    // CryptoBot: счёт в USDT — проверяем ПЕРВЫМ, иначе звёзды/премиум идут в Fragment
+    if (data.method === 'cryptobot') {
+        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (!apiBase) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js (JET_BOT_API_URL).', 'error');
+            return;
+        }
+        if (statusEl) statusEl.textContent = 'Создаём счёт CryptoBot...';
+        if (primaryBtn) primaryBtn.disabled = true;
+        var desc = 'Оплата в JET Store';
+        if (data.purchase) {
+            if (data.purchase.type === 'stars') desc = 'Звёзды Telegram — ' + (data.purchase.stars_amount || data.baseAmount || 0) + ' шт.';
+            else if (data.purchase.type === 'premium') desc = 'Premium Telegram — ' + (data.purchase.months || 3) + ' мес.';
+        }
+        var amountUsdt = parseFloat(localStorage.getItem('jetstore_cryptobot_usdt_amount')) || 
+            (window.JET_CRYPTOBOT_USDT_AMOUNT != null ? parseFloat(window.JET_CRYPTOBOT_USDT_AMOUNT) : null) || 1;
+        if (amountUsdt < 0.1) amountUsdt = 1;
+        var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
+        fetch(createUrl, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount_usdt: amountUsdt,
+                description: desc,
+                payload: JSON.stringify({
+                    purchase: data.purchase,
+                    userId: (window.userData && window.userData.id) || 'unknown',
+                    timestamp: Date.now()
+                })
+            })
+        })
+            .then(function(r) {
+                return r.json().catch(function() { return { error: 'parse_error', message: 'Ответ сервера не JSON. Status: ' + r.status }; }).then(function(json) {
+                    return { ok: r.ok, status: r.status, json: json };
+                });
+            })
+            .then(function(result) {
+                var res = result.json || {};
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (!result.ok && res.error === undefined) {
+                    res.message = res.message || 'Сервер вернул ошибку ' + result.status;
+                }
+                if (res.success && (res.payment_url || res.pay_url)) {
+                    window.paymentData = window.paymentData || {};
+                    window.paymentData.invoice_id = res.invoice_id;
+                    window.paymentData.payment_url = res.payment_url || res.pay_url;
+                    var payUrl = (res.payment_url || res.pay_url || '').trim();
+                    if (!payUrl) {
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Ссылка на оплату не получена от CryptoBot', 'error');
+                        return;
+                    }
+                    var tg = window.Telegram && window.Telegram.WebApp;
+                    if (tg && tg.openLink) {
+                        try { tg.openLink(payUrl); } catch (e) { console.warn('openLink failed:', e); window.open(payUrl, '_blank'); }
+                    } else if (tg && tg.openTelegramLink) {
+                        try { tg.openTelegramLink(payUrl); } catch (e) { console.warn('openTelegramLink failed:', e); window.open(payUrl, '_blank'); }
+                    } else {
+                        window.open(payUrl, '_blank');
+                    }
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Откройте оплату в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
+                    if (statusEl) {
+                        statusEl.innerHTML = 'Счёт создан. <a href="#" id="cryptobotOpenLink" style="color:#00d4ff;text-decoration:underline;">Открыть оплату</a>';
+                        var linkEl = document.getElementById('cryptobotOpenLink');
+                        if (linkEl) {
+                            linkEl.onclick = function(e) {
+                                e.preventDefault();
+                                var t = window.Telegram && window.Telegram.WebApp;
+                                if (t && t.openLink) t.openLink(payUrl);
+                                else window.open(payUrl, '_blank');
+                            };
+                        }
+                    }
+                } else {
+                    var errMsg = res.message || res.error || 'Ошибка создания счёта CryptoBot';
+                    if (res.details && typeof res.details === 'object') {
+                        if (res.details.name) errMsg += ' (' + res.details.name + ')';
+                        else if (typeof res.details === 'string') errMsg += ': ' + res.details;
+                    }
+                    if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
+                }
+            })
+            .catch(function(err) {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                var msg = 'Нет связи с API. Проверьте URL бота в config.js. ' + (apiBase || '(URL пуст)');
+                if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
+            });
+        return;
+    }
+
     // Steam: переход на страницу оплаты (пополнение Steam запускается только после успешной оплаты в confirmPayment → runDeliveryAfterPayment)
     if (data.purchase?.type === 'steam') {
         if (typeof showStoreNotification === 'function') {
@@ -2663,98 +2755,7 @@ function openPaymentPage() {
         return;
     }
     
-    if (data.method === 'cryptobot') {
-        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-        if (!apiBase) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js (JET_BOT_API_URL).', 'error');
-            return;
-        }
-        if (statusEl) statusEl.textContent = 'Создаём счёт CryptoBot...';
-        if (primaryBtn) primaryBtn.disabled = true;
-        var desc = 'Оплата в JET Store';
-        if (data.purchase) {
-            if (data.purchase.type === 'stars') desc = 'Звёзды Telegram — ' + (data.purchase.stars_amount || data.baseAmount || 0) + ' шт.';
-            else if (data.purchase.type === 'premium') desc = 'Premium Telegram — ' + (data.purchase.months || 3) + ' мес.';
-        }
-        var amountUsdt = parseFloat(localStorage.getItem('jetstore_cryptobot_usdt_amount')) || 
-            (window.JET_CRYPTOBOT_USDT_AMOUNT != null ? parseFloat(window.JET_CRYPTOBOT_USDT_AMOUNT) : null) || 1;
-        if (amountUsdt < 0.1) amountUsdt = 1;
-        var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
-        fetch(createUrl, {
-            method: 'POST',
-            mode: 'cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount_usdt: amountUsdt,
-                description: desc,
-                payload: JSON.stringify({
-                    purchase: data.purchase,
-                    userId: (window.userData && window.userData.id) || 'unknown',
-                    timestamp: Date.now()
-                })
-            })
-        })
-            .then(function(r) {
-                return r.json().catch(function() { return { error: 'parse_error', message: 'Ответ сервера не JSON. Status: ' + r.status }; }).then(function(json) {
-                    return { ok: r.ok, status: r.status, json: json };
-                });
-            })
-            .then(function(result) {
-                var res = result.json || {};
-                if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (!result.ok && res.error === undefined) {
-                    res.message = res.message || 'Сервер вернул ошибку ' + result.status;
-                }
-                if (res.success && (res.payment_url || res.pay_url)) {
-                    window.paymentData = window.paymentData || {};
-                    window.paymentData.invoice_id = res.invoice_id;
-                    window.paymentData.payment_url = res.payment_url || res.pay_url;
-                    var payUrl = (res.payment_url || res.pay_url || '').trim();
-                    if (!payUrl) {
-                        if (typeof showStoreNotification === 'function') showStoreNotification('Ссылка на оплату не получена от CryptoBot', 'error');
-                        return;
-                    }
-                    var tg = window.Telegram && window.Telegram.WebApp;
-                    if (tg && tg.openLink) {
-                        try { tg.openLink(payUrl); } catch (e) { console.warn('openLink failed:', e); window.open(payUrl, '_blank'); }
-                    } else if (tg && tg.openTelegramLink) {
-                        try { tg.openTelegramLink(payUrl); } catch (e) { console.warn('openTelegramLink failed:', e); window.open(payUrl, '_blank'); }
-                    } else {
-                        window.open(payUrl, '_blank');
-                    }
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Откройте оплату в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
-                    if (statusEl) {
-                        statusEl.innerHTML = 'Счёт создан. <a href="#" id="cryptobotOpenLink" style="color:#00d4ff;text-decoration:underline;">Открыть оплату</a>';
-                        var linkEl = document.getElementById('cryptobotOpenLink');
-                        if (linkEl) {
-                            linkEl.onclick = function(e) {
-                                e.preventDefault();
-                                var t = window.Telegram && window.Telegram.WebApp;
-                                if (t && t.openLink) t.openLink(payUrl);
-                                else window.open(payUrl, '_blank');
-                            };
-                        }
-                    }
-                } else {
-                    var errMsg = res.message || res.error || 'Ошибка создания счёта CryptoBot';
-                    if (res.details && typeof res.details === 'object') {
-                        if (res.details.name) errMsg += ' (' + res.details.name + ')';
-                        else if (typeof res.details === 'string') errMsg += ': ' + res.details;
-                    }
-                    console.error('CryptoBot create-invoice error:', res, 'URL:', createUrl);
-                    if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
-                }
-            })
-            .catch(function(err) {
-                if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-                var msg = 'Нет связи с API. Проверьте: 1) URL бота в config.js 2) Бот запущен на Railway. ' + (apiBase || '(URL пуст)');
-                console.error('CryptoBot fetch error:', err, 'apiBase:', apiBase);
-                if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
-            });
-        return;
-    } else if (data.method === 'sbp') {
+    if (data.method === 'sbp') {
         // Здесь будет логика для СБП
         showStoreNotification('Открываем страницу оплаты СБП...', 'info');
     } else if (data.method === 'card') {
