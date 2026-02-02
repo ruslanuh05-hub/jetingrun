@@ -2608,37 +2608,11 @@ function runDeliveryAfterPayment(data, checkResponse) {
         return;
     }
 
-    // Fragment.com: выдача звёзд через iStar API (оплата TonKeeper)
+    // Fragment.com (cookies+hash): звёзды выдаются автоматически Fragment.com после оплаты
+    // Если дошли сюда и это Stars — значит оплата подтверждена, звёзды уже выданы
     if (data.purchase && data.purchase.type === 'stars') {
-        var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
-        var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
-        if (!recipient || !starsAmount) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка: укажите получателя и количество звёзд.', 'error');
-            if (statusEl) statusEl.textContent = 'Ожидание...';
-            return;
-        }
-        if (statusEl) statusEl.textContent = 'Выдача звёзд...';
-        fetch(apiBase + '/api/fragment/deliver-stars', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ stars_amount: starsAmount, recipient: recipient })
-        })
-            .then(function(r) { return r.json().catch(function() { return {}; }); })
-            .then(function(res) {
-                if (res.success) {
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
-                    closePaymentWaiting();
-                } else {
-                    if (typeof showStoreNotification === 'function') {
-                        showStoreNotification(res.message || 'Ошибка выдачи товара.', 'error');
-                    }
-                    if (statusEl) statusEl.textContent = 'Ожидание...';
-                }
-            })
-            .catch(function() {
-                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка выдачи товара.', 'error');
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-            });
+        if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+        closePaymentWaiting();
         return;
     }
 
