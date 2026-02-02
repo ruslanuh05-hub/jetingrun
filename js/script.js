@@ -413,6 +413,13 @@ function getUsdtRate() {
             var cr = JSON.parse(localStorage.getItem('jetstore_currency_rates') || '{}');
             rate = cr.USDT;
         }
+        if (!rate || isNaN(rate)) {
+            var db = window.Database;
+            if (db && typeof db.getCurrencyRates === 'function') {
+                var r = db.getCurrencyRates();
+                rate = r && r.USDT ? r.USDT : null;
+            }
+        }
         return (rate && !isNaN(rate)) ? rate : 80;
     } catch (e) { return 80; }
 }
@@ -2342,6 +2349,13 @@ function showPaymentWaiting() {
         document.getElementById('paymentWaitingDescription').textContent =
             `Пополнение Steam для ${data.purchase.login} на ${data.baseAmount.toLocaleString('ru-RU')} ${curSym}`;
         document.getElementById('paymentDetailAmount').textContent = `${data.baseAmount.toLocaleString('ru-RU')} ${curSym}`;
+    } else if (data.method === 'cryptobot' && (data.purchase?.type === 'stars' || data.purchase?.type === 'premium')) {
+        var totRub = data.totalAmount || data.baseAmount || 0;
+        var usdtRt = (typeof getUsdtRate === 'function' ? getUsdtRate() : 80) || 80;
+        var usdtAmt = totRub > 0 ? Math.max(0.1, Math.round(totRub / usdtRt * 100) / 100) : 0;
+        document.getElementById('paymentWaitingDescription').textContent =
+            `Оплатите ${usdtAmt.toFixed(2)} USDT (~${data.totalAmount.toLocaleString('ru-RU')} ₽) через CryptoBot`;
+        document.getElementById('paymentDetailAmount').textContent = `${usdtAmt.toFixed(2)} USDT`;
     } else {
         document.getElementById('paymentWaitingDescription').textContent =
             `Оплатите ${data.totalAmount.toLocaleString('ru-RU')} ₽ через ${methodNames[data.method]} (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)`;
@@ -2349,7 +2363,15 @@ function showPaymentWaiting() {
     }
     document.getElementById('paymentDetailCommissionLabel').textContent = `Комиссия (${data.bonusPercent}%)`;
     document.getElementById('paymentDetailCommission').textContent = `+${data.commission.toLocaleString('ru-RU')} ${data.purchase?.type === 'steam' ? curSym : '₽'}`;
-    document.getElementById('paymentDetailTotal').textContent = `${data.totalAmount.toLocaleString('ru-RU')} ${data.purchase?.type === 'steam' ? curSym : '₽'}`;
+    var totEl = document.getElementById('paymentDetailTotal');
+    if (data.method === 'cryptobot' && (data.purchase?.type === 'stars' || data.purchase?.type === 'premium') && totEl) {
+        var tr = data.totalAmount || data.baseAmount || 0;
+        var ur = (typeof getUsdtRate === 'function' ? getUsdtRate() : 80) || 80;
+        var ua = tr > 0 ? Math.max(0.1, Math.round(tr / ur * 100) / 100) : 0;
+        totEl.textContent = ua > 0 ? ua.toFixed(2) + ' USDT' : (data.totalAmount.toLocaleString('ru-RU') + ' ₽');
+    } else if (totEl) {
+        totEl.textContent = `${data.totalAmount.toLocaleString('ru-RU')} ${data.purchase?.type === 'steam' ? curSym : '₽'}`;
+    }
     document.getElementById('paymentDetailMethod').textContent = `${methodNames[data.method]} (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)`;
     
     popup.classList.add('active');
@@ -2587,8 +2609,8 @@ function openPaymentPage() {
             else if (data.purchase.type === 'premium') desc = 'Premium Telegram — ' + (data.purchase.months || 3) + ' мес.';
         }
         var amountUsdt;
-        var totalRub = data.totalAmount || data.baseAmount || 0;
-        if (totalRub > 0 && (data.purchase?.type === 'stars' || data.purchase?.type === 'premium')) {
+        var totalRub = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || (data.purchase && parseFloat(data.purchase.amount)) || (data.purchase && parseFloat(data.purchase.price)) || 0;
+        if (totalRub > 0) {
             var usdtRate = (typeof getUsdtRate === 'function' ? getUsdtRate() : 80) || 80;
             amountUsdt = Math.max(0.1, Math.round(totalRub / usdtRate * 100) / 100);
         } else {
