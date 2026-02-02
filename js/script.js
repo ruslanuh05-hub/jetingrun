@@ -2869,21 +2869,10 @@ function openPaymentPage() {
                 var orderId = res.order_id;
                 var address = res.payment_address;
                 var amountNanoton = res.amount_nanoton;
-                var comment = res.comment || orderId;
-                var payloadB64 = (function() {
-                    var arr = [0, 0, 0, 0];
-                    for (var i = 0; i < comment.length; i++) arr.push(comment.charCodeAt(i));
-                    try {
-                        return btoa(String.fromCharCode.apply(null, arr));
-                    } catch (e) {
-                        return '';
-                    }
-                })();
                 window.paymentData = window.paymentData || {};
                 window.paymentData.order_id = orderId;
                 try { savePendingPayment(window.paymentData); } catch (e) {}
                 var messages = [{ address: address, amount: String(amountNanoton) }];
-                if (payloadB64) messages[0].payload = payloadB64;
                 var tx = { validUntil: Math.floor(Date.now() / 1000) + 300, messages: messages };
                 var sendPromise = connector.sendTransaction ? connector.sendTransaction(tx) : null;
                 if (sendPromise && typeof sendPromise.then === 'function') {
