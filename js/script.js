@@ -405,6 +405,18 @@ function getStarBuyRate() {
         return 0.65;
     }
 }
+// Курс USDT (1 USDT = X RUB) из админки
+function getUsdtRate() {
+    try {
+        var rate = parseFloat(localStorage.getItem('jetstore_usdt_rate'));
+        if (!rate || isNaN(rate)) {
+            var cr = JSON.parse(localStorage.getItem('jetstore_currency_rates') || '{}');
+            rate = cr.USDT;
+        }
+        return (rate && !isNaN(rate)) ? rate : 80;
+    } catch (e) { return 80; }
+}
+
 // Загрузка курса USD из админки / настроек
 function getUsdRate() {
     try {
@@ -2574,9 +2586,16 @@ function openPaymentPage() {
             if (data.purchase.type === 'stars') desc = 'Звёзды Telegram — ' + (data.purchase.stars_amount || data.baseAmount || 0) + ' шт.';
             else if (data.purchase.type === 'premium') desc = 'Premium Telegram — ' + (data.purchase.months || 3) + ' мес.';
         }
-        var amountUsdt = parseFloat(localStorage.getItem('jetstore_cryptobot_usdt_amount')) || 
-            (window.JET_CRYPTOBOT_USDT_AMOUNT != null ? parseFloat(window.JET_CRYPTOBOT_USDT_AMOUNT) : null) || 1;
-        if (amountUsdt < 0.1) amountUsdt = 1;
+        var amountUsdt;
+        var totalRub = data.totalAmount || data.baseAmount || 0;
+        if (totalRub > 0 && (data.purchase?.type === 'stars' || data.purchase?.type === 'premium')) {
+            var usdtRate = (typeof getUsdtRate === 'function' ? getUsdtRate() : 80) || 80;
+            amountUsdt = Math.max(0.1, Math.round(totalRub / usdtRate * 100) / 100);
+        } else {
+            amountUsdt = parseFloat(localStorage.getItem('jetstore_cryptobot_usdt_amount')) || 
+                (window.JET_CRYPTOBOT_USDT_AMOUNT != null ? parseFloat(window.JET_CRYPTOBOT_USDT_AMOUNT) : null) || 1;
+            if (amountUsdt < 0.1) amountUsdt = 1;
+        }
         var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
         fetch(createUrl, {
             method: 'POST',
