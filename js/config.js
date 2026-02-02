@@ -17,6 +17,70 @@ window.getJetApiBase = function() {
     return url;
 };
 
+// Конвертация raw-адреса TON (0:hex или -1:hex) в user-friendly (UQA...)
+window.rawToUserFriendly = function(raw) {
+    if (!raw || typeof raw !== 'string') return raw || '';
+    var s = raw.trim();
+    if (!/^(-1|0):[0-9a-fA-F]{32,64}$/.test(s)) return s;
+    var parts = s.split(':');
+    var wc = parseInt(parts[0], 10);
+    var hash = parts[1].toLowerCase();
+    while (hash.length < 64) hash = '0' + hash;
+    hash = hash.slice(-64);
+    var hex = hash.match(/.{1,2}/g).map(function(b) { return parseInt(b, 16); });
+    function crc16(data) {
+        var poly = 0x1021, reg = 0;
+        for (var i = 0; i < data.length; i++) {
+            reg ^= ((data[i] || 0) << 8) & 0xffff;
+            for (var j = 0; j < 8; j++) {
+                var bit = reg & 0x8000;
+                reg = (reg << 1) & 0xffff;
+                if (bit) reg ^= poly;
+            }
+        }
+        return reg & 0xffff;
+    }
+    var payload = [0x51, wc === -1 ? 0xff : 0];
+    for (var k = 0; k < 32; k++) payload.push(hex[k] || 0);
+    var crc = crc16(payload);
+    payload.push((crc >> 8) & 0xff, crc & 0xff);
+    var b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    var bin = payload;
+    var out = '', i = 0;
+    while (i < bin.length) {
+        var n = (bin[i] << 16) | ((bin[i + 1] || 0) << 8) | (bin[i + 2] || 0);
+        out += b64[(n >> 18) & 63] + b64[(n >> 12) & 63] + (i + 1 < bin.length ? b64[(n >> 6) & 63] : '=') + (i + 2 < bin.length ? b64[n & 63] : '=');
+        i += 3;
+    }
+    return out.replace(/=/g, '');
+};
+window.ensureUserFriendlyAddress = function(addr) {
+    if (!addr) return addr || '';
+    var s = String(addr).trim();
+    if (!/^(-1|0):[0-9a-fA-F]{32,64}$/.test(s)) return addr;
+    return window.rawToUserFriendly ? window.rawToUserFriendly(addr) : addr;
+};
+window.fetchUserFriendlyAddress = function(rawAddr, callback) {
+    if (!rawAddr || !/^(-1|0):[0-9a-fA-F]{32,64}$/.test(String(rawAddr).trim())) {
+        if (callback) callback(rawAddr);
+        return;
+    }
+    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || '';
+    if (apiBase) {
+        fetch(apiBase.replace(/\/$/, '') + '/api/ton/pack-address?address=' + encodeURIComponent(rawAddr))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data.address) { if (callback) callback(data.address); return; }
+                if (callback) callback(window.rawToUserFriendly ? window.rawToUserFriendly(rawAddr) : rawAddr);
+            })
+            .catch(function() {
+                if (callback) callback(window.rawToUserFriendly ? window.rawToUserFriendly(rawAddr) : rawAddr);
+            });
+    } else {
+        if (callback) callback(window.rawToUserFriendly ? window.rawToUserFriendly(rawAddr) : rawAddr);
+    }
+};
+
 // Ключ localStorage для Tonkeeper, изолированный по Telegram user ID
 window.getTonkeeperStorageKey = window.getTonkeeperStorageKey || function(base) {
     try {

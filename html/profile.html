@@ -23,8 +23,10 @@
             window.tonConnectConnector.onStatusChange(function(wallet) {
                 if (wallet && wallet.account) {
                     try {
+                        var addr = wallet.account.address;
+                        var friendly = (typeof window.ensureUserFriendlyAddress === 'function') ? window.ensureUserFriendlyAddress(addr) : addr;
                         localStorage.setItem('jetstore_tonkeeper_connected', 'true');
-                        localStorage.setItem('jetstore_tonkeeper_address', wallet.account.address);
+                        localStorage.setItem('jetstore_tonkeeper_address', friendly || addr);
                         if (!localStorage.getItem('jetstore_tonkeeper_balance')) {
                             localStorage.setItem('jetstore_tonkeeper_balance', '0');
                         }
@@ -2546,10 +2548,12 @@
                 var acc = (connector.account || (connector.wallet && connector.wallet.account));
                 if (acc && acc.address) {
                     address = acc.address;
+                    var friendly = (typeof window.ensureUserFriendlyAddress === 'function') ? window.ensureUserFriendlyAddress(address) : address;
                     try {
                         localStorage.setItem('jetstore_tonkeeper_connected', 'true');
-                        localStorage.setItem('jetstore_tonkeeper_address', address);
+                        localStorage.setItem('jetstore_tonkeeper_address', friendly || address);
                     } catch (e) {}
+                    if (friendly) address = friendly;
                 }
             }
             if (!address) {
@@ -2560,7 +2564,20 @@
             if (connectedBlock) connectedBlock.style.display = isConnected ? 'block' : 'none';
             if (connectBtn) connectBtn.style.display = isConnected ? 'none' : 'flex';
             
-            var displayAddress = address ? (address.length > 18 ? address.slice(0, 8) + '…' + address.slice(-8) : address) : '—';
+            var displayAddr = address;
+            if (address && /^(-1|0):[0-9a-fA-F]{32,64}$/.test(String(address).trim()) {
+                displayAddr = (typeof window.ensureUserFriendlyAddress === 'function') ? window.ensureUserFriendlyAddress(address) : address;
+                try { if (displayAddr !== address) localStorage.setItem('jetstore_tonkeeper_address', displayAddr); } catch (e) {}
+                if (typeof window.fetchUserFriendlyAddress === 'function') {
+                    window.fetchUserFriendlyAddress(address, function(friendly) {
+                        if (friendly && friendly !== address && addressEl) {
+                            try { localStorage.setItem('jetstore_tonkeeper_address', friendly); } catch (e) {}
+                            addressEl.textContent = friendly.length > 18 ? friendly.slice(0, 8) + '…' + friendly.slice(-8) : friendly;
+                        }
+                    });
+                }
+            }
+            var displayAddress = displayAddr ? (displayAddr.length > 18 ? displayAddr.slice(0, 8) + '…' + displayAddr.slice(-8) : displayAddr) : '—';
             if (addressEl) addressEl.textContent = displayAddress;
             if (balanceEl) balanceEl.textContent = '… TON';
             

@@ -150,11 +150,15 @@
             position: relative;
         }
         
+        .assets-rates-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            margin-top: 4px;
+        }
         .assets-ton-rate {
-            display: block;
             font-size: 0.85rem;
             color: rgba(255,255,255,0.7);
-            margin-top: 4px;
         }
         
         .assets-section-title::after {
@@ -2406,7 +2410,10 @@
         <!-- Заголовок раздела -->
         <div class="assets-section-header">
             <h2 class="assets-section-title">Юзернеймы</h2>
-            <span class="assets-ton-rate" id="assetsTonRateDisplay">1 TON ≈ … ₽</span>
+            <div class="assets-rates-row">
+                <span class="assets-ton-rate" id="assetsTonRateDisplay">1 TON ≈ … ₽</span>
+                <span class="assets-ton-rate" id="assetsRubToTonDisplay">1 ₽ ≈ … TON</span>
+            </div>
         </div>
         
         <!-- Контент для таба Usernames -->
@@ -2670,7 +2677,7 @@
     <script src="../js/config.js"></script>
     <script src="../js/database.js"></script>
     <script>
-        // Удаление анимации графика после завершения
+        (function(){ if (typeof window.fetchTonToRubRateFromApi === 'function') window.fetchTonToRubRateFromApi(); })();
         document.addEventListener('DOMContentLoaded', function() {
             const animation = document.getElementById('graphAnimation');
             const hasSeenAssetsIntro = localStorage.getItem('jet_assets_intro_seen') === 'true';
@@ -2708,82 +2715,78 @@
         
         // Загрузка данных пользователя для активов
         function loadUserDataForAssets() {
-            // Загружаем данные из localStorage или базы данных
+            const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
             let userData = null;
-            
-            // Пытаемся загрузить из window.userData (если открыто из index.html)
-            if (window.userData && window.userData.id) {
-                userData = window.userData;
-            } else {
-                // Загружаем из localStorage / базы
+            const tgUser = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) ? window.Telegram.WebApp.initDataUnsafe.user : null;
+
+            // 1) СНАЧАЛА: данные из Telegram (приоритет — мы в TG)
+            if (tgUser) {
+                userData = {
+                    id: String(tgUser.id),
+                    firstName: tgUser.first_name || '',
+                    lastName: tgUser.last_name || '',
+                    username: tgUser.username ? (tgUser.username.startsWith('@') ? tgUser.username.slice(1) : tgUser.username) : '',
+                    photoUrl: tgUser.photo_url || null,
+                    currencies: {}
+                };
                 try {
-                    const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
-                    if (db && typeof db.getUser === 'function') {
-                        const userId = localStorage.getItem('jetstore_user_id') || 'test_user_default';
-                        userData = db.getUser(userId);
+                    const fixedId = db && db.getFixedUserId ? db.getFixedUserId() : String(tgUser.id);
+                    userData.id = fixedId;
+                    localStorage.setItem('jetstore_user_id', fixedId);
+                    if (db && db.getUser) {
+                        const stored = db.getUser(fixedId);
+                        if (stored && stored.currencies) userData.currencies = stored.currencies;
                     }
-                    
-                    if (!userData) {
-                        const userDataStr = localStorage.getItem('jetstore_user_data');
-                        if (userDataStr) {
-                            userData = JSON.parse(userDataStr);
-                        }
-                    }
-                    if (userData) window.userData = userData;
-                } catch (e) {
-                    console.error('Ошибка загрузки данных пользователя:', e);
-                }
+                    const bal = (db && db.getBalanceFixed) ? db.getBalanceFixed('RUB') : null;
+                    if (bal != null) userData.currencies.RUB = bal;
+                    const balanceData = JSON.parse(localStorage.getItem('jetstore_balance_fixed') || '{}');
+                    if (balanceData.RUB != null) userData.currencies.RUB = balanceData.RUB;
+                } catch (e) {}
             }
-            
-            // Обновляем аватар и имя
+
+            // 2) Иначе: window.userData (если пришли с index) или из базы
+            if (!userData && window.userData && window.userData.id && window.userData.id !== 'test_user_default') {
+                userData = window.userData;
+            }
+            if (!userData && db && db.getUser) {
+                const userId = db.getFixedUserId ? db.getFixedUserId() : (localStorage.getItem('jetstore_user_id') || 'test_user_default');
+                const stored = db.getUser(userId);
+                if (stored && stored.id !== 'test_user_default') userData = stored;
+            }
+            if (!userData) {
+                try {
+                    const userDataStr = localStorage.getItem('jetstore_user_data');
+                    if (userDataStr) userData = JSON.parse(userDataStr);
+                } catch (e) {}
+            }
+
+            window.userData = userData || window.userData || {};
+
+            // Обновляем аватар, ник, юзернейм
             let usernameForNft = null;
-            
-            if (userData) {
-                const avatarEl = document.getElementById('assetsUserAvatar');
-                const nameEl = document.getElementById('assetsUserName');
-                
+            const avatarEl = document.getElementById('assetsUserAvatar');
+            const nameEl = document.getElementById('assetsUserName');
+            const ud = userData || (tgUser ? {
+                firstName: tgUser.first_name, lastName: tgUser.last_name, username: tgUser.username, photoUrl: tgUser.photo_url
+            } : null);
+
+            if (ud) {
                 if (avatarEl) {
-                    if (userData.photoUrl) {
-                        avatarEl.innerHTML = `<img src="${userData.photoUrl}" alt="Avatar">`;
+                    if (ud.photoUrl) {
+                        avatarEl.innerHTML = '<img src="' + String(ud.photoUrl).replace(/"/g, '&quot;') + '" alt="Avatar">';
                     } else {
-                        // Используем первую букву имени или username
-                        const initial = (userData.firstName?.[0] || userData.username?.[0] || 'П').toUpperCase();
+                        const initial = (ud.firstName || ud.username || 'П')[0].toUpperCase();
                         avatarEl.innerHTML = initial;
                     }
                 }
-                
                 if (nameEl) {
-                    const displayName = userData.firstName || userData.username || 'Пользователь';
+                    const displayName = ud.firstName || (ud.username ? '@' + (ud.username.startsWith('@') ? ud.username.slice(1) : ud.username) : '') || 'Пользователь';
                     nameEl.textContent = displayName;
                 }
-
-                if (userData.username) {
-                    usernameForNft = userData.username;
-                }
-            } else {
-                // Используем данные Telegram WebApp если доступны
-                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
-                    const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
-                    if (tgUser) {
-                        const avatarEl = document.getElementById('assetsUserAvatar');
-                        const nameEl = document.getElementById('assetsUserName');
-                        
-                        if (avatarEl && tgUser.photo_url) {
-                            avatarEl.innerHTML = `<img src="${tgUser.photo_url}" alt="Avatar">`;
-                        } else if (avatarEl) {
-                            const initial = (tgUser.first_name?.[0] || 'П').toUpperCase();
-                            avatarEl.innerHTML = initial;
-                        }
-                        
-                        if (nameEl) {
-                            nameEl.textContent = tgUser.first_name || 'Пользователь';
-                        }
-                        
-                        if (tgUser.username) {
-                            usernameForNft = tgUser.username;
-                        }
-                    }
-                }
+                usernameForNft = ud.username ? (ud.username.startsWith('@') ? ud.username.slice(1) : ud.username) : null;
+            } else if (avatarEl) {
+                avatarEl.textContent = '?';
+                if (nameEl) nameEl.textContent = 'Пользователь';
             }
             
             // Загружаем NFT подарки (если известен username)
@@ -2819,9 +2822,16 @@
         }
         function updateTonRateDisplay() {
             var el = document.getElementById('assetsTonRateDisplay');
-            if (!el) return;
-            var rate = getTonToRubRate();
-            el.textContent = '1 TON ≈ ' + (rate ? rate.toLocaleString('ru-RU') : '…') + ' ₽';
+            if (el) {
+                var rate = getTonToRubRate();
+                el.textContent = '1 TON ≈ ' + (rate ? rate.toLocaleString('ru-RU') : '…') + ' ₽';
+            }
+            var el2 = document.getElementById('assetsRubToTonDisplay');
+            if (el2) {
+                var tonRate = getTonToRubRate();
+                var rubToTon = tonRate && tonRate > 0 ? (1 / tonRate) : null;
+                el2.textContent = '1 ₽ ≈ ' + (rubToTon != null ? rubToTon.toFixed(6) : '…') + ' TON';
+            }
         }
         
         // Загрузка баланса для активов
@@ -2949,9 +2959,13 @@
             const balanceRubEl = document.getElementById('assetsDrawerBalanceRub');
             const balanceTonEl = document.getElementById('assetsDrawerBalanceTon');
             if (!avatarEl || !nicknameEl || !usernameEl) return;
-            const ud = window.userData || {};
+            let ud = window.userData || {};
+            if ((!ud.firstName && !ud.username) || ud.id === 'test_user_default') {
+                const tgUser = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) || null;
+                if (tgUser) ud = { firstName: tgUser.first_name, lastName: tgUser.last_name, username: tgUser.username, photoUrl: tgUser.photo_url };
+            }
             const nickname = ud.firstName || ud.lastName || 'Пользователь';
-            const username = ud.username ? (ud.username.startsWith('@') ? ud.username : '@' + ud.username) : '@username';
+            const username = ud.username ? (String(ud.username).startsWith('@') ? ud.username : '@' + ud.username) : '@username';
             avatarEl.innerHTML = '';
             if (ud.photoUrl) {
                 const img = document.createElement('img');
@@ -2967,9 +2981,13 @@
             nicknameEl.textContent = nickname;
             usernameEl.textContent = username;
             if (walletEl) {
-                const addr = localStorage.getItem('jetstore_tonkeeper_address') || '';
+                var addr = localStorage.getItem('jetstore_tonkeeper_address') || '';
+                if (addr && /^(-1|0):[0-9a-fA-F]{32,64}$/.test(String(addr).trim()) {
+                    addr = (typeof window.ensureUserFriendlyAddress === 'function') ? window.ensureUserFriendlyAddress(addr) : addr;
+                    try { if (addr) localStorage.setItem('jetstore_tonkeeper_address', addr); } catch (e) {}
+                }
                 if (addr) {
-                    const short = addr.length > 12 ? addr.slice(0, 8) + '…' + addr.slice(-10) : addr;
+                    var short = addr.length > 12 ? addr.slice(0, 8) + '…' + addr.slice(-10) : addr;
                     walletEl.textContent = short;
                 } else {
                     walletEl.textContent = 'Не подключён';
@@ -3086,10 +3104,15 @@
                 const tonkeeperBalance = localStorage.getItem('jetstore_tonkeeper_balance') || '0';
                 
                 if (isConnected && tonkeeperAddress) {
-                    // TonKeeper подключен - показываем адрес и баланс
+                    var displayAddr = tonkeeperAddress;
+                    if (/^(-1|0):[0-9a-fA-F]{32,64}$/.test(String(tonkeeperAddress).trim())) {
+                        displayAddr = (typeof window.ensureUserFriendlyAddress === 'function') ? window.ensureUserFriendlyAddress(tonkeeperAddress) : tonkeeperAddress;
+                        try { if (displayAddr !== tonkeeperAddress) localStorage.setItem('jetstore_tonkeeper_address', displayAddr); } catch (e) {}
+                    }
+                    var safeAddr = String(displayAddr).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
                     tonkeeperContentEl.innerHTML = `
                         <div class="assets-profile-tonkeeper-info">
-                            <div class="assets-profile-tonkeeper-address">${tonkeeperAddress}</div>
+                            <div class="assets-profile-tonkeeper-address">${safeAddr}</div>
                             <div class="assets-profile-tonkeeper-balance">${parseFloat(tonkeeperBalance).toLocaleString('ru-RU')} TON</div>
                         </div>
                     `;
