@@ -65,6 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ВАЖНО: Инициализируем пользователя ПЕРВЫМ делом, чтобы загрузить баланс из базы
     initializeUserData();
+
+    // Restore pending payment screen after returning from external payment (CryptoBot/TonKeeper)
+    try { restorePendingPaymentToUI('domcontentloaded'); } catch (e) {}
     
     // Загружаем товары для активного раздела
     loadProductsForSection(currentSection);
@@ -130,6 +133,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     console.log('Магазин инициализирован. Баланс RUB:', window.userData?.currencies?.RUB);
+});
+
+// When user returns to the mini app (tab becomes visible), restore pending payment popup again.
+document.addEventListener('visibilitychange', function() {
+    try {
+        if (document.visibilityState === 'visible') {
+            var popup = document.getElementById('paymentWaitingPopup');
+            var active = popup && popup.classList && popup.classList.contains('active');
+            if (!active) restorePendingPaymentToUI('visibilitychange');
+        }
+    } catch (e) {}
 });
 
 // Инициализация пользователя
@@ -2313,9 +2327,88 @@ function selectPaymentMethod(method, bonusPercent) {
         totalAmount: totalAmount,
         purchase: currentPurchase
     };
+
+    // Persist pending payment per Telegram user (so return from CryptoBot restores UI)
+    try { savePendingPayment(window.paymentData); } catch (e) {}
     
     // Показываем экран ожидания оплаты
     showPaymentWaiting();
+}
+
+// ===========================
+// Pending payment persistence
+// ===========================
+var JET_PENDING_PAYMENT_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+
+function getJetUserIdForStorage() {
+    try {
+        var tg = window.Telegram && window.Telegram.WebApp;
+        var tgId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id ? String(tg.initDataUnsafe.user.id) : null;
+        if (tgId) return tgId;
+    } catch (e) {}
+    try {
+        if (window.userData && window.userData.id && String(window.userData.id) !== 'test_user_default') return String(window.userData.id);
+    } catch (e) {}
+    try {
+        var db = window.Database;
+        if (db && typeof db.getFixedUserId === 'function') return String(db.getFixedUserId());
+    } catch (e) {}
+    return 'test_user_default';
+}
+
+function getPendingPaymentStorageKey() {
+    return 'jetstore_pending_payment_' + getJetUserIdForStorage();
+}
+
+function savePendingPayment(data) {
+    if (!data || typeof data !== 'object') return;
+    var payload = {
+        method: data.method,
+        bonusPercent: data.bonusPercent,
+        baseAmount: data.baseAmount,
+        commission: data.commission,
+        totalAmount: data.totalAmount,
+        purchase: data.purchase || null,
+        invoice_id: data.invoice_id || null,
+        order_id: data.order_id || null,
+        payment_url: data.payment_url || null,
+        pay_url: data.pay_url || null,
+        createdAt: Date.now()
+    };
+    localStorage.setItem(getPendingPaymentStorageKey(), JSON.stringify(payload));
+}
+
+function loadPendingPayment() {
+    try {
+        var raw = localStorage.getItem(getPendingPaymentStorageKey());
+        if (!raw) return null;
+        var data = JSON.parse(raw);
+        if (!data || typeof data !== 'object') return null;
+        if (!data.method || !data.purchase) return null;
+        if (data.createdAt && (Date.now() - data.createdAt) > JET_PENDING_PAYMENT_TTL_MS) return null;
+        return data;
+    } catch (e) { return null; }
+}
+
+function clearPendingPayment() {
+    try { localStorage.removeItem(getPendingPaymentStorageKey()); } catch (e) {}
+}
+
+function restorePendingPaymentToUI(reason) {
+    var pending = loadPendingPayment();
+    if (!pending) return false;
+    // If we already have a paymentData in memory, don't override unless it's empty
+    if (!window.paymentData || !window.paymentData.method) {
+        window.paymentData = pending;
+    } else {
+        // keep latest ids/urls
+        window.paymentData.invoice_id = window.paymentData.invoice_id || pending.invoice_id;
+        window.paymentData.order_id = window.paymentData.order_id || pending.order_id;
+        window.paymentData.payment_url = window.paymentData.payment_url || pending.payment_url || pending.pay_url;
+    }
+    // Show popup again
+    try { showPaymentWaiting(); } catch (e) {}
+    return true;
 }
 
 // Показать экран ожидания оплаты
@@ -2385,6 +2478,8 @@ function closePaymentWaiting() {
     }
     window.paymentData = null;
     currentPurchase = { type: null, amount: 0, login: null, productId: null, productName: null };
+    // Clear pending payment for this user when user closes/finishes flow
+    try { clearPendingPayment(); } catch (e) {}
 }
 
 // Подтвердить оплату: проверка платёжки, при успехе — выдача товара (Steam = DonateHub, звёзды/премиум — позже)
@@ -2649,6 +2744,7 @@ function openPaymentPage() {
                     window.paymentData = window.paymentData || {};
                     window.paymentData.invoice_id = res.invoice_id;
                     window.paymentData.payment_url = res.payment_url || res.pay_url;
+                    try { savePendingPayment(window.paymentData); } catch (e) {}
                     var payUrl = (res.payment_url || res.pay_url || '').trim();
                     if (!payUrl) {
                         if (typeof showStoreNotification === 'function') showStoreNotification('Ссылка на оплату не получена от CryptoBot', 'error');
@@ -2733,6 +2829,7 @@ function openPaymentPage() {
                     window.paymentData = window.paymentData || {};
                     window.paymentData.order_id = res.order_id;
                     if (res.payment_url) window.paymentData.payment_url = res.payment_url;
+                    try { savePendingPayment(window.paymentData); } catch (e) {}
                     var payUrl = res.payment_url || res.pay_url || data.payment_url || data.pay_url;
                     if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
                         if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
@@ -2777,6 +2874,7 @@ function openPaymentPage() {
                     window.paymentData = window.paymentData || {};
                     window.paymentData.order_id = res.order_id;
                     if (res.payment_url) window.paymentData.payment_url = res.payment_url;
+                    try { savePendingPayment(window.paymentData); } catch (e) {}
                     var payUrl = res.payment_url || res.pay_url || data.payment_url || data.pay_url;
                     if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
                         if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
