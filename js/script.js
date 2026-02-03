@@ -2878,10 +2878,9 @@ function openPaymentPage() {
                     '&text=' + encodeURIComponent(orderId);
                 var tg = window.Telegram && window.Telegram.WebApp;
                 try {
+                    // Для внешних ссылок (Tonkeeper) используем только openLink или fallback window.open.
                     if (tg && typeof tg.openLink === 'function') {
                         tg.openLink(link);
-                    } else if (tg && typeof tg.openTelegramLink === 'function') {
-                        tg.openTelegramLink(link);
                     } else {
                         window.open(link, '_blank');
                     }
