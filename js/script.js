@@ -2867,7 +2867,20 @@ function openPaymentPage() {
                     return;
                 }
                 var orderId = res.order_id;
-                var address = res.payment_address;
+                var rawAddress = res.payment_address;
+                // Подстрахуемся: адрес должен быть строкой в user-friendly формате (UQ*/EQ*).
+                var address = rawAddress;
+                try {
+                    if (typeof window.ensureUserFriendlyAddress === 'function') {
+                        address = window.ensureUserFriendlyAddress(rawAddress);
+                    }
+                } catch (e) {
+                    address = rawAddress;
+                }
+                if (!address || typeof address !== 'string') {
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Адрес приёма TON не задан или некорректен. Проверьте TON_PAYMENT_ADDRESS на сервере.', 'error');
+                    return;
+                }
                 var amountNanoton = res.amount_nanoton;
                 window.paymentData = window.paymentData || {};
                 window.paymentData.order_id = orderId;
