@@ -2881,6 +2881,15 @@ function openPaymentPage() {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Адрес приёма TON не задан или некорректен. Проверьте TON_PAYMENT_ADDRESS на сервере.', 'error');
                     return;
                 }
+                var addrTrim = address.trim();
+                var addrOk = /^[A-Za-z0-9_-]{48}$/.test(addrTrim) && (addrTrim.startsWith('EQ') || addrTrim.startsWith('UQ'));
+                if (!addrOk) {
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification('Некорректный адрес приёма TON: ' + String(addrTrim).slice(0, 10) + '... Проверьте TON_PAYMENT_ADDRESS (нужен EQ.../UQ... на 48 символов).', 'error');
+                    }
+                    return;
+                }
+                address = addrTrim;
                 var amountNanoton = res.amount_nanoton;
                 window.paymentData = window.paymentData || {};
                 window.paymentData.order_id = orderId;
