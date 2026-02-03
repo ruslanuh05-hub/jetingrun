@@ -1,0 +1,8 @@
+{
+  "cookies": "PASTE_COOKIE_HEADER_FROM_FRAGMENT_COM_HERE",
+  "hash": "PASTE_HASH_PARAM_VALUE_HERE",
+  "tonapi_key": "OPTIONAL_FOR_EZSTAR_MODE_BOT_PAYS_FRAGMENT",
+  "mnemonic": ["word1", "word2", "...", "word24"],
+  "ton_payment_address": "UQA... адрес кошелька для приёма TON-оплаты (Tonkeeper)"
+}
+
