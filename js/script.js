@@ -397,6 +397,7 @@ function updateStoreDisplay() {
 let selectedStars = { amount: 0, price: 0 };
 let selectedPremium = { months: 0, price: 0 };
 let selectedTon = 0;
+let selectedTonNetwork = '';
 
 // Загрузка курса 1 звезды из localStorage
 function getStarRate() {
@@ -433,6 +434,37 @@ function getTonToRubRate() {
         }
         return (rate && !isNaN(rate) && rate > 0) ? rate : 600;
     } catch (e) { return 600; }
+}
+
+// Курс пополнения Steam (множитель: сколько платит пользователь за 1₽ пополнения)
+// Например, при значении 1.05 за пополнение 100₽ клиент платит 105₽.
+function getSteamTopupRate(currencyCode) {
+    const code = (currencyCode || '').toUpperCase() || 'RUB';
+    try {
+        // Новый формат: ключи по валютам
+        const perCur = parseFloat(localStorage.getItem('jetstore_steam_rate_' + code));
+        if (perCur && !isNaN(perCur) && perCur > 0) return perCur;
+
+        // Fallback на старый ключ (используем как RUB по умолчанию)
+        const legacy = parseFloat(localStorage.getItem('jetstore_steam_rate'));
+        if (legacy && !isNaN(legacy) && legacy > 0) return legacy;
+        return 1;
+    } catch (e) {
+        return 1;
+    }
+}
+
+function updateSteamTopupRateText() {
+    try {
+        const rateEl = document.getElementById('steamTopupRateText');
+        if (!rateEl) return;
+
+        const code = (typeof currentSteamCurrency === 'string' && currentSteamCurrency) ? currentSteamCurrency : 'RUB';
+        const r = (typeof getSteamTopupRate === 'function' ? getSteamTopupRate(code) : 1) || 1;
+
+        // Курс отображаем только в рублях, без знаков тенге/гривны
+        rateEl.textContent = `Текущий курс: ${r.toFixed(2)} ₽ за 1 единицу пополнения на Steam`;
+    } catch (e) {}
 }
 
 // Добавление записи в историю покупок (для профиля)
@@ -1631,13 +1663,20 @@ function updateTonAmountFromInput() {
     const input = document.getElementById('tonAmountInput');
     if (!input) return;
     
-    let amount = parseInt(input.value || '0', 10) || 0;
-    
-    if (amount < 1) amount = 0;
-    if (amount > 200) amount = 200;
-    
-    input.value = amount ? amount : '';
-    selectedTon = amount;
+    const raw = input.value || '';
+    let amount = parseInt(raw, 10);
+    if (isNaN(amount) || amount <= 0) {
+        // позволяем пользователю вводить число по частям; пока невалидно — просто не трогаем selectedTon
+        selectedTon = 0;
+        updateTonContinueButton();
+        return;
+    }
+    if (amount > 200) {
+        amount = 200;
+        input.value = String(amount);
+    }
+    // Минимум 1 TON для покупки, но не мешаем вводу; просто считаем selectedTon валидным только от 1
+    selectedTon = (amount >= 1 && amount <= 200) ? amount : 0;
     
     updateTonContinueButton();
 }
@@ -1647,12 +1686,18 @@ function updateTonContinueButton() {
     const btn = document.getElementById('tonContinueBtn');
     if (!btn) return;
     
-    if (selectedTon > 0) {
-        btn.textContent = 'Оплатить';
+    const wallet = (document.getElementById('tonWalletAddress')?.value || '').trim();
+    const network = (document.getElementById('tonNetwork')?.value || '').trim() || selectedTonNetwork;
+    const ok = selectedTon >= 1 && selectedTon <= 200 && wallet.length > 0 && (network || '').length > 0;
+    
+    if (ok) {
+        const rate = (typeof getTonToRubRate === 'function' ? getTonToRubRate() : 600) || 600;
+        const rub = Math.round(selectedTon * rate * 100) / 100;
+        btn.textContent = `Оплатить ${rub.toLocaleString('ru-RU')} ₽`;
         btn.classList.remove('disabled');
         btn.style.opacity = '1';
     } else {
-        btn.textContent = 'Введите число от 1 до 200';
+        btn.textContent = 'Заполните данные (1–200 TON)';
         btn.classList.add('disabled');
         btn.style.opacity = '0.6';
     }
@@ -1666,12 +1711,32 @@ function openTonPopup() {
     selectedTon = 0;
     const amountInput = document.getElementById('tonAmountInput');
     if (amountInput) amountInput.value = '';
+
+    const walletInput = document.getElementById('tonWalletAddress');
+    if (walletInput) walletInput.value = '';
+    const netHidden = document.getElementById('tonNetwork');
+    if (netHidden) netHidden.value = '';
+    selectedTonNetwork = '';
+    document.querySelectorAll('.ton-network-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
     
     const preview = document.getElementById('tonUserPreview');
     if (preview) preview.style.display = 'none';
     
     updateTonContinueButton();
     popup.classList.add('active');
+}
+
+function selectTonNetwork(networkCode) {
+    selectedTonNetwork = networkCode || '';
+    const hidden = document.getElementById('tonNetwork');
+    if (hidden) hidden.value = selectedTonNetwork;
+    document.querySelectorAll('.ton-network-btn').forEach(function(btn) {
+        const val = btn.getAttribute('data-network');
+        btn.classList.toggle('active', val === selectedTonNetwork);
+    });
+    updateTonContinueButton();
 }
 
 // Закрытие окна покупки TON
@@ -1701,23 +1766,44 @@ function closeTonAttention() {
 
 // Покупка TON
 function proceedTonPurchase() {
-    if (selectedTon <= 0) {
-        showStoreNotification('Введите количество TON от 1 до 200', 'error');
+    const btn = document.getElementById('tonContinueBtn');
+    if (btn && btn.classList.contains('disabled')) return;
+    
+    const wallet = (document.getElementById('tonWalletAddress')?.value || '').trim();
+    const network = (document.getElementById('tonNetwork')?.value || '').trim() || selectedTonNetwork;
+    const amountTon = selectedTon || 0;
+    
+    if (!wallet) {
+        showStoreNotification('Введите адрес кошелька', 'error');
+        return;
+    }
+    if (!network) {
+        showStoreNotification('Выберите сеть', 'error');
+        return;
+    }
+    if (!amountTon || amountTon < 1 || amountTon > 200) {
+        showStoreNotification('Введите сумму TON от 1 до 200', 'error');
         return;
     }
     
-    const recipient = document.getElementById('tonRecipient')?.value || '';
+    const rate = (typeof getTonToRubRate === 'function' ? getTonToRubRate() : 600) || 600;
+    const rubAmount = Math.round(amountTon * rate * 100) / 100;
     
     currentPurchase = {
         type: 'ton',
-        amount: selectedTon,
-        login: recipient,
+        amount: rubAmount,          // к оплате в рублях (без комиссии)
+        ton_amount: amountTon,      // сколько TON купить
+        wallet: wallet,
+        network: network,
         productId: null,
-        productName: `Покупка ${selectedTon} TON`
+        productName: 'Покупка TON'
     };
     
     closeTonPopup();
-    showPaymentMethodSelection('ton');
+    // Небольшая задержка для гарантии, что попап TON закрылся перед открытием окна оплаты
+    setTimeout(function() {
+        showPaymentMethodSelection('ton');
+    }, 100);
 }
 
 window.selectPremiumByMonths = selectPremiumByMonths;
@@ -2083,6 +2169,9 @@ function showSteamTopup() {
         balanceEl.textContent = (v || 0).toLocaleString('ru-RU') + ' ₽';
     }
     
+    // Текущий курс пополнения Steam
+    updateSteamTopupRateText();
+    
     const loginInput = document.getElementById('steamLogin');
     const amountInput = document.getElementById('steamAmount');
     if (loginInput) loginInput.value = '';
@@ -2214,6 +2303,9 @@ function setSteamCurrency(code) {
             (id === 'steamCurUah' && code === 'UAH');
         btn.classList.toggle('active', isActive);
     });
+
+    // Обновляем текст курса в окне Steam под выбранную валюту
+    updateSteamTopupRateText();
 }
 
 // Сохраняем информацию о предыдущем окне для возврата
@@ -2228,7 +2320,7 @@ function showPaymentMethodSelection(purchaseType) {
     // Сохраняем данные покупки
     if (purchaseType === 'steam') {
         const login = document.getElementById('steamLogin')?.value.trim();
-        const amount = parseFloat(document.getElementById('steamAmount')?.value) || 0;
+        const amount = parseFloat(document.getElementById('steamAmount')?.value) || 0; // сколько придёт на Steam
         
         if (!login) {
             showStoreNotification('Введите логин Steam', 'error');
@@ -2239,14 +2331,18 @@ function showPaymentMethodSelection(purchaseType) {
             showStoreNotification('Введите сумму пополнения', 'error');
             return;
         }
+        const steamRate = (typeof getSteamTopupRate === 'function' ? getSteamTopupRate(currentSteamCurrency) : 1);
+        const payRub = Math.round(amount * steamRate * 100) / 100; // сколько платит клиент
         
         currentPurchase = {
             type: 'steam',
-            amount: amount,
+            amount: payRub,           // сумма к оплате
+            steam_amount: amount,     // сумма пополнения Steam
             login: login,
             productId: null,
             productName: 'Пополнение Steam',
-            currency: currentSteamCurrency
+            currency: currentSteamCurrency,
+            steam_rate: steamRate
         };
         
         // Сохраняем информацию о предыдущем окне
@@ -2272,8 +2368,8 @@ function showPaymentMethodSelection(purchaseType) {
     } else if (purchaseType === 'ton') {
         // Сохраняем информацию о предыдущем окне
         previousView = {
-            type: 'store',
-            gameCategory: 'ton',
+            type: 'ton',
+            gameCategory: null,
             supercellGame: null
         };
     } else if (purchaseType === 'game') {
@@ -2329,6 +2425,11 @@ function closePaymentMethodPopup() {
         // Возвращаем в окно Steam пополнения
         if (typeof showSteamTopup === 'function') {
             showSteamTopup();
+        }
+    } else if (previousView.type === 'ton') {
+        // Возвращаем в главное меню (покупка TON уже начата, данные в currentPurchase)
+        if (typeof showMainMenuView === 'function') {
+            showMainMenuView();
         }
     } else if (previousView.type === 'store') {
         // Возвращаем в окно магазина (звезды или премиум)
@@ -2484,15 +2585,33 @@ function showPaymentWaiting() {
         primaryBtn.textContent = 'Перейти на страницу оплаты';
     }
 
+    // По умолчанию скрываем строку курса
+    const steamRateRow = document.getElementById('paymentDetailSteamRateRow');
+    if (steamRateRow) {
+        steamRateRow.style.display = 'none';
+    }
+
     // Обновляем данные на экране
     const steamCur = data.purchase?.currency || 'RUB';
     const steamSymbols = { RUB: '₽', KZT: '₸', UAH: '₴' };
     const curSym = steamSymbols[steamCur] || '₽';
 
     if (data.purchase?.type === 'steam') {
+        var steamTopupAmount = data.purchase.steam_amount || data.baseAmount || 0; // сколько придёт на Steam
         document.getElementById('paymentWaitingDescription').textContent =
-            `Пополнение Steam для ${data.purchase.login} на ${data.baseAmount.toLocaleString('ru-RU')} ${curSym}`;
-        document.getElementById('paymentDetailAmount').textContent = `${data.baseAmount.toLocaleString('ru-RU')} ${curSym}`;
+            `Пополнение Steam для ${data.purchase.login} на ${steamTopupAmount.toLocaleString('ru-RU')} ${curSym}`;
+        document.getElementById('paymentDetailAmount').textContent = `${steamTopupAmount.toLocaleString('ru-RU')} ${curSym}`;
+
+        // Показываем курс пополнения, если он есть
+        if (steamRateRow) {
+            const rateValueEl = document.getElementById('paymentDetailSteamRate');
+            const rate = data.purchase.steam_rate || (typeof getSteamTopupRate === 'function' ? getSteamTopupRate(data.purchase?.currency || 'RUB') : 1);
+            if (rateValueEl && rate && !isNaN(rate)) {
+                // Курс пополнения отображаем только в рублях
+                rateValueEl.textContent = `${rate.toFixed(2)} ₽ за 1 единицу пополнения на Steam`;
+                steamRateRow.style.display = 'flex';
+            }
+        }
     } else if (data.method === 'cryptobot' && (data.purchase?.type === 'stars' || data.purchase?.type === 'premium')) {
         var totRub = data.totalAmount || data.baseAmount || 0;
         var usdtRt = (typeof getUsdtRate === 'function' ? getUsdtRate() : 80) || 80;
@@ -2500,33 +2619,31 @@ function showPaymentWaiting() {
         document.getElementById('paymentWaitingDescription').textContent =
             `Оплатите ${usdtAmt.toFixed(2)} USDT (~${data.totalAmount.toLocaleString('ru-RU')} ₽) через CryptoBot`;
         document.getElementById('paymentDetailAmount').textContent = `${usdtAmt.toFixed(2)} USDT`;
-    } else if (data.method === 'ton') {
-        var totRub = data.totalAmount || data.baseAmount || 0;
-        var tonRt = (typeof getTonToRubRate === 'function' ? getTonToRubRate() : 600) || 600;
-        var tonAmt = totRub > 0 && tonRt > 0 ? Math.max(0.01, Math.round(totRub / tonRt * 10000) / 10000) : 0;
+    } else if (data.purchase?.type === 'ton') {
+        var tonAmt = parseFloat(data.purchase.ton_amount || 0) || 0;
+        var net = (data.purchase.network || '').toString().trim();
+        var w = (data.purchase.wallet || '').toString().trim();
+        var wShort = w ? (w.length > 18 ? (w.slice(0, 10) + '…' + w.slice(-6)) : w) : '';
         document.getElementById('paymentWaitingDescription').textContent =
-            'Оплатите ' + (tonAmt > 0 ? tonAmt.toFixed(4) : '…') + ' TON через привязанный Tonkeeper (0% комиссия). Курс с нашего API.';
-        document.getElementById('paymentDetailAmount').textContent = tonAmt > 0 ? tonAmt.toFixed(4) + ' TON' : (data.totalAmount.toLocaleString('ru-RU') + ' ₽');
+            `Покупка ${tonAmt.toLocaleString('ru-RU')} TON (${net || 'сеть не выбрана'}) на кошелёк ${wShort || '—'}`;
+        document.getElementById('paymentDetailAmount').textContent = `${tonAmt.toLocaleString('ru-RU')} TON`;
     } else {
         document.getElementById('paymentWaitingDescription').textContent =
             `Оплатите ${data.totalAmount.toLocaleString('ru-RU')} ₽ через ${methodNames[data.method]} (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)`;
         document.getElementById('paymentDetailAmount').textContent = `${data.baseAmount.toLocaleString('ru-RU')} ₽`;
     }
     document.getElementById('paymentDetailCommissionLabel').textContent = `Комиссия (${data.bonusPercent}%)`;
-    document.getElementById('paymentDetailCommission').textContent = `+${data.commission.toLocaleString('ru-RU')} ${data.purchase?.type === 'steam' ? curSym : '₽'}`;
+    // Комиссию всегда показываем в рублях
+    document.getElementById('paymentDetailCommission').textContent = `+${data.commission.toLocaleString('ru-RU')} ₽`;
     var totEl = document.getElementById('paymentDetailTotal');
     if (data.method === 'cryptobot' && (data.purchase?.type === 'stars' || data.purchase?.type === 'premium') && totEl) {
         var tr = data.totalAmount || data.baseAmount || 0;
         var ur = (typeof getUsdtRate === 'function' ? getUsdtRate() : 80) || 80;
         var ua = tr > 0 ? Math.max(0.1, Math.round(tr / ur * 100) / 100) : 0;
         totEl.textContent = ua > 0 ? ua.toFixed(2) + ' USDT' : (data.totalAmount.toLocaleString('ru-RU') + ' ₽');
-    } else if (data.method === 'ton' && totEl) {
-        var tr2 = data.totalAmount || data.baseAmount || 0;
-        var tonR = (typeof getTonToRubRate === 'function' ? getTonToRubRate() : 600) || 600;
-        var ta = tr2 > 0 && tonR > 0 ? Math.max(0.01, Math.round(tr2 / tonR * 10000) / 10000) : 0;
-        totEl.textContent = ta > 0 ? ta.toFixed(4) + ' TON' : (data.totalAmount.toLocaleString('ru-RU') + ' ₽');
     } else if (totEl) {
-        totEl.textContent = `${data.totalAmount.toLocaleString('ru-RU')} ${data.purchase?.type === 'steam' ? curSym : '₽'}`;
+        // Итог к оплате всегда показываем в рублях
+        totEl.textContent = `${data.totalAmount.toLocaleString('ru-RU')} ₽`;
     }
     document.getElementById('paymentDetailMethod').textContent = `${methodNames[data.method]} (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)`;
     
@@ -2643,7 +2760,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 account: data.purchase.login,
-                amount: data.baseAmount,
+                amount: data.purchase.steam_amount || data.baseAmount,
                 currency: data.purchase.currency || 'RUB'
             })
         })
@@ -2766,19 +2883,61 @@ function runDeliveryAfterPayment(data, checkResponse) {
 
     // Покупка TON как отдельного товара
     if (data.purchase && data.purchase.type === 'ton') {
+        // После подтверждения оплаты отправляем заявку в рабочую группу
+        var buyer = null;
         try {
-            var totalRubTon = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
-            addPurchaseHistoryEntry({
-                type: 'ton',
-                productName: 'Покупка TON',
-                price: totalRubTon,
-                tonAmount: data.purchase.amount || 0,
-                recipient: data.purchase.login || '',
-                method: data.method || ''
-            });
+            var tg = window.Telegram && window.Telegram.WebApp;
+            var u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+            if (u) {
+                buyer = {
+                    id: u.id != null ? String(u.id) : null,
+                    username: u.username || null,
+                    first_name: u.first_name || null,
+                    last_name: u.last_name || null
+                };
+            }
         } catch (e) {}
-        if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
-        closePaymentWaiting();
+        var payload = {
+            purchase: data.purchase || {},
+            method: data.method || '',
+            total_rub: parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0,
+            base_rub: parseFloat(data.baseAmount) || 0,
+            invoice_id: data.invoice_id || null,
+            order_id: data.order_id || null,
+            buyer: buyer
+        };
+        if (statusEl) statusEl.textContent = 'Отправляем заявку...';
+        fetch(apiBase.replace(/\/$/, '') + '/api/ton/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(res) {
+                if (res && res.success) {
+                    try {
+                        var totalRubTon = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
+                        addPurchaseHistoryEntry({
+                            type: 'ton',
+                            productName: 'Покупка TON',
+                            price: totalRubTon,
+                            tonAmount: data.purchase.ton_amount || 0,
+                            wallet: data.purchase.wallet || '',
+                            network: data.purchase.network || '',
+                            method: data.method || ''
+                        });
+                    } catch (e) {}
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Заявка отправлена. Ожидайте обработки.', 'success');
+                    closePaymentWaiting();
+                } else {
+                    if (typeof showStoreNotification === 'function') showStoreNotification((res && res.message) || 'Не удалось отправить заявку. Попробуйте ещё раз.', 'error');
+                    if (statusEl) statusEl.textContent = 'Ожидание...';
+                }
+            })
+            .catch(function() {
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка связи при отправке заявки. Попробуйте ещё раз.', 'error');
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+            });
         return;
     }
 

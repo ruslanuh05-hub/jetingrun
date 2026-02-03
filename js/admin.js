@@ -206,6 +206,9 @@ function loadInitialData() {
         const usdInput = document.getElementById('usdInput');
         const eurInput = document.getElementById('eurInput');
         const tonInput = document.getElementById('tonInput');
+        const steamRateRubInput = document.getElementById('steamRateRubInput');
+        const steamRateKztInput = document.getElementById('steamRateKztInput');
+        const steamRateUahInput = document.getElementById('steamRateUahInput');
         
         if (usdtRateEl) usdtRateEl.textContent = rates.USDT || 80;
         if (usdRateEl) usdRateEl.textContent = rates.USD || 90;
@@ -215,6 +218,18 @@ function loadInitialData() {
         if (usdInput) usdInput.value = rates.USD || 90;
         if (eurInput) eurInput.value = rates.EUR || 100;
         if (tonInput) tonInput.value = rates.TON || 600;
+        // Курс Steam читаем из localStorage напрямую (по валютам)
+        // Поддержка старого ключа jetstore_steam_rate: используем как fallback для RUB
+        const legacySteam = parseFloat(localStorage.getItem('jetstore_steam_rate'));
+        const legacySteamSafe = !legacySteam || isNaN(legacySteam) || legacySteam <= 0 ? 1 : legacySteam;
+        const readSteamRate = (code) => {
+            const v = parseFloat(localStorage.getItem(`jetstore_steam_rate_${code}`));
+            if (!v || isNaN(v) || v <= 0) return (code === 'RUB' ? legacySteamSafe : 1);
+            return v;
+        };
+        if (steamRateRubInput) steamRateRubInput.value = readSteamRate('RUB');
+        if (steamRateKztInput) steamRateKztInput.value = readSteamRate('KZT');
+        if (steamRateUahInput) steamRateUahInput.value = readSteamRate('UAH');
     }
     
     loadSettings();
@@ -602,6 +617,20 @@ function saveCurrencyRates() {
         var cryptobotUsdt = parseFloat(document.getElementById('cryptobotUsdtAmount')?.value) || 1;
         if (cryptobotUsdt < 0.1) cryptobotUsdt = 1;
         try { localStorage.setItem('jetstore_cryptobot_usdt_amount', cryptobotUsdt.toString()); } catch (e) {}
+
+        // Дополнительно сохраняем курс пополнения Steam (множитель) по валютам
+        const steamRateRubInput = document.getElementById('steamRateRubInput');
+        const steamRateKztInput = document.getElementById('steamRateKztInput');
+        const steamRateUahInput = document.getElementById('steamRateUahInput');
+        const saveSteamRate = (code, el) => {
+            if (!el) return;
+            let v = parseFloat(el.value) || 1;
+            if (v <= 0) v = 1;
+            try { localStorage.setItem(`jetstore_steam_rate_${code}`, v.toString()); } catch (e) {}
+        };
+        saveSteamRate('RUB', steamRateRubInput);
+        saveSteamRate('KZT', steamRateKztInput);
+        saveSteamRate('UAH', steamRateUahInput);
         
         const usdtRateEl = document.getElementById('usdtRate');
         const usdRateEl = document.getElementById('usdRate');
@@ -736,6 +765,23 @@ function loadSettings() {
         var saved = localStorage.getItem('jetstore_cryptobot_usdt_amount');
         cryptobotEl.value = saved ? parseFloat(saved) || 1 : 1;
     }
+
+    // Загружаем курсы Steam (по валютам) в поля админки
+    try {
+        const legacySteam = parseFloat(localStorage.getItem('jetstore_steam_rate'));
+        const legacySteamSafe = !legacySteam || isNaN(legacySteam) || legacySteam <= 0 ? 1 : legacySteam;
+        const readSteamRate = (code) => {
+            const v = parseFloat(localStorage.getItem(`jetstore_steam_rate_${code}`));
+            if (!v || isNaN(v) || v <= 0) return (code === 'RUB' ? legacySteamSafe : 1);
+            return v;
+        };
+        const rubEl = document.getElementById('steamRateRubInput');
+        const kztEl = document.getElementById('steamRateKztInput');
+        const uahEl = document.getElementById('steamRateUahInput');
+        if (rubEl) rubEl.value = readSteamRate('RUB');
+        if (kztEl) kztEl.value = readSteamRate('KZT');
+        if (uahEl) uahEl.value = readSteamRate('UAH');
+    } catch (e) {}
     
     // Загружаем курс скупки звезды
     try {

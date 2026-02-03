@@ -255,6 +255,24 @@
                 <div class="input-row"><label>1 TON = ? RUB</label><input type="number" id="tonInput" min="1" step="0.01" value="600"></div>
                         </div>
             <div class="input-row full-width" style="margin-top:12px">
+                <label>Курс пополнения Steam (множитель) по валютам</label>
+                <div class="grid-3" style="margin-top:8px">
+                    <div class="input-row">
+                        <label>RUB (₽)</label>
+                        <input type="number" id="steamRateRubInput" min="0.5" step="0.01" value="1">
+                    </div>
+                    <div class="input-row">
+                        <label>KZT (₸)</label>
+                        <input type="number" id="steamRateKztInput" min="0.5" step="0.01" value="1">
+                    </div>
+                    <div class="input-row">
+                        <label>UAH (₴)</label>
+                        <input type="number" id="steamRateUahInput" min="0.5" step="0.01" value="1">
+                    </div>
+                </div>
+                <span class="hint">Сколько платит пользователь за 1 единицу пополнения в выбранной валюте Steam. Например, 1.05 = 5% наценка.</span>
+            </div>
+            <div class="input-row full-width" style="margin-top:12px">
                 <label>CryptoBot: сумма счёта (USDT)</label>
                 <input type="number" id="cryptobotUsdtAmount" min="0.1" step="0.1" value="1">
                 <span class="hint">Сумма при оплате через CryptoBot</span>
