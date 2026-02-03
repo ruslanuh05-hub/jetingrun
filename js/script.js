@@ -2841,11 +2841,6 @@ function openPaymentPage() {
             if (typeof showStoreNotification === 'function') showStoreNotification('Сумма должна быть больше 0.', 'error');
             return;
         }
-        var connector = window.tonConnectConnector;
-        if (!connector || !connector.connected) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Подключите Tonkeeper в профиле (Профиль → Подключить TonKeeper), затем выберите оплату TON снова.', 'error');
-            return;
-        }
         if (statusEl) statusEl.textContent = 'Создаём заказ...';
         if (primaryBtn) primaryBtn.disabled = true;
         fetch(apiBase.replace(/\/$/, '') + '/api/ton/create-order', {
@@ -2867,46 +2862,37 @@ function openPaymentPage() {
                     return;
                 }
                 var orderId = res.order_id;
-                var rawAddress = res.payment_address;
-                // Подстрахуемся: адрес должен быть строкой в user-friendly формате (UQ*/EQ*).
-                var address = rawAddress;
-                try {
-                    if (typeof window.ensureUserFriendlyAddress === 'function') {
-                        address = window.ensureUserFriendlyAddress(rawAddress);
-                    }
-                } catch (e) {
-                    address = rawAddress;
-                }
-                if (!address || typeof address !== 'string') {
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Адрес приёма TON не задан или некорректен. Проверьте TON_PAYMENT_ADDRESS на сервере.', 'error');
+                var address = (res.payment_address || '').toString().trim();
+                if (!address) {
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Адрес приёма TON не задан на сервере (TON_PAYMENT_ADDRESS).', 'error');
                     return;
                 }
-                var addrTrim = address.trim();
-                var addrOk = /^[A-Za-z0-9_-]{48}$/.test(addrTrim) && (addrTrim.startsWith('EQ') || addrTrim.startsWith('UQ'));
-                if (!addrOk) {
-                    if (typeof showStoreNotification === 'function') {
-                        showStoreNotification('Некорректный адрес приёма TON: ' + String(addrTrim).slice(0, 10) + '... Проверьте TON_PAYMENT_ADDRESS (нужен EQ.../UQ... на 48 символов).', 'error');
-                    }
-                    return;
-                }
-                address = addrTrim;
                 var amountNanoton = res.amount_nanoton;
                 window.paymentData = window.paymentData || {};
                 window.paymentData.order_id = orderId;
                 try { savePendingPayment(window.paymentData); } catch (e) {}
-                var messages = [{ address: address, amount: String(amountNanoton) }];
-                var tx = { validUntil: Math.floor(Date.now() / 1000) + 300, messages: messages };
-                var sendPromise = connector.sendTransaction ? connector.sendTransaction(tx) : null;
-                if (sendPromise && typeof sendPromise.then === 'function') {
-                    sendPromise.then(function() {
-                        if (typeof showStoreNotification === 'function') showStoreNotification('Транзакция отправлена. Нажмите «Подтвердить оплату».', 'success');
-                        if (statusEl) statusEl.textContent = 'Транзакция отправлена. Нажмите «Подтвердить оплату».';
-                    }).catch(function(err) {
-                        if (typeof showStoreNotification === 'function') showStoreNotification(err && err.message ? err.message : 'Ошибка отправки в Tonkeeper.', 'error');
-                        if (statusEl) statusEl.textContent = 'Ожидание...';
-                    });
-                } else {
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Tonkeeper: подтвердите перевод в приложении, затем нажмите «Подтвердить оплату».', 'info');
+                // Формируем ton://transfer ссылку для Tonkeeper (без TonConnect SDK)
+                var link = 'ton://transfer/' + encodeURIComponent(address) +
+                    '?amount=' + encodeURIComponent(String(amountNanoton)) +
+                    '&text=' + encodeURIComponent(orderId);
+                var tg = window.Telegram && window.Telegram.WebApp;
+                try {
+                    if (tg && typeof tg.openLink === 'function') {
+                        tg.openLink(link);
+                    } else if (tg && typeof tg.openTelegramLink === 'function') {
+                        tg.openTelegramLink(link);
+                    } else {
+                        window.open(link, '_blank');
+                    }
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification('Откройте Tonkeeper, подтвердите перевод, затем нажмите «Подтвердить оплату».', 'info');
+                    }
+                    if (statusEl) statusEl.textContent = 'Ожидание перевода в Tonkeeper...';
+                } catch (err) {
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification('Не удалось открыть Tonkeeper: ' + (err && err.message ? err.message : ''), 'error');
+                    }
+                    if (statusEl) statusEl.textContent = 'Ожидание...';
                 }
             })
             .catch(function() {
