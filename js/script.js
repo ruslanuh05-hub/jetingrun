@@ -1990,14 +1990,89 @@ function closeSellStarsConfirm() {
 }
 
 function confirmSellStars() {
-    const buyRate = getStarBuyRate();
-    const rub = Math.round(currentSellAmount * buyRate);
-    
-    // Здесь можно добавить реальную отправку данных боту
-    showStoreNotification(`Заявка на продажу ${currentSellAmount.toLocaleString('ru-RU')} ⭐ на сумму ${rub.toLocaleString('ru-RU')} ₽ отправлена`, 'success');
-    
-    closeSellStarsConfirm();
-    closeSellStarsPopup();
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) {
+        showStoreNotification('Не задан адрес API бота. Проверьте настройки.', 'error');
+        return;
+    }
+
+    var tg = window.Telegram && window.Telegram.WebApp;
+    var user = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+    if (!user || !user.id) {
+        showStoreNotification('Не удалось определить пользователя. Откройте мини-приложение из бота.', 'error');
+        return;
+    }
+
+    var payload = {
+        telegram_id: user.id,
+        username: (user.username || '').trim(),
+        first_name: (user.first_name || '').trim(),
+        last_name: (user.last_name || '').trim(),
+        stars_amount: currentSellAmount,
+        method: currentSellMethod
+    };
+
+    if (currentSellMethod === 'wallet') {
+        var addr = (document.getElementById('sellWalletAddress') && document.getElementById('sellWalletAddress').value || '').trim();
+        if (!addr) {
+            showStoreNotification('Введите адрес кошелька для выплаты', 'error');
+            return;
+        }
+        payload.wallet_address = addr;
+        payload.wallet_memo = (document.getElementById('sellWalletMemo') && document.getElementById('sellWalletMemo').value || '').trim();
+    } else if (currentSellMethod === 'sbp') {
+        var phone = (document.getElementById('sellSbpPhone') && document.getElementById('sellSbpPhone').value || '').trim();
+        if (!phone) {
+            showStoreNotification('Введите номер телефона для СБП', 'error');
+            return;
+        }
+        payload.sbp_phone = phone;
+        payload.sbp_bank = (document.getElementById('sellSbpBank') && document.getElementById('sellSbpBank').value || '').trim();
+    } else if (currentSellMethod === 'card') {
+        var card = (document.getElementById('sellCardNumber') && document.getElementById('sellCardNumber').value || '').trim();
+        if (!card) {
+            showStoreNotification('Введите номер карты для выплаты', 'error');
+            return;
+        }
+        payload.card_number = card;
+        payload.card_bank = (document.getElementById('sellCardBank') && document.getElementById('sellCardBank').value || '').trim();
+    }
+
+    var btn = document.getElementById('sellStarsConfirmBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Отправка…';
+    }
+
+    fetch(apiBase.replace(/\/$/, '') + '/api/sellstars/create-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, status: r.status, data: data }; }); })
+    .then(function(result) {
+        if (btn) {
+            btn.disabled = false;
+            var buyRate = getStarBuyRate();
+            btn.textContent = 'Подтвердить и продать ' + currentSellAmount.toLocaleString('ru-RU') + ' ⭐';
+        }
+        if (result.ok && result.data && result.data.success) {
+            closeSellStarsConfirm();
+            closeSellStarsPopup();
+            showStoreNotification('Счёт отправлен в чат с ботом. Перейдите в чат и оплатите счёт звёздами.', 'success');
+        } else {
+            var msg = (result.data && result.data.message) ? result.data.message : ('Ошибка ' + (result.status || ''));
+            showStoreNotification(msg, 'error');
+        }
+    })
+    .catch(function(err) {
+        if (btn) {
+            btn.disabled = false;
+            var buyRate = getStarBuyRate();
+            btn.textContent = 'Подтвердить и продать ' + currentSellAmount.toLocaleString('ru-RU') + ' ⭐';
+        }
+        showStoreNotification('Нет связи с сервером. Проверьте интернет.', 'error');
+    });
 }
 
 function openBankSelect(method) {
