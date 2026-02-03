@@ -435,6 +435,38 @@ function getTonToRubRate() {
     } catch (e) { return 600; }
 }
 
+// Добавление записи в историю покупок (для профиля)
+function addPurchaseHistoryEntry(entry) {
+    try {
+        const baseEntry = {
+            id: entry.id || ('ord_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9)),
+            status: entry.status || 'успешно',
+            date: entry.date || new Date().toISOString()
+        };
+        const full = Object.assign({}, entry, baseEntry);
+
+        let purchases = [];
+        try {
+            purchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+        } catch (e) {
+            purchases = [];
+        }
+        purchases.unshift(full);
+        localStorage.setItem('jetstore_purchases', JSON.stringify(purchases));
+
+        try {
+            if (window.userData) {
+                if (!Array.isArray(window.userData.purchases)) window.userData.purchases = [];
+                window.userData.purchases.push(full);
+            }
+        } catch (e) {
+            console.warn('addPurchaseHistoryEntry userData error:', e);
+        }
+    } catch (e) {
+        console.error('Ошибка добавления в историю покупок:', e);
+    }
+}
+
 // Курс USDT (1 USDT = X RUB) из админки
 function getUsdtRate() {
     try {
@@ -2623,6 +2655,15 @@ function runDeliveryAfterPayment(data, checkResponse) {
                     return;
                 }
                 if (typeof showStoreNotification === 'function') showStoreNotification('✅ Заказ Steam создан. Пополнение в процессе.', 'success');
+                try {
+                    addPurchaseHistoryEntry({
+                        type: 'steam',
+                        productName: 'Пополнение Steam',
+                        price: data.baseAmount || 0,
+                        steamLogin: data.purchase.login || '',
+                        currency: data.purchase.currency || 'RUB'
+                    });
+                } catch (e) {}
                 closePaymentWaiting();
                 if (typeof closeSteamTopup === 'function') closeSteamTopup();
             })
@@ -2651,6 +2692,17 @@ function runDeliveryAfterPayment(data, checkResponse) {
             .then(function(res) {
                 if (res.success) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+                    try {
+                        var totalRub = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
+                        addPurchaseHistoryEntry({
+                            type: 'stars',
+                            productName: 'Звёзды Telegram',
+                            price: totalRub,
+                            starsAmount: starsAmount,
+                            recipient: recipient,
+                            method: data.method || ''
+                        });
+                    } catch (e) {}
                     closePaymentWaiting();
                 } else {
                     if (typeof showStoreNotification === 'function') {
@@ -2686,6 +2738,17 @@ function runDeliveryAfterPayment(data, checkResponse) {
             .then(function(res) {
                 if (res.success) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+                    try {
+                        var totalRub = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
+                        addPurchaseHistoryEntry({
+                            type: 'premium',
+                            productName: 'Premium Telegram',
+                            price: totalRub,
+                            months: months,
+                            recipient: recipient,
+                            method: data.method || ''
+                        });
+                    } catch (e) {}
                     closePaymentWaiting();
                 } else {
                     if (typeof showStoreNotification === 'function') {
@@ -2698,6 +2761,24 @@ function runDeliveryAfterPayment(data, checkResponse) {
                 if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка выдачи товара.', 'error');
                 if (statusEl) statusEl.textContent = 'Ожидание...';
             });
+        return;
+    }
+
+    // Покупка TON как отдельного товара
+    if (data.purchase && data.purchase.type === 'ton') {
+        try {
+            var totalRubTon = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
+            addPurchaseHistoryEntry({
+                type: 'ton',
+                productName: 'Покупка TON',
+                price: totalRubTon,
+                tonAmount: data.purchase.amount || 0,
+                recipient: data.purchase.login || '',
+                method: data.method || ''
+            });
+        } catch (e) {}
+        if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+        closePaymentWaiting();
         return;
     }
 
