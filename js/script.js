@@ -2871,8 +2871,9 @@ function openPaymentPage() {
                 window.paymentData = window.paymentData || {};
                 window.paymentData.order_id = orderId;
                 try { savePendingPayment(window.paymentData); } catch (e) {}
-                // Формируем ton://transfer ссылку для Tonkeeper (без TonConnect SDK)
-                var link = 'ton://transfer/' + encodeURIComponent(address) +
+                // Формируем HTTPS‑deeplink для Tonkeeper (WebApp принимает только http/https)
+                // Tonkeeper сам перехватит https://app.tonkeeper.com/transfer/... и откроется.
+                var link = 'https://app.tonkeeper.com/transfer/' + encodeURIComponent(address) +
                     '?amount=' + encodeURIComponent(String(amountNanoton)) +
                     '&text=' + encodeURIComponent(orderId);
                 var tg = window.Telegram && window.Telegram.WebApp;
