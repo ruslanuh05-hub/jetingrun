@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Реферальная программа - JET</title>
+    <title>Заработать - JET</title>
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,11 +15,23 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(180deg, #000000 0%, #0a0a0a 30%, #1a1a1a 60%, #0f0f0f 100%);
-            color: #ffffff;
+            background: linear-gradient(180deg, #0a0e27 0%, #1a1a3e 30%, #16213e 60%, #0f3460 100%);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            padding-bottom: 80px;
             min-height: 100vh;
-            padding-bottom: 100px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
         
         .referral-page-header {
@@ -29,544 +41,672 @@
             padding: 16px 20px;
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
             position: sticky;
             top: 0;
-            z-index: 100;
-            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            z-index: 10;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
         
         .referral-back-btn {
             width: 40px;
             height: 40px;
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             border: none;
-            color: #ffffff;
-            font-size: 1.2rem;
-            cursor: pointer;
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .referral-back-btn:hover {
-            background: rgba(0, 212, 255, 0.3);
+            background: rgba(0, 212, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .referral-back-btn:active {
+            transform: scale(0.95);
         }
         
         .referral-page-title {
-            color: #ffffff;
-            font-size: 1.3rem;
-            font-weight: 700;
             margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.5px;
         }
         
         .referral-page-content {
-            padding: 20px;
+            padding: 24px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            animation: fadeInUp 0.5s ease-out 0.1s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
-        /* Заголовок с иконкой */
-        .referral-header-section {
-            text-align: center;
-            margin-bottom: 30px;
+        .referral-card {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: scaleIn 0.4s ease-out 0.2s both;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .referral-card:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.2);
         }
         
-        .referral-header-icon {
+        .referral-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            animation: fadeInLeft 0.5s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .referral-level-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .referral-level-badge {
+            background: linear-gradient(135deg, #00D4FF 0%, #00a8cc 100%);
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+            transition: all 0.3s ease;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
+            }
+        }
+        
+        .referral-more-link {
+            color: #00D4FF;
+            font-size: 0.9rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .referral-more-link:hover {
+            color: #00a8cc;
+            transform: translateX(4px);
+        }
+        
+        .referral-metrics {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            position: relative;
+            animation: fadeInUp 0.5s ease-out 0.4s both;
+        }
+        
+        .referral-metrics::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(180deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+        }
+        
+        .referral-metric {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .referral-metric:hover {
+            transform: translateY(-4px);
+        }
+        
+        .referral-metric-icon {
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .referral-metric:hover .referral-metric-icon {
+            transform: scale(1.1);
         }
         
-        .referral-header-icon img {
-            width: 120px;
-            height: 120px;
-            object-fit: contain;
+        .referral-metric-icon.earnings {
+            color: #4CAF50;
+            filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.5));
         }
         
-        .referral-header-icon i {
-            font-size: 2.5rem;
-            color: #ffffff;
+        .referral-metric-icon.referrals {
+            color: #9C27B0;
+            filter: drop-shadow(0 0 8px rgba(156, 39, 176, 0.5));
         }
         
-        .referral-header-title {
-            color: #ffffff;
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        
-        .referral-header-subtitle {
+        .referral-metric-label {
+            font-size: 0.85rem;
             color: rgba(255, 255, 255, 0.7);
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin-bottom: 20px;
         }
         
-        .referral-header-subtitle strong {
-            color: #00d4ff;
+        .referral-metric-value {
+            font-size: 1.8rem;
             font-weight: 700;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .referral-metric:hover .referral-metric-value {
+            color: #00D4FF;
         }
         
-        /* Статистика приглашенных друзей */
-        .referral-stats-block {
-            background: linear-gradient(135deg, rgba(30, 30, 46, 0.95) 0%, rgba(0, 0, 0, 0.9) 100%);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .referral-stats-number {
-            font-size: 4rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-        }
-        
-        .referral-stats-label {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 1rem;
-        }
-        
-        /* Блок доходов */
-        .referral-earnings-block {
-            background: linear-gradient(135deg, rgba(30, 30, 46, 0.95) 0%, rgba(0, 0, 0, 0.9) 100%);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .referral-earnings-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-        
-        .referral-earnings-item:last-child {
-            margin-bottom: 0;
-        }
-        
-        .referral-earnings-left {
-            flex: 1;
+        .referral-earnings-section {
+            margin-bottom: 24px;
+            animation: fadeInUp 0.5s ease-out 0.5s both;
         }
         
         .referral-earnings-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #ffffff;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .referral-earnings-title i {
-            color: #ff6b35;
-            font-size: 1.2rem;
-        }
-        
-        .referral-earnings-title strong {
-            color: #00d4ff;
-        }
-        
-        .referral-earnings-subtitle {
-            color: rgba(255, 255, 255, 0.6);
             font-size: 0.9rem;
-            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
-        .referral-earnings-amount {
-            color: #ffffff;
-            font-size: 1.1rem;
-            font-weight: 600;
+        .referral-earnings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .referral-earnings-row:hover {
+            background: rgba(0, 212, 255, 0.05);
+            padding-left: 8px;
+            padding-right: 8px;
+            border-radius: 8px;
         }
         
-        .referral-earnings-amount .star-icon {
-            color: #ff6b35;
-            margin-right: 4px;
-        }
-        
-        .referral-earnings-right {
-            text-align: right;
+        .referral-earnings-row:last-child {
+            border-bottom: none;
         }
         
         .referral-earnings-label {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.85rem;
-            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
         }
         
         .referral-earnings-value {
-            color: #4ade80;
-            font-size: 1.3rem;
-            font-weight: 700;
-        }
-        
-        /* Общий доход */
-        .referral-total-income {
-            background: linear-gradient(135deg, rgba(30, 30, 46, 0.95) 0%, rgba(0, 0, 0, 0.9) 100%);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .referral-total-label {
-            color: #ff6b35;
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        
-        .referral-total-value {
-            color: #ffffff;
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-        
-        /* Реферальная ссылка */
-        .referral-link-section {
-            background: linear-gradient(135deg, rgba(30, 30, 46, 0.95) 0%, rgba(0, 0, 0, 0.9) 100%);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .referral-link-title {
-            color: #ffffff;
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-        
-        .referral-link-input {
-            background: rgba(10, 14, 39, 0.8);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 12px;
-            padding: 14px 16px;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-            font-family: monospace;
-            width: 100%;
-            margin-bottom: 15px;
-            word-break: break-all;
-        }
-        
-        .referral-link-buttons {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .referral-link-btn {
-            flex: 1;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .referral-link-btn.copy {
-            background: rgba(30, 30, 46, 0.8);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            color: #ffffff;
-        }
-        
-        .referral-link-btn.copy:hover {
-            background: rgba(0, 212, 255, 0.1);
-            border-color: rgba(0, 212, 255, 0.4);
-        }
-        
-        .referral-link-btn.share {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            color: #ffffff;
-        }
-        
-        .referral-link-btn.share:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
-        }
-        
-        /* Как это работает */
-        .referral-how-it-works {
-            margin-bottom: 30px;
-        }
-        
-        .referral-how-title {
-            color: #ffffff;
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-        
-        .referral-step {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: flex-start;
-        }
-        
-        .referral-step-number {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
             font-size: 1.2rem;
             font-weight: 700;
-            flex-shrink: 0;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .referral-earnings-row:hover .referral-earnings-value {
+            color: #00D4FF;
+            transform: scale(1.05);
         }
         
-        .referral-step-content {
-            flex: 1;
+        .referral-volume-section {
+            margin-bottom: 20px;
+            animation: fadeInUp 0.5s ease-out 0.6s both;
         }
         
-        /* Нижняя навигация (как в других окнах) */
-        .profile-nav {
-            position: fixed !important;
-            bottom: 0 !important;
+        .referral-volume-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .referral-volume-icon {
+            color: #00D4FF;
+            font-size: 1.2rem;
+            filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
+        }
+        
+        .referral-volume-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .referral-volume-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .referral-volume-value:hover {
+            color: #00D4FF;
+            transform: scale(1.02);
+        }
+        
+        .referral-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .referral-progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
             left: 0;
             right: 0;
-            width: 100%;
-            background: rgba(10, 14, 39, 0.25);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0 max(20px, env(safe-area-inset-bottom, 20px)) 0;
-            border-top: 1px solid rgba(0, 212, 255, 0.15);
-            z-index: 9999;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
-            transform: none !important;
-            will-change: auto;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 2s infinite;
         }
-        
-        @supports (padding: max(0px)) {
-            .profile-nav {
-                padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
             }
         }
         
-        body:has(input:focus) .profile-nav,
-        body:has(textarea:focus) .profile-nav {
-            position: fixed !important;
-            bottom: 0 !important;
-            transform: none !important;
+        .referral-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00D4FF 0%, #00a8cc 100%);
+            border-radius: 4px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .referral-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: progressShine 2s infinite;
+        }
+
+        @keyframes progressShine {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
         }
         
-        .profile-nav-btn {
+        .referral-progress-text {
             display: flex;
-            flex-direction: column;
             align-items: center;
             gap: 6px;
-            background: none;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .referral-progress-text .diamond {
+            color: #00D4FF;
+        }
+        
+        .referral-invite-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #00D4FF 0%, #00a8cc 100%);
+            color: #000;
             border: none;
-            padding: 8px 16px;
-            color: rgba(255, 255, 255, 0.4);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.7rem;
-            flex: 1;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-        }
-        
-        .profile-nav-btn:hover:not(.active) {
-            color: rgba(255, 255, 255, 0.7);
-            animation: navButtonFloat 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes navButtonFloat {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-3px);
-            }
-        }
-        
-        .profile-nav-btn i {
-            font-size: 1.4rem;
-        }
-        
-        .profile-nav-btn.active {
-            color: #00d4ff;
-        }
-        
-        .profile-nav-btn.active .nav-icon-wrapper {
-            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 50%, #20b2aa 100%);
             border-radius: 12px;
-            padding: 8px;
-            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
-        }
-        
-        .profile-nav-btn.active .nav-icon-wrapper i {
-            color: #ffffff;
-        }
-        
-        .nav-icon-wrapper {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-        
-        .referral-step-title {
-            color: #ffffff;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
-            margin-bottom: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+            animation: fadeInUp 0.5s ease-out 0.7s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .referral-invite-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .referral-invite-btn:hover::before {
+            left: 100%;
         }
         
-        .referral-step-description {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.95rem;
-            line-height: 1.5;
+        .referral-invite-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
         }
         
-        /* Вкладки */
+        .referral-invite-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 212, 255, 0.3);
+        }
+        
+        /* Tabs */
         .referral-tabs {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeInUp 0.5s ease-out 0.35s both;
         }
         
         .referral-tab {
             flex: 1;
-            padding: 12px 20px;
+            padding: 12px 16px;
+            background: none;
             border: none;
-            border-radius: 12px;
-            background: rgba(30, 30, 46, 0.5);
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .referral-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #00D4FF, #00a8cc);
+            transform: scaleX(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .referral-tab.active {
-            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);
-            color: #ffffff;
+            color: #00D4FF;
+        }
+
+        .referral-tab.active::after {
+            transform: scaleX(1);
+        }
+
+        .referral-tab:hover {
+            color: rgba(255, 255, 255, 0.8);
         }
         
         .referral-tab-content {
             display: none;
+            animation: fadeIn 0.4s ease-out;
         }
         
         .referral-tab-content.active {
             display: block;
         }
         
-        .referral-empty-state {
-            text-align: center;
-            padding: 60px 20px;
+        /* Withdraw Form */
+        .withdraw-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: fadeInUp 0.5s ease-out;
         }
         
-        .referral-empty-icon {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
+        .withdraw-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .withdraw-form-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .withdraw-form-input,
+        .withdraw-form-select {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .withdraw-form-input:focus,
+        .withdraw-form-select:focus {
+            outline: none;
+            border-color: #00D4FF;
             background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+        
+        .withdraw-form-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .withdraw-balance-info {
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 168, 204, 0.1) 100%);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .withdraw-balance-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 4px;
+        }
+        
+        .withdraw-balance-value {
+                font-size: 1.5rem;
+            font-weight: 700;
+            color: #00D4FF;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+        
+        .withdraw-submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #00D4FF 0%, #00a8cc 100%);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .withdraw-submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .withdraw-submit-btn:hover::before {
+            left: 100%;
+        }
+        
+        .withdraw-submit-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .withdraw-submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .withdraw-submit-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        .profile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 212, 255, 0.15);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 100;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .profile-nav-btn {
+            display: flex;
+                flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+        }
+
+        .profile-nav-btn:hover {
+            background: rgba(0, 212, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .profile-nav-btn.active {
+            color: #00D4FF;
+        }
+
+        .profile-nav-btn.active .nav-icon-wrapper {
+            background: rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+        }
+        
+        .nav-icon-wrapper {
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
         }
-        
-        .referral-empty-icon i {
-            font-size: 3rem;
-            color: rgba(0, 212, 255, 0.3);
-        }
-        
-        .referral-empty-text {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 1rem;
-        }
-        
-        /* Мобильная оптимизация */
-        @media (max-width: 768px) {
-            .referral-page-content {
-                padding: 15px;
-            }
-            
-            .referral-header-icon {
-                width: 70px;
-                height: 70px;
-            }
-            
-            .referral-header-icon i {
-                font-size: 2rem;
-            }
-            
-            .referral-header-title {
-                font-size: 1.5rem;
-            }
-            
-            .referral-stats-block {
-                padding: 25px;
-            }
-            
-            .referral-stats-number {
-                font-size: 3rem;
-            }
-            
-            .referral-earnings-block {
-                padding: 16px;
-            }
-            
-            .referral-total-income {
-                padding: 20px;
-            }
-            
-            .referral-total-value {
-                font-size: 2rem;
-            }
-            
-            .referral-link-section {
-                padding: 16px;
-            }
-            
-            .referral-link-buttons {
-                flex-direction: column;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .referral-stats-number {
-                font-size: 2.5rem;
-            }
-            
-            .referral-earnings-item {
-                flex-direction: column;
-            }
-            
-            .referral-earnings-right {
-                text-align: left;
-                margin-top: 10px;
-            }
+
+        .profile-nav-btn:hover .nav-icon-wrapper {
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -575,119 +715,128 @@
         <button class="referral-back-btn" onclick="window.location.href='index.html'">
             <i class="fas fa-chevron-left"></i>
         </button>
-        <h1 class="referral-page-title">Реферальная программа</h1>
+        <h1 class="referral-page-title">Заработать</h1>
     </div>
     
     <div class="referral-page-content">
-        <!-- Заголовок -->
-        <div class="referral-header-section">
-            <div class="referral-header-icon">
-                <img src="../assets/jet-logo.png" alt="JET">
+        <div class="referral-card">
+            <!-- Header: Уровень -->
+            <div class="referral-header">
+                <div class="referral-level-title">
+                    <span>Уровень JetRefs</span>
+                    <span class="referral-level-badge" id="refLevelPercent">15%</span>
             </div>
-            <h2 class="referral-header-title">Пригласи друга</h2>
-            <p class="referral-header-subtitle">Получай 4% с каждой покупки своего друга</p>
+                <a href="#" class="referral-more-link" onclick="return false;">Больше &gt;</a>
         </div>
         
-        <!-- Статистика приглашенных друзей -->
-        <div class="referral-stats-block">
-            <div class="referral-stats-number" id="referralsCount">0</div>
-            <div class="referral-stats-label">Приглашено друзей</div>
+            <!-- Tabs -->
+            <div class="referral-tabs">
+                <button class="referral-tab active" onclick="switchReferralTab('stats')">Статистика</button>
+                <button class="referral-tab" onclick="switchReferralTab('withdraw')">Вывести средства</button>
         </div>
         
-        <!-- Блок доходов (Звёзды) -->
-        <div class="referral-earnings-block">
-            <div class="referral-earnings-item">
-                <div class="referral-earnings-left">
-                    <div class="referral-earnings-title">
-                        <i class="fas fa-star"></i>
-                        <span>Звёзды <strong>(4%)</strong></span>
+            <!-- Stats Tab -->
+            <div id="statsTab" class="referral-tab-content active">
+                <!-- Earnings Section: Рубли и TON -->
+                <div class="referral-earnings-section">
+                    <div class="referral-earnings-title">Заработано</div>
+                    <div class="referral-earnings-row">
+                        <span class="referral-earnings-label">Рубли</span>
+                        <span class="referral-earnings-value" id="refEarnRub">0 ₽</span>
                     </div>
-                    <div class="referral-earnings-subtitle">Куплено рефералами</div>
-                    <div class="referral-earnings-amount">
-                        <i class="fas fa-star star-icon"></i>
-                        <span id="referralStarsCount">0</span> ≈ <span id="referralStarsRub">0</span> ₽
+                    <div class="referral-earnings-row">
+                        <span class="referral-earnings-label">TON</span>
+                        <span class="referral-earnings-value" id="refEarnTon">0</span>
                     </div>
                 </div>
-                <div class="referral-earnings-right">
-                    <div class="referral-earnings-label">Твой доход</div>
-                    <div class="referral-earnings-value" id="referralStarsEarnings">+0 ₽</div>
+
+                <!-- Metrics: Referrals -->
+                <div class="referral-metrics">
+                    <div class="referral-metric">
+                        <div class="referral-metric-icon referrals">
+                            <i class="fas fa-users"></i>
                 </div>
+                        <div class="referral-metric-label">Рефералы</div>
+                        <div class="referral-metric-value" id="refTotalRefs">0</div>
             </div>
         </div>
         
-        <!-- Общий доход -->
-        <div class="referral-total-income">
-            <div class="referral-total-label">Общий доход</div>
-            <div class="referral-total-value" id="referralTotalEarnings">0 ₽</div>
+                <!-- Volume Section -->
+                <div class="referral-volume-section">
+                    <div class="referral-volume-header">
+                        <i class="fas fa-gem referral-volume-icon"></i>
+                        <span class="referral-volume-label">Объем рефералов</span>
+                    </div>
+                    <div class="referral-volume-value">
+                        <span id="refVolumeTon">0</span>
+                        <i class="fas fa-gem" style="color: #00D4FF; font-size: 1.2rem;"></i>
         </div>
         
-        <!-- Реферальная ссылка -->
-        <div class="referral-link-section">
-            <h3 class="referral-link-title">Твоя реферальная ссылка</h3>
-            <div class="referral-link-input" id="referralLinkText">https://t.me/JetSold_bot?start=ref_000000</div>
-            <div class="referral-link-buttons">
-                <button class="referral-link-btn copy" onclick="copyReferralLink()">
-                    <i class="fas fa-copy"></i>
-                    <span>Копировать</span>
+                    <!-- Progress Bar -->
+                    <div class="referral-progress-bar">
+                        <div class="referral-progress-fill" id="refProgressBar" style="width: 0%;"></div>
+        </div>
+        
+                    <!-- Progress Text -->
+                    <div class="referral-progress-text" id="refProgressText">
+                        <span>0</span>
+                        <i class="fas fa-gem diamond"></i>
+                        <span>осталось до следующего уровня</span>
+                </div>
+            </div>
+            
+                <!-- Invite Button -->
+                <button class="referral-invite-btn" id="inviteFriendsBtn">
+                    Пригласить друзей
                 </button>
-                <button class="referral-link-btn share" onclick="shareReferralLink()">
-                    <i class="fas fa-paper-plane"></i>
-                    <span>Поделиться</span>
-                </button>
-            </div>
-        </div>
-        
-        <!-- Как это работает -->
-        <div class="referral-how-it-works">
-            <h3 class="referral-how-title">Как это работает</h3>
-            
-            <div class="referral-step">
-                <div class="referral-step-number">1</div>
-                <div class="referral-step-content">
-                    <div class="referral-step-title">Поделись ссылкой</div>
-                    <div class="referral-step-description">Отправь реферальную ссылку друзьям</div>
                 </div>
+
+            <!-- Withdraw Tab -->
+            <div id="withdrawTab" class="referral-tab-content">
+                <div class="withdraw-balance-info">
+                    <div class="withdraw-balance-label">Доступно к выводу</div>
+                    <div class="withdraw-balance-value" id="withdrawBalance">0 ₽</div>
             </div>
             
-            <div class="referral-step">
-                <div class="referral-step-number">2</div>
-                <div class="referral-step-content">
-                    <div class="referral-step-title">Друг регистрируется</div>
-                    <div class="referral-step-description">Друг открывает приложение по твоей ссылке</div>
-                </div>
-            </div>
-            
-            <div class="referral-step">
-                <div class="referral-step-number">3</div>
-                <div class="referral-step-content">
-                    <div class="referral-step-title">Получай бонусы</div>
-                    <div class="referral-step-description">4% от каждой покупки друга начисляется тебе</div>
-                </div>
-            </div>
+                <form class="withdraw-form" id="withdrawForm" onsubmit="submitWithdraw(event)">
+                    <div class="withdraw-form-group">
+                        <label class="withdraw-form-label">Сумма вывода (₽)</label>
+                        <input 
+                            type="number" 
+                            class="withdraw-form-input" 
+                            id="withdrawAmount" 
+                            placeholder="Введите сумму"
+                            min="1"
+                            step="0.01"
+                            required
+                        >
         </div>
         
-        <!-- Вкладки -->
-        <div class="referral-tabs">
-            <button class="referral-tab active" onclick="switchReferralTab('friends')">Друзья (0)</button>
-            <button class="referral-tab" onclick="switchReferralTab('accruals')">Начисления</button>
+                    <div class="withdraw-form-group">
+                        <label class="withdraw-form-label">Способ вывода</label>
+                        <select class="withdraw-form-select" id="withdrawMethod" required>
+                            <option value="">Выберите способ</option>
+                            <option value="wallet">Кошелек</option>
+                            <option value="sbp">СБП</option>
+                            <option value="card">Карта</option>
+                        </select>
         </div>
         
-        <!-- Контент вкладок -->
-        <div id="friendsTab" class="referral-tab-content active">
-            <div class="referral-empty-state">
-                <div class="referral-empty-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <p class="referral-empty-text">Пока нет приглашенных друзей</p>
-            </div>
+                    <div class="withdraw-form-group">
+                        <label class="withdraw-form-label">Реквизиты</label>
+                        <input 
+                            type="text" 
+                            class="withdraw-form-input" 
+                            id="withdrawDetails" 
+                            placeholder="Введите реквизиты для вывода"
+                            required
+                        >
         </div>
         
-        <div id="accrualsTab" class="referral-tab-content">
-            <div class="referral-empty-state">
-                <div class="referral-empty-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <p class="referral-empty-text">Пока нет начислений</p>
+                    <button type="submit" class="withdraw-submit-btn" id="withdrawSubmitBtn">
+                        Вывести средства
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -695,253 +844,312 @@
     <!-- Нижняя навигация -->
     <nav class="profile-nav">
         <button class="profile-nav-btn" onclick="window.location.href='index.html'">
-            <div class="nav-icon-wrapper">
-                <i class="fas fa-home"></i>
-            </div>
+            <div class="nav-icon-wrapper"><i class="fas fa-home"></i></div>
             <span>Главная</span>
         </button>
         <button class="profile-nav-btn active">
-            <div class="nav-icon-wrapper">
-                <i class="fas fa-coins"></i>
-            </div>
+            <div class="nav-icon-wrapper"><i class="fas fa-coins"></i></div>
             <span>Заработать</span>
         </button>
         <button class="profile-nav-btn" onclick="window.location.href='assets.html'">
-            <div class="nav-icon-wrapper">
-                <i class="fab fa-telegram-plane"></i>
-            </div>
+            <div class="nav-icon-wrapper"><i class="fab fa-telegram-plane"></i></div>
             <span>Активы</span>
         </button>
         <button class="profile-nav-btn" onclick="window.location.href='profile.html'">
-            <div class="nav-icon-wrapper">
-                <i class="fas fa-user"></i>
-            </div>
+            <div class="nav-icon-wrapper"><i class="fas fa-user"></i></div>
             <span>Профиль</span>
         </button>
     </nav>
     
-    <script src="../js/config.js"></script>
-    <script src="../js/database.js"></script>
     <script>
-        // Загружаем данные пользователя
-        let userData = window.userData || {};
-        
-        // Инициализация при загрузке
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof Database !== 'undefined') {
-                Database.init();
-            }
-            // Загружаем username бота с сервера
-            var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-            if (apiBase && /^https?:\/\//i.test(apiBase)) {
-                fetch(apiBase.replace(/\/$/, '') + '/api/config').then(r => r.json()).then(c => {
-                    if (c && c.bot_username) {
-                        window.JET_BOT_USERNAME = c.bot_username;
-                    }
-                }).catch(() => {});
-            }
-            // Загружаем данные из localStorage
-            loadReferralData();
-        });
-        
-        function loadReferralData() {
+        let currentUserId = null;
+        let referralLink = '';
+        let referralStats = null;
+        let tonRate = 600;
+
+        // Получаем user_id из Telegram WebApp
+        function getUserId() {
             try {
-                const savedUser = localStorage.getItem('jetstore_user_data');
-                if (savedUser) {
-                    const parsed = JSON.parse(savedUser);
-                    userData = parsed;
-                    window.userData = userData;
+                if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+                    return String(window.Telegram.WebApp.initDataUnsafe.user.id);
                 }
-                
-                // Обновляем отображение
-                updateReferralDisplay();
+            } catch (e) {
+                console.warn('Failed to get user ID from Telegram.WebApp:', e);
+            }
+            return null;
+        }
+
+        // Загружаем курс TON
+        async function loadTonRate() {
+            try {
+                const response = await fetch('/api/ton-rate');
+                if (response.ok) {
+                    const data = await response.json();
+                    tonRate = data.rate || data.ton_rate_rub || 600;
+                }
             } catch (error) {
-                console.error('Ошибка загрузки данных:', error);
+                console.warn('Failed to load TON rate:', error);
             }
         }
-        
-        function updateReferralDisplay() {
-            const referrals = userData.referrals || { count: 0, earnings: 0, starsCount: 0, starsEarnings: 0 };
-            
-            // Приглашено друзей
-            document.getElementById('referralsCount').textContent = referrals.count || 0;
-            
-            // Звёзды
-            const starsCount = referrals.starsCount || 0;
-            const starsRub = Math.round(starsCount * 1.37); // Примерный курс
-            document.getElementById('referralStarsCount').textContent = starsCount;
-            document.getElementById('referralStarsRub').textContent = starsRub;
-            document.getElementById('referralStarsEarnings').textContent = `+${referrals.starsEarnings || 0} ₽`;
-            
-            // Общий доход
-            const totalEarnings = (referrals.earnings || 0) + (referrals.starsEarnings || 0);
-            document.getElementById('referralTotalEarnings').textContent = `${totalEarnings} ₽`;
-            
-            // Реферальная ссылка
-            let userId = null;
-            // 1) Пытаемся взять ID из Telegram WebApp
-            try {
-                const tg = window.Telegram && window.Telegram.WebApp;
-                const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-                if (u && u.id) {
-                    userId = String(u.id);
-                    userData.id = userId;
-                }
-            } catch (e) {}
 
-            // 2) Если нет — берём из userData/localStorage
-            if (!userId && userData.id) {
-                userId = String(userData.id);
-            }
+        // Загружаем статистику рефералов
+        async function loadReferralStats() {
+            const userId = getUserId();
             if (!userId) {
-                try {
-                    const savedUserRaw = localStorage.getItem('jetstore_user_data');
-                    if (savedUserRaw) {
-                        const savedUser = JSON.parse(savedUserRaw);
-                        if (savedUser && savedUser.id) {
-                            userId = String(savedUser.id);
-                        }
-                    }
-                } catch (e) {}
+                console.error('User ID not found');
+                return;
             }
 
-            const linkEl = document.getElementById('referralLinkText');
+            currentUserId = userId;
 
-            // 3) Если так и не нашли ID
-            if (!userId) {
-                if (linkEl) {
-                    linkEl.textContent = 'Откройте мини‑приложение из бота, чтобы получить свою реферальную ссылку.';
-                }
-            } else {
-                const apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-                // Если есть API, просим бекенд сгенерировать ссылку (единая логика для всего проекта)
-                if (apiBase && /^https?:\/\//i.test(apiBase)) {
-                    fetch(apiBase.replace(/\/$/, '') + '/api/referral/link?user_id=' + encodeURIComponent(userId))
-                        .then(r => r.json())
-                        .then(data => {
-                            if (!linkEl) return;
-                            if (data && data.url) {
-                                linkEl.textContent = data.url;
-                            } else {
-                                const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
-                                linkEl.textContent = `https://t.me/${botUsername}?start=ref_${userId}`;
-                            }
-                        })
-                        .catch(function() {
-                            if (!linkEl) return;
-                            const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
-                            linkEl.textContent = `https://t.me/${botUsername}?start=ref_${userId}`;
-                        });
-                } else if (linkEl) {
-                    // Фолбэк: простая t.me ссылка без обращения к API
-                    const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
-                    linkEl.textContent = `https://t.me/${botUsername}?start=ref_${userId}`;
-                }
-            }
-            
-            // Обновляем счетчик друзей во вкладке
-            const friendsTab = document.querySelector('.referral-tab[onclick*="friends"]');
-            if (friendsTab) {
-                friendsTab.textContent = `Друзья (${referrals.count || 0})`;
-            }
-        }
-        
-        function copyReferralLink() {
-            const linkText = document.getElementById('referralLinkText').textContent;
-            
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(linkText).then(() => {
-                    showNotification('Реферальная ссылка скопирована!', 'success');
-                }).catch(() => {
-                    copyToClipboardFallback(linkText);
-                });
-            } else {
-                copyToClipboardFallback(linkText);
-            }
-        }
-        
-        function copyToClipboardFallback(text) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
             try {
-                document.execCommand('copy');
-                showNotification('Реферальная ссылка скопирована!', 'success');
-            } catch (err) {
-                showNotification('Не удалось скопировать ссылку', 'error');
+                const response = await fetch(`/api/referral/stats?user_id=${userId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                referralStats = data;
+                if (data.ton_rate_rub) {
+                    tonRate = data.ton_rate_rub;
+                }
+                updateReferralUI(data);
+            } catch (error) {
+                console.error('Failed to load referral stats:', error);
             }
-            document.body.removeChild(textarea);
         }
-        
-        function shareReferralLink() {
-            const linkText = document.getElementById('referralLinkText').textContent.trim();
-            const shareText = '🎁 Присоединяйся к JET!\n\n⚡ Покупай и управляй цифровыми товарами прямо в Telegram.\n\n' + linkText + '\n\n⸻';
-            const tg = window.Telegram?.WebApp;
+
+        // Получаем реферальную ссылку
+        async function loadReferralLink() {
+            const userId = getUserId();
+            if (!userId) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/referral/link?user_id=${userId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                referralLink = data.url || '';
+            } catch (error) {
+                console.error('Failed to load referral link:', error);
+                // Fallback: создаем ссылку вручную
+                referralLink = `https://t.me/JetSold_bot?start=ref_${userId}`;
+            }
+        }
+
+        // Обновляем UI с данными статистики
+        function updateReferralUI(stats) {
+            // Уровень и процент
+            const level = stats.level || 1;
+            const percent = level === 1 ? 15 : level === 2 ? 20 : 25;
+            document.getElementById('refLevelPercent').textContent = `${percent}%`;
+
+            // Заработано в рублях
+            const earnedRub = (stats.earned_rub || 0).toFixed(2);
+            document.getElementById('refEarnRub').textContent = `${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
+
+            // Заработано в TON
+            const earnedTon = (stats.earned_ton || 0).toFixed(2);
+            document.getElementById('refEarnTon').textContent = earnedTon.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+            // Всего рефералов
+            const totalRefs = stats.total_referrals || 0;
+            document.getElementById('refTotalRefs').textContent = totalRefs;
+
+            // Объем рефералов в TON
+            const volumeTon = (stats.volume_ton || 0).toFixed(0);
+            document.getElementById('refVolumeTon').textContent = volumeTon.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+            // Прогресс-бар с анимацией
+            const progressPercent = stats.progress_percent || 0;
+            const progressBar = document.getElementById('refProgressBar');
+            progressBar.style.width = '0%';
+            // Запускаем анимацию прогресс-бара
+            setTimeout(() => {
+                progressBar.style.width = `${progressPercent}%`;
+            }, 100);
+
+            // Текст прогресса - показываем сколько осталось в TON
+            const toNextVolumeTon = stats.to_next_volume_ton || 0;
+            const progressTextEl = document.getElementById('refProgressText');
             
-            if (tg && tg.openTelegramLink) {
-                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(linkText)}&text=${encodeURIComponent('🎁 Присоединяйся к JET!\n\n⚡ Покупай и управляй цифровыми товарами прямо в Telegram.\n\n⸻')}`;
-                tg.openTelegramLink(shareUrl);
-            } else if (navigator.share) {
-                navigator.share({
-                    title: 'Реферальная ссылка JET',
-                    text: shareText,
-                    url: linkText
-                }).catch(() => {
-                    copyReferralLink();
-                });
+            if (level >= 3) {
+                progressTextEl.innerHTML = '<span>Максимальный уровень JetRefs</span>';
             } else {
-                copyReferralLink();
+                const formattedTon = parseFloat(toNextVolumeTon).toLocaleString('ru-RU', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                progressTextEl.innerHTML = `
+                    <span>${formattedTon}</span>
+                    <i class="fas fa-gem diamond"></i>
+                    <span>TON осталось до следующего уровня</span>
+                `;
             }
+
+            // Обновляем баланс для вывода
+            document.getElementById('withdrawBalance').textContent = `${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
+            document.getElementById('withdrawAmount').max = earnedRub;
         }
-        
-        function switchReferralTab(tabName) {
-            // Убираем активный класс со всех вкладок
-            document.querySelectorAll('.referral-tab').forEach(tab => {
-                tab.classList.remove('active');
+
+        // Переключение вкладок
+        function switchReferralTab(tab) {
+            // Обновляем кнопки вкладок
+            document.querySelectorAll('.referral-tab').forEach(btn => {
+                btn.classList.remove('active');
             });
-            
+            // Находим активную кнопку по tab
+            const activeBtn = Array.from(document.querySelectorAll('.referral-tab')).find(btn => {
+                return (tab === 'stats' && btn.textContent.includes('Статистика')) ||
+                       (tab === 'withdraw' && btn.textContent.includes('Вывести'));
+            });
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+
+            // Обновляем контент вкладок с анимацией
             document.querySelectorAll('.referral-tab-content').forEach(content => {
                 content.classList.remove('active');
             });
+            const activeContent = document.getElementById(tab + 'Tab');
+            activeContent.classList.add('active');
+        }
+
+        // Обработчик кнопки "Пригласить друзей"
+        function handleInviteFriends() {
+            if (!referralLink) {
+                console.error('Referral link not loaded');
+                return;
+            }
+
+            // Формируем сообщение с реферальной ссылкой
+            const message = `Присоединяйся к JET и получай бонусы! 🚀\n\n${referralLink}`;
             
-            // Добавляем активный класс выбранной вкладке
-            if (tabName === 'friends') {
-                document.querySelector('.referral-tab[onclick*="friends"]').classList.add('active');
-                document.getElementById('friendsTab').classList.add('active');
-            } else if (tabName === 'accruals') {
-                document.querySelector('.referral-tab[onclick*="accruals"]').classList.add('active');
-                document.getElementById('accrualsTab').classList.add('active');
+            // Открываем выбор контакта через Telegram
+            try {
+                const tg = window.Telegram?.WebApp;
+                if (tg?.openTelegramLink) {
+                    // Используем tg://msg для открытия выбора контакта
+                    const telegramLink = `tg://msg?text=${encodeURIComponent(message)}`;
+                    tg.openTelegramLink(telegramLink);
+                } else if (tg?.openLink) {
+                    // Fallback: открываем ссылку напрямую
+                    tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Присоединяйся к JET и получай бонусы! 🚀')}`);
+                } else {
+                    // Последний fallback: копируем в буфер обмена
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(referralLink).then(() => {
+                            alert('Реферальная ссылка скопирована в буфер обмена!');
+                        });
+                    } else {
+                        alert(`Реферальная ссылка: ${referralLink}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to open contact picker:', error);
+                // Fallback: копируем ссылку
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(referralLink);
+                    alert('Реферальная ссылка скопирована в буфер обмена!');
+                } else {
+                    alert(`Реферальная ссылка: ${referralLink}`);
+                }
             }
         }
-        
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: ${type === 'success' ? '#4ade80' : type === 'error' ? '#ff4757' : '#00d4ff'};
-                color: white;
-                padding: 14px 24px;
-                border-radius: 12px;
-                font-size: 0.95rem;
-                font-weight: 600;
-                z-index: 10000;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                animation: slideDown 0.3s ease;
-            `;
-            notification.textContent = message;
-            document.body.appendChild(notification);
+
+        // Отправка заявки на вывод
+        async function submitWithdraw(event) {
+            event.preventDefault();
             
-            setTimeout(() => {
-                notification.style.animation = 'slideUp 0.3s ease';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
+            const userId = getUserId();
+            if (!userId) {
+                alert('Ошибка: не удалось определить пользователя');
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            const method = document.getElementById('withdrawMethod').value;
+            const details = document.getElementById('withdrawDetails').value.trim();
+
+            if (!amount || amount <= 0) {
+                alert('Введите корректную сумму');
+                return;
+            }
+
+            if (!method) {
+                alert('Выберите способ вывода');
+                return;
+            }
+
+            if (!details) {
+                alert('Введите реквизиты для вывода');
+                return;
+            }
+
+            // Проверяем баланс
+            const currentBalance = referralStats?.earned_rub || 0;
+            if (amount > currentBalance) {
+                alert(`Недостаточно средств. Доступно: ${currentBalance.toFixed(2)} ₽`);
+                return;
+            }
+
+            const submitBtn = document.getElementById('withdrawSubmitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Отправка...';
+
+            try {
+                const apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+                const response = await fetch(apiBase + '/api/referral/withdraw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        amount_rub: amount,
+                        method: method,
+                        details: details
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert('Заявка на вывод успешно отправлена!');
+                    // Очищаем форму
+                    document.getElementById('withdrawForm').reset();
+                    // Обновляем статистику
+                    await loadReferralStats();
+                } else {
+                    alert(result.message || 'Ошибка при отправке заявки');
+                }
+            } catch (error) {
+                console.error('Withdraw error:', error);
+                alert('Ошибка при отправке заявки. Попробуйте позже.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Вывести средства';
+            }
         }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Инициализируем Telegram WebApp
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+            }
+
+            // Загружаем данные
+            await Promise.all([
+                loadTonRate(),
+                loadReferralLink(),
+                loadReferralStats()
+            ]);
+
+            // Привязываем обработчик кнопки
+            document.getElementById('inviteFriendsBtn').addEventListener('click', handleInviteFriends);
+        });
     </script>
 </body>
 </html>

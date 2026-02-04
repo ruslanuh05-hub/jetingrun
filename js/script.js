@@ -2427,12 +2427,64 @@ function confirmPayment() {
 }
 
 // Выдача товара после подтверждённой оплаты (Steam = DonateHub, звёзды/премиум = Fragment.com)
+// Уведомление о покупке для реферальной системы
+function notifyReferralPurchase(amountRub) {
+    if (!amountRub || amountRub <= 0) return;
+    
+    var userId = null;
+    try {
+        if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+            userId = String(window.Telegram.WebApp.initDataUnsafe.user.id);
+        } else if (window.userData?.id) {
+            userId = String(window.userData.id);
+        }
+    } catch (e) {
+        console.warn('Failed to get user ID for referral:', e);
+    }
+    
+    if (!userId) {
+        console.warn('User ID not found, skipping referral notification');
+        return;
+    }
+    
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) return;
+    
+    fetch(apiBase + '/api/referral/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            user_id: userId,
+            amount_rub: Math.round(amountRub * 100) / 100 // Округляем до 2 знаков
+        })
+    })
+    .then(function(r) { return r.json().catch(function() { return {}; }); })
+    .then(function(res) {
+        if (res.error) {
+            console.warn('Referral purchase notification error:', res.error);
+        }
+    })
+    .catch(function(err) {
+        console.warn('Failed to notify referral purchase:', err);
+    });
+}
+
 function runDeliveryAfterPayment(data, checkResponse) {
     var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var statusEl = document.getElementById('paymentDetailStatus');
     // Оплата через Fragment (TonKeeper): товар уже выдан по вебхуку order.completed
     if (checkResponse && checkResponse.delivered_by_fragment === true) {
         if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+        // Уведомляем реферальную систему о покупке
+        if (data.baseAmount && data.purchase) {
+            var amountRub = data.baseAmount;
+            if (data.purchase.currency && data.purchase.currency !== 'RUB') {
+                // Если валюта не RUB, пропускаем (или можно добавить конвертацию)
+                // Для простоты пропускаем не-RUB валюты
+            } else {
+                notifyReferralPurchase(amountRub);
+            }
+        }
         closePaymentWaiting();
         return;
     }
@@ -2456,6 +2508,10 @@ function runDeliveryAfterPayment(data, checkResponse) {
                     return;
                 }
                 if (typeof showStoreNotification === 'function') showStoreNotification('✅ Заказ Steam создан. Пополнение в процессе.', 'success');
+                // Уведомляем реферальную систему о покупке Steam
+                if (data.baseAmount && data.purchase && (!data.purchase.currency || data.purchase.currency === 'RUB')) {
+                    notifyReferralPurchase(data.baseAmount);
+                }
                 closePaymentWaiting();
                 if (typeof closeSteamTopup === 'function') closeSteamTopup();
             })
@@ -2468,6 +2524,10 @@ function runDeliveryAfterPayment(data, checkResponse) {
     // Fragment: заказ уже создан и оплачен (order_id из вебхука) — выдача уже выполнена Fragment
     if (data.order_id && data.purchase && (data.purchase.type === 'stars' || data.purchase.type === 'premium')) {
         if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+        // Уведомляем реферальную систему о покупке
+        if (data.baseAmount) {
+            notifyReferralPurchase(data.baseAmount);
+        }
         closePaymentWaiting();
         return;
     }
@@ -2491,6 +2551,10 @@ function runDeliveryAfterPayment(data, checkResponse) {
             .then(function(res) {
                 if (res.success) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+                    // Уведомляем реферальную систему о покупке звёзд
+                    if (data.baseAmount) {
+                        notifyReferralPurchase(data.baseAmount);
+                    }
                     closePaymentWaiting();
                 } else {
                     if (typeof showStoreNotification === 'function') {
@@ -2526,6 +2590,10 @@ function runDeliveryAfterPayment(data, checkResponse) {
             .then(function(res) {
                 if (res.success) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+                    // Уведомляем реферальную систему о покупке Premium
+                    if (data.baseAmount) {
+                        notifyReferralPurchase(data.baseAmount);
+                    }
                     closePaymentWaiting();
                 } else {
                     if (typeof showStoreNotification === 'function') {
@@ -2539,6 +2607,11 @@ function runDeliveryAfterPayment(data, checkResponse) {
                 if (statusEl) statusEl.textContent = 'Ожидание...';
             });
         return;
+    }
+
+    // TON покупки и другие типы
+    if (data.purchase && data.purchase.type === 'ton' && data.baseAmount) {
+        notifyReferralPurchase(data.baseAmount);
     }
 
     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
