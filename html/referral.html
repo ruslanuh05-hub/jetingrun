@@ -16,22 +16,12 @@
         
         body {
             background: linear-gradient(180deg, #0a0e27 0%, #1a1a3e 30%, #16213e 60%, #0f3460 100%);
-            color: #fff;
+            color: #ffffff;
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             padding-bottom: 80px;
             min-height: 100vh;
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
         }
         
         .referral-page-header {
@@ -45,41 +35,29 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            animation: slideDown 0.3s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translateY(-100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
         }
         
         .referral-back-btn {
             width: 40px;
             height: 40px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.08);
-            border: none;
-            color: #fff;
+            border-radius: 8px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s;
         }
-        
+
         .referral-back-btn:hover {
-            background: rgba(0, 212, 255, 0.2);
-            transform: scale(1.05);
+            background: rgba(0, 212, 255, 0.15);
+            border-color: rgba(0, 212, 255, 0.3);
         }
 
         .referral-back-btn:active {
-            transform: scale(0.95);
+            background: rgba(0, 212, 255, 0.1);
         }
         
         .referral-page-title {
@@ -94,46 +72,83 @@
             padding: 24px 20px;
             max-width: 600px;
             margin: 0 auto;
-            animation: fadeInUp 0.5s ease-out 0.1s both;
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Gradient bubble wrapper */
+        .referral-bubble {
+            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.22), transparent 55%),
+                        radial-gradient(circle at bottom right, rgba(64, 224, 208, 0.18), transparent 55%),
+                        rgba(0, 0, 0, 0.75);
+            border-radius: 24px;
+            padding: 16px 16px 20px;
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Intro section (top banner) */
+        .referral-jet-logo {
+            display: flex;
+            justify-content: center;
+            margin: 6px 0 12px;
+        }
+
+        .referral-jet-logo img {
+            width: 92px;
+            height: 92px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
+        }
+
+        .referral-intro-title {
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 12px;
+        }
+
+        .referral-intro-banner {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .referral-intro-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 50%, #20b2aa 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .referral-intro-text-main {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .referral-intro-text-sub {
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.7);
         }
         
         .referral-card {
-            background: rgba(26, 26, 46, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(0, 212, 255, 0.15);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: scaleIn 0.4s ease-out 0.2s both;
-        }
-
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .referral-card:hover {
-            border-color: rgba(0, 212, 255, 0.3);
-            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.2);
+            background: transparent;
+            border-radius: 16px;
+            padding: 18px 12px 0;
+            border: none;
         }
         
         .referral-header {
@@ -141,18 +156,6 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
-            animation: fadeInLeft 0.5s ease-out 0.3s both;
-        }
-
-        @keyframes fadeInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
         }
         
         .referral-level-title {
@@ -160,42 +163,29 @@
             align-items: center;
             gap: 8px;
             font-size: 1.1rem;
-            font-weight: 700;
-            color: #fff;
+            font-weight: 600;
+            color: #ffffff;
         }
         
         .referral-level-badge {
-            background: linear-gradient(135deg, #00D4FF 0%, #00a8cc 100%);
-            color: #000;
+            background: #00d4ff;
+            color: #000000;
             padding: 4px 12px;
-            border-radius: 12px;
+            border-radius: 6px;
             font-size: 0.9rem;
-            font-weight: 700;
-            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
-            transition: all 0.3s ease;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
-            }
-            50% {
-                box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
-            }
+            font-weight: 600;
         }
         
         .referral-more-link {
-            color: #00D4FF;
+            color: #00d4ff;
             font-size: 0.9rem;
             text-decoration: none;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: color 0.2s;
         }
 
         .referral-more-link:hover {
-            color: #00a8cc;
-            transform: translateX(4px);
+            color: #40e0d0;
         }
         
         .referral-metrics {
@@ -203,7 +193,6 @@
             gap: 16px;
             margin-bottom: 24px;
             position: relative;
-            animation: fadeInUp 0.5s ease-out 0.4s both;
         }
         
         .referral-metrics::after {
@@ -213,7 +202,7 @@
             top: 0;
             bottom: 0;
             width: 1px;
-            background: linear-gradient(180deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+            background: rgba(0, 212, 255, 0.2);
         }
         
         .referral-metric {
@@ -221,11 +210,6 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            transition: transform 0.3s ease;
-        }
-
-        .referral-metric:hover {
-            transform: translateY(-4px);
         }
         
         .referral-metric-icon {
@@ -235,21 +219,14 @@
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
-            transition: all 0.3s ease;
-        }
-
-        .referral-metric:hover .referral-metric-icon {
-            transform: scale(1.1);
         }
         
         .referral-metric-icon.earnings {
             color: #4CAF50;
-            filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.5));
         }
         
         .referral-metric-icon.referrals {
             color: #9C27B0;
-            filter: drop-shadow(0 0 8px rgba(156, 39, 176, 0.5));
         }
         
         .referral-metric-label {
@@ -259,26 +236,21 @@
         
         .referral-metric-value {
             font-size: 1.8rem;
-            font-weight: 700;
-            color: #fff;
-            transition: all 0.3s ease;
-        }
-
-        .referral-metric:hover .referral-metric-value {
-            color: #00D4FF;
+            font-weight: 600;
+            color: #ffffff;
         }
         
         .referral-earnings-section {
             margin-bottom: 24px;
-            animation: fadeInUp 0.5s ease-out 0.5s both;
         }
         
         .referral-earnings-title {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
             margin-bottom: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            font-weight: 500;
         }
         
         .referral-earnings-row {
@@ -286,15 +258,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .referral-earnings-row:hover {
-            background: rgba(0, 212, 255, 0.05);
-            padding-left: 8px;
-            padding-right: 8px;
-            border-radius: 8px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.15);
         }
         
         .referral-earnings-row:last-child {
@@ -308,19 +272,12 @@
         
         .referral-earnings-value {
             font-size: 1.2rem;
-            font-weight: 700;
-            color: #fff;
-            transition: all 0.3s ease;
-        }
-
-        .referral-earnings-row:hover .referral-earnings-value {
-            color: #00D4FF;
-            transform: scale(1.05);
+            font-weight: 600;
+            color: #ffffff;
         }
         
         .referral-volume-section {
             margin-bottom: 20px;
-            animation: fadeInUp 0.5s ease-out 0.6s both;
         }
         
         .referral-volume-header {
@@ -331,9 +288,8 @@
         }
         
         .referral-volume-icon {
-            color: #00D4FF;
+            color: #00d4ff;
             font-size: 1.2rem;
-            filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
         }
         
         .referral-volume-label {
@@ -346,75 +302,49 @@
             align-items: center;
             gap: 8px;
             font-size: 1.8rem;
-            font-weight: 700;
-            color: #fff;
+            font-weight: 600;
+            color: #ffffff;
             margin-bottom: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .referral-volume-value:hover {
-            color: #00D4FF;
-            transform: scale(1.02);
         }
         
         .referral-progress-bar {
             width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+            height: 6px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 3px;
             overflow: hidden;
             margin-bottom: 12px;
             position: relative;
         }
-
-        .referral-progress-bar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% {
-                transform: translateX(-100%);
-            }
-            100% {
-                transform: translateX(100%);
-            }
-        }
         
         .referral-progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00D4FF 0%, #00a8cc 100%);
-            border-radius: 4px;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            background: #00d4ff;
+            border-radius: 3px;
+            transition: width 0.3s ease;
             position: relative;
-            overflow: hidden;
+            z-index: 1;
         }
 
-        .referral-progress-fill::after {
-            content: '';
+        .referral-progress-tick {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: progressShine 2s infinite;
+            top: -2px;
+            bottom: -2px;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.45);
+            border-radius: 1px;
+            z-index: 2;
         }
 
-        @keyframes progressShine {
-            0% {
-                transform: translateX(-100%);
-            }
-            100% {
-                transform: translateX(100%);
-            }
+        /* 1000 TON (уровень 2) — 1000 / 5000 = 20% */
+        .referral-progress-tick.l2 {
+            left: 20%;
+        }
+
+        /* 5000 TON (уровень 3 / максимум) */
+        .referral-progress-tick.l3 {
+            right: 0;
+            width: 3px;
         }
         
         .referral-progress-text {
@@ -426,60 +356,54 @@
         }
         
         .referral-progress-text .diamond {
-            color: #00D4FF;
+            color: #00d4ff;
+        }
+
+        /* TON icon */
+        .ton-icon {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: -4px;
+            margin-left: 8px;
+        }
+
+        .ton-icon.small {
+            width: 18px;
+            height: 18px;
+            vertical-align: -3px;
+            margin-left: 6px;
         }
         
         .referral-invite-btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #00D4FF 0%, #00a8cc 100%);
-            color: #000;
+            background: #00d4ff;
+            color: #000000;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             text-align: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
-            animation: fadeInUp 0.5s ease-out 0.7s both;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .referral-invite-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .referral-invite-btn:hover::before {
-            left: 100%;
+            transition: background 0.2s;
         }
         
         .referral-invite-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+            background: #00b8e6;
         }
         
         .referral-invite-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 10px rgba(0, 212, 255, 0.3);
+            background: #0099cc;
         }
         
         /* Tabs */
         .referral-tabs {
             display: flex;
-            gap: 8px;
+            gap: 0;
             margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            animation: fadeInUp 0.5s ease-out 0.35s both;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
         }
         
         .referral-tab {
@@ -487,42 +411,25 @@
             padding: 12px 16px;
             background: none;
             border: none;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.6);
             font-size: 0.95rem;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             border-bottom: 2px solid transparent;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-
-        .referral-tab::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #00D4FF, #00a8cc);
-            transform: scaleX(0);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: color 0.2s, border-color 0.2s;
         }
         
         .referral-tab.active {
-            color: #00D4FF;
-        }
-
-        .referral-tab.active::after {
-            transform: scaleX(1);
+            color: #00d4ff;
+            border-bottom-color: #00d4ff;
         }
 
         .referral-tab:hover {
-            color: rgba(255, 255, 255, 0.8);
+            color: #00d4ff;
         }
         
         .referral-tab-content {
             display: none;
-            animation: fadeIn 0.4s ease-out;
         }
         
         .referral-tab-content.active {
@@ -534,7 +441,6 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            animation: fadeInUp 0.5s ease-out;
         }
         
         .withdraw-form-group {
@@ -550,21 +456,42 @@
         
         .withdraw-form-input,
         .withdraw-form-select {
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .withdraw-form-select {
+            /* Строгий внешний вид селекта в наших тонах */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image:
+                linear-gradient(45deg, transparent 50%, #00d4ff 50%),
+                linear-gradient(135deg, #00d4ff 50%, transparent 50%);
+            background-position:
+                calc(100% - 18px) 50%,
+                calc(100% - 12px) 50%;
+            background-size: 8px 8px, 8px 8px;
+            background-repeat: no-repeat;
+            padding-right: 32px;
+            cursor: pointer;
+        }
+
+        .withdraw-form-select option {
+            background: #050814;
+            color: #ffffff;
         }
 
         .withdraw-form-input:focus,
         .withdraw-form-select:focus {
             outline: none;
-            border-color: #00D4FF;
-            background: rgba(0, 212, 255, 0.1);
-            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+            border-color: #00d4ff;
+            background: rgba(0, 0, 0, 0.8);
         }
         
         .withdraw-form-input::placeholder {
@@ -573,11 +500,10 @@
         
         .withdraw-balance-info {
             padding: 16px;
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 168, 204, 0.1) 100%);
-            border-radius: 12px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 8px;
             margin-bottom: 16px;
             border: 1px solid rgba(0, 212, 255, 0.2);
-            animation: fadeInUp 0.5s ease-out;
         }
         
         .withdraw-balance-label {
@@ -587,126 +513,103 @@
         }
         
         .withdraw-balance-value {
-                font-size: 1.5rem;
-            font-weight: 700;
-            color: #00D4FF;
-            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #00d4ff;
         }
         
         .withdraw-submit-btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #00D4FF 0%, #00a8cc 100%);
-            color: #000;
+            background: #00d4ff;
+            color: #000000;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .withdraw-submit-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .withdraw-submit-btn:hover::before {
-            left: 100%;
+            transition: background 0.2s;
         }
         
         .withdraw-submit-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+            background: #00b8e6;
         }
         
         .withdraw-submit-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
         .withdraw-submit-btn:active:not(:disabled) {
-            transform: translateY(0);
+            background: #0099cc;
         }
         
         .profile-nav {
-            position: fixed;
-            bottom: 0;
+            position: fixed !important;
+            bottom: 0 !important;
             left: 0;
             right: 0;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(0, 212, 255, 0.15);
+            width: 100%;
+            background: rgba(10, 14, 39, 0.25);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             display: flex;
             justify-content: space-around;
             padding: 12px 0;
             z-index: 100;
-            animation: slideUp 0.4s ease-out;
         }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
+        
+        @supports (padding: max(0px)) {
+            .profile-nav {
+                padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
             }
         }
         
         .profile-nav-btn {
             display: flex;
-                flex-direction: column;
+            flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             background: none;
             border: none;
-            color: rgba(255, 255, 255, 0.5);
+            padding: 8px 16px;
+            color: rgba(255, 255, 255, 0.4);
             cursor: pointer;
+            transition: all 0.3s ease;
             font-size: 0.75rem;
-            padding: 4px 12px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 8px;
         }
 
-        .profile-nav-btn:hover {
-            background: rgba(0, 212, 255, 0.1);
-            color: rgba(255, 255, 255, 0.8);
+        .profile-nav-btn:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .profile-nav-btn i {
+            font-size: 1.4rem;
         }
         
         .profile-nav-btn.active {
-            color: #00D4FF;
+            color: #00d4ff;
         }
-
+        
         .profile-nav-btn.active .nav-icon-wrapper {
-            background: rgba(0, 212, 255, 0.2);
-            border-radius: 8px;
+            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 50%, #20b2aa 100%);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .profile-nav-btn.active .nav-icon-wrapper i {
+            color: #ffffff;
         }
         
         .nav-icon-wrapper {
-            width: 24px;
-            height: 24px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            border-radius: 12px;
             transition: all 0.3s ease;
-        }
-
-        .profile-nav-btn:hover .nav-icon-wrapper {
-            transform: scale(1.1);
         }
     </style>
 </head>
@@ -719,7 +622,32 @@
     </div>
     
     <div class="referral-page-content">
-        <div class="referral-card">
+        <!-- Bubble 1: Intro -->
+        <div class="referral-bubble" style="margin-bottom: 16px;">
+            <div class="referral-jet-logo">
+                <img src="../assets/jet-logo.png" alt="JET">
+            </div>
+            <div class="referral-intro-title">
+                ПРИГЛАШАЙТЕ ДРУЗЕЙ И ЗАРАБАТЫВАЙТЕ TON
+            </div>
+            <div class="referral-intro-banner" style="margin-bottom: 0;">
+                <div class="referral-intro-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div>
+                    <div class="referral-intro-text-main">
+                        Получите больше преимуществ
+                    </div>
+                    <div class="referral-intro-text-sub">
+                        Зарабатывайте до 25% JetRefs с покупок друзей. Больше объём&nbsp;— выше уровень и доход.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bubble 2: JetRefs -->
+        <div class="referral-bubble">
+            <div class="referral-card">
             <!-- Header: Уровень -->
             <div class="referral-header">
                 <div class="referral-level-title">
@@ -737,16 +665,18 @@
         
             <!-- Stats Tab -->
             <div id="statsTab" class="referral-tab-content active">
-                <!-- Earnings Section: Рубли и TON -->
+                <!-- Earnings Section: TON -->
                 <div class="referral-earnings-section">
                     <div class="referral-earnings-title">Заработано</div>
                     <div class="referral-earnings-row">
-                        <span class="referral-earnings-label">Рубли</span>
-                        <span class="referral-earnings-value" id="refEarnRub">0 ₽</span>
-                    </div>
-                    <div class="referral-earnings-row">
-                        <span class="referral-earnings-label">TON</span>
+                        <span class="referral-earnings-label">
+                            TON <img class="ton-icon" src="../assets/ton.png" alt="TON">
+                        </span>
                         <span class="referral-earnings-value" id="refEarnTon">0</span>
+                    </div>
+                    <div class="referral-earnings-row" style="padding-top: 4px; border-top: none;">
+                        <span class="referral-earnings-label" style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.5);">≈</span>
+                        <span class="referral-earnings-value" id="refEarnRubInTon" style="font-size: 0.9rem; color: rgba(0, 212, 255, 0.8); font-weight: 500;">0 ₽</span>
                     </div>
                 </div>
 
@@ -754,35 +684,37 @@
                 <div class="referral-metrics">
                     <div class="referral-metric">
                         <div class="referral-metric-icon referrals">
-                            <i class="fas fa-users"></i>
-                </div>
+                            <i class="fas fa-user-friends"></i>
+                        </div>
                         <div class="referral-metric-label">Рефералы</div>
                         <div class="referral-metric-value" id="refTotalRefs">0</div>
-            </div>
+                    </div>
         </div>
         
                 <!-- Volume Section -->
                 <div class="referral-volume-section">
                     <div class="referral-volume-header">
-                        <i class="fas fa-gem referral-volume-icon"></i>
+                        <i class="fas fa-chart-line referral-volume-icon"></i>
                         <span class="referral-volume-label">Объем рефералов</span>
                     </div>
                     <div class="referral-volume-value">
                         <span id="refVolumeTon">0</span>
-                        <i class="fas fa-gem" style="color: #00D4FF; font-size: 1.2rem;"></i>
-        </div>
+                        <i class="fas fa-coins" style="color: #00d4ff; font-size: 1.2rem;"></i>
+                    </div>
         
                     <!-- Progress Bar -->
                     <div class="referral-progress-bar">
                         <div class="referral-progress-fill" id="refProgressBar" style="width: 0%;"></div>
-        </div>
+                        <div class="referral-progress-tick l2"></div>
+                        <div class="referral-progress-tick l3"></div>
+                    </div>
         
                     <!-- Progress Text -->
                     <div class="referral-progress-text" id="refProgressText">
                         <span>0</span>
-                        <i class="fas fa-gem diamond"></i>
+                        <img class="ton-icon small" src="../assets/ton.png" alt="TON">
                         <span>осталось до следующего уровня</span>
-                </div>
+                    </div>
             </div>
             
                 <!-- Invite Button -->
@@ -844,19 +776,27 @@
     <!-- Нижняя навигация -->
     <nav class="profile-nav">
         <button class="profile-nav-btn" onclick="window.location.href='index.html'">
-            <div class="nav-icon-wrapper"><i class="fas fa-home"></i></div>
+            <div class="nav-icon-wrapper">
+                <i class="fas fa-home"></i>
+            </div>
             <span>Главная</span>
         </button>
         <button class="profile-nav-btn active">
-            <div class="nav-icon-wrapper"><i class="fas fa-coins"></i></div>
+            <div class="nav-icon-wrapper">
+                <i class="fas fa-coins"></i>
+            </div>
             <span>Заработать</span>
         </button>
         <button class="profile-nav-btn" onclick="window.location.href='assets.html'">
-            <div class="nav-icon-wrapper"><i class="fab fa-telegram-plane"></i></div>
+            <div class="nav-icon-wrapper">
+                <i class="fab fa-telegram-plane"></i>
+            </div>
             <span>Активы</span>
         </button>
         <button class="profile-nav-btn" onclick="window.location.href='profile.html'">
-            <div class="nav-icon-wrapper"><i class="fas fa-user"></i></div>
+            <div class="nav-icon-wrapper">
+                <i class="fas fa-user"></i>
+            </div>
             <span>Профиль</span>
         </button>
     </nav>
@@ -946,29 +886,30 @@
             const percent = level === 1 ? 15 : level === 2 ? 20 : 25;
             document.getElementById('refLevelPercent').textContent = `${percent}%`;
 
-            // Заработано в рублях
-            const earnedRub = (stats.earned_rub || 0).toFixed(2);
-            document.getElementById('refEarnRub').textContent = `${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
-
             // Заработано в TON
             const earnedTon = (stats.earned_ton || 0).toFixed(2);
             document.getElementById('refEarnTon').textContent = earnedTon.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-            // Всего рефералов
+            // Эквивалент в рублях под TON
+            const earnedRub = (stats.earned_rub || 0).toFixed(2);
+            document.getElementById('refEarnRubInTon').textContent = `${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
+
+            // Всего рефералов с форматированием
             const totalRefs = stats.total_referrals || 0;
-            document.getElementById('refTotalRefs').textContent = totalRefs;
+            document.getElementById('refTotalRefs').textContent = totalRefs.toLocaleString('ru-RU');
 
             // Объем рефералов в TON
             const volumeTon = (stats.volume_ton || 0).toFixed(0);
             document.getElementById('refVolumeTon').textContent = volumeTon.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-            // Прогресс-бар с анимацией
-            const progressPercent = stats.progress_percent || 0;
+            // Прогресс-бар с анимацией (0–5000 TON => 0–100%)
+            const volumeTonRaw = stats.volume_ton || 0;
+            const globalPercent = Math.max(0, Math.min(100, (volumeTonRaw / 5000) * 100));
             const progressBar = document.getElementById('refProgressBar');
             progressBar.style.width = '0%';
             // Запускаем анимацию прогресс-бара
             setTimeout(() => {
-                progressBar.style.width = `${progressPercent}%`;
+                progressBar.style.width = `${globalPercent}%`;
             }, 100);
 
             // Текст прогресса - показываем сколько осталось в TON
@@ -984,7 +925,7 @@
                 });
                 progressTextEl.innerHTML = `
                     <span>${formattedTon}</span>
-                    <i class="fas fa-gem diamond"></i>
+                    <img class="ton-icon small" src="../assets/ton.png" alt="TON">
                     <span>TON осталось до следующего уровня</span>
                 `;
             }

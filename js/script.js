@@ -2478,10 +2478,9 @@ function runDeliveryAfterPayment(data, checkResponse) {
         // Уведомляем реферальную систему о покупке
         if (data.baseAmount && data.purchase) {
             var amountRub = data.baseAmount;
-            if (data.purchase.currency && data.purchase.currency !== 'RUB') {
-                // Если валюта не RUB, пропускаем (или можно добавить конвертацию)
-                // Для простоты пропускаем не-RUB валюты
-            } else {
+            // Для CryptoBot платежей (USDT) baseAmount уже в рублях после конвертации
+            // Для других методов тоже baseAmount в рублях
+            if (data.method === 'cryptobot' || !data.purchase.currency || data.purchase.currency === 'RUB') {
                 notifyReferralPurchase(amountRub);
             }
         }
