@@ -875,6 +875,24 @@
             try {
                 let userId = currentUserId;
 
+                // ПЕРВЫЙ источник — прямо из Telegram WebApp (самый надёжный)
+                try {
+                    const tg = window.Telegram && window.Telegram.WebApp;
+                    const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+                    if (u && u.id) {
+                        userId = String(u.id);
+                        currentUserId = userId;
+                        // Сохраняем сразу в userData и localStorage
+                        if (!window.userData) window.userData = {};
+                        window.userData.id = userId;
+                        const savedRaw2 = localStorage.getItem('jetstore_user_data') || '{}';
+                        let saved2 = {};
+                        try { saved2 = JSON.parse(savedRaw2); } catch (e) { saved2 = {}; }
+                        saved2.id = userId;
+                        localStorage.setItem('jetstore_user_data', JSON.stringify(saved2));
+                    }
+                } catch (e) {}
+
                 // Пытаемся получить стабильный ID через Database (как в профильном модуле)
                 try {
                     const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
@@ -899,9 +917,18 @@
                     }
                 }
 
-                // Если так и не нашли — оставляем заглушку, но стараемся всегда иметь реальный ID
+                // Если так и не нашли — создаём стабильный локальный ID, но НЕ 000000
                 if (!userId) {
-                    userId = '000000';
+                    const localKey = 'jetstore_local_ref_id';
+                    let localId = null;
+                    try {
+                        localId = localStorage.getItem(localKey);
+                    } catch (e) {}
+                    if (!localId) {
+                        localId = 'user_' + Math.floor(Date.now() / 1000);
+                        try { localStorage.setItem(localKey, localId); } catch (e) {}
+                    }
+                    userId = localId;
                 }
 
                 const botUsername = window.JET_BOT_USERNAME || 'JetStoreApp_bot';
