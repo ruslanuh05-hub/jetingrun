@@ -805,17 +805,21 @@
             currentUserId = getReferralUserId();
 
             // Загружаем конфиг бота для ссылки
-            var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+            var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_BOT_API_URL || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+
             // Сразу рисуем ссылку с дефолтным bot_username (JetSold_bot)
             updateReferralLink();
 
             if (apiBase && /^https?:\/\//i.test(apiBase)) {
-                fetch(apiBase.replace(/\/$/, '') + '/api/config').then(r => r.json()).then(c => {
-                    if (c && c.bot_username) {
-                        window.JET_BOT_USERNAME = c.bot_username;
-                    }
-                    updateReferralLink();
-                }).catch(() => { updateReferralLink(); });
+                fetch(apiBase.replace(/\/$/, '') + '/api/config')
+                    .then(r => r.json())
+                    .then(c => {
+                        if (c && c.bot_username) {
+                            window.JET_BOT_USERNAME = c.bot_username;
+                        }
+                        updateReferralLink();
+                    })
+                    .catch(() => { updateReferralLink(); });
                 
                 // Загружаем статистику реферальной программы
                 if (currentUserId) {
@@ -865,12 +869,6 @@
                 let userId = currentUserId || getReferralUserId();
                 const el = document.getElementById('referralLinkText');
                 if (!el) return;
-
-                // Если ID нет (например, страница открыта совсем вне контекста) — показываем понятный текст
-                if (!userId) {
-                    el.textContent = 'Откройте мини‑приложение из бота, чтобы получить свою реферальную ссылку.';
-                    return;
-                }
 
                 const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
                 const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;

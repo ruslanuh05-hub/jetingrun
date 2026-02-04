@@ -65,9 +65,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ВАЖНО: Инициализируем пользователя ПЕРВЫМ делом, чтобы загрузить баланс из базы
     initializeUserData();
-
-    // Restore pending payment screen after returning from external payment (CryptoBot/TonKeeper)
-    try { restorePendingPaymentToUI('domcontentloaded'); } catch (e) {}
     
     // Загружаем товары для активного раздела
     loadProductsForSection(currentSection);
@@ -78,14 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Обновляем цены из админки
     updatePricesDisplay();
     
-    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || '';
-    if (apiBase && /^https?:\/\//i.test(apiBase)) {
-        fetch(apiBase.replace(/\/$/, '') + '/api/config').then(function(r) { return r.json(); }).then(function(c) {
-            if (c && c.cryptobot_usdt_amount != null) window.JET_CRYPTOBOT_USDT_AMOUNT = parseFloat(c.cryptobot_usdt_amount) || 1;
-            if (c && c.bot_username) window.JET_BOT_USERNAME = c.bot_username;
-        }).catch(function() {});
-    }
-    if (window.JET_CRYPTOBOT_USDT_AMOUNT == null) window.JET_CRYPTOBOT_USDT_AMOUNT = 1;
+    // Загружаем курс TON↔RUB (для активов, аренды)
     if (typeof window.fetchTonToRubRateFromApi === 'function') {
         window.fetchTonToRubRateFromApi().then(function(rate) {
             if (rate != null) updatePricesDisplay();
@@ -133,17 +123,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     console.log('Магазин инициализирован. Баланс RUB:', window.userData?.currencies?.RUB);
-});
-
-// When user returns to the mini app (tab becomes visible), restore pending payment popup again.
-document.addEventListener('visibilitychange', function() {
-    try {
-        if (document.visibilityState === 'visible') {
-            var popup = document.getElementById('paymentWaitingPopup');
-            var active = popup && popup.classList && popup.classList.contains('active');
-            if (!active) restorePendingPaymentToUI('visibilitychange');
-        }
-    } catch (e) {}
 });
 
 // Инициализация пользователя
@@ -397,7 +376,6 @@ function updateStoreDisplay() {
 let selectedStars = { amount: 0, price: 0 };
 let selectedPremium = { months: 0, price: 0 };
 let selectedTon = 0;
-let selectedTonNetwork = '';
 
 // Загрузка курса 1 звезды из localStorage
 function getStarRate() {
@@ -420,104 +398,6 @@ function getStarBuyRate() {
         return 0.65;
     }
 }
-// Курс TON (1 TON = X RUB) — из /api/ton-rate или localStorage (тот же источник, что в конфиге)
-function getTonToRubRate() {
-    try {
-        var cr = JSON.parse(localStorage.getItem('jetstore_currency_rates') || '{}');
-        var rate = cr.TON ? parseFloat(cr.TON) : null;
-        if (!rate || isNaN(rate)) {
-            var db = window.Database;
-            if (db && typeof db.getCurrencyRates === 'function') {
-                var r = db.getCurrencyRates();
-                rate = r && r.TON ? parseFloat(r.TON) : null;
-            }
-        }
-        return (rate && !isNaN(rate) && rate > 0) ? rate : 600;
-    } catch (e) { return 600; }
-}
-
-// Курс пополнения Steam (множитель: сколько платит пользователь за 1₽ пополнения)
-// Например, при значении 1.05 за пополнение 100₽ клиент платит 105₽.
-function getSteamTopupRate(currencyCode) {
-    const code = (currencyCode || '').toUpperCase() || 'RUB';
-    try {
-        // Новый формат: ключи по валютам
-        const perCur = parseFloat(localStorage.getItem('jetstore_steam_rate_' + code));
-        if (perCur && !isNaN(perCur) && perCur > 0) return perCur;
-
-        // Fallback на старый ключ (используем как RUB по умолчанию)
-        const legacy = parseFloat(localStorage.getItem('jetstore_steam_rate'));
-        if (legacy && !isNaN(legacy) && legacy > 0) return legacy;
-        return 1;
-    } catch (e) {
-        return 1;
-    }
-}
-
-function updateSteamTopupRateText() {
-    try {
-        const rateEl = document.getElementById('steamTopupRateText');
-        if (!rateEl) return;
-
-        const code = (typeof currentSteamCurrency === 'string' && currentSteamCurrency) ? currentSteamCurrency : 'RUB';
-        const r = (typeof getSteamTopupRate === 'function' ? getSteamTopupRate(code) : 1) || 1;
-
-        // Курс отображаем только в рублях, без знаков тенге/гривны
-        rateEl.textContent = `Текущий курс: ${r.toFixed(2)} ₽ за 1 единицу пополнения на Steam`;
-    } catch (e) {}
-}
-
-// Добавление записи в историю покупок (для профиля)
-function addPurchaseHistoryEntry(entry) {
-    try {
-        const baseEntry = {
-            id: entry.id || ('ord_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9)),
-            status: entry.status || 'успешно',
-            date: entry.date || new Date().toISOString()
-        };
-        const full = Object.assign({}, entry, baseEntry);
-
-        let purchases = [];
-        try {
-            purchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
-        } catch (e) {
-            purchases = [];
-        }
-        purchases.unshift(full);
-        localStorage.setItem('jetstore_purchases', JSON.stringify(purchases));
-
-        try {
-            if (window.userData) {
-                if (!Array.isArray(window.userData.purchases)) window.userData.purchases = [];
-                window.userData.purchases.push(full);
-            }
-        } catch (e) {
-            console.warn('addPurchaseHistoryEntry userData error:', e);
-        }
-    } catch (e) {
-        console.error('Ошибка добавления в историю покупок:', e);
-    }
-}
-
-// Курс USDT (1 USDT = X RUB) из админки
-function getUsdtRate() {
-    try {
-        var rate = parseFloat(localStorage.getItem('jetstore_usdt_rate'));
-        if (!rate || isNaN(rate)) {
-            var cr = JSON.parse(localStorage.getItem('jetstore_currency_rates') || '{}');
-            rate = cr.USDT;
-        }
-        if (!rate || isNaN(rate)) {
-            var db = window.Database;
-            if (db && typeof db.getCurrencyRates === 'function') {
-                var r = db.getCurrencyRates();
-                rate = r && r.USDT ? r.USDT : null;
-            }
-        }
-        return (rate && !isNaN(rate)) ? rate : 80;
-    } catch (e) { return 80; }
-}
-
 // Загрузка курса USD из админки / настроек
 function getUsdRate() {
     try {
@@ -1663,20 +1543,13 @@ function updateTonAmountFromInput() {
     const input = document.getElementById('tonAmountInput');
     if (!input) return;
     
-    const raw = input.value || '';
-    let amount = parseInt(raw, 10);
-    if (isNaN(amount) || amount <= 0) {
-        // позволяем пользователю вводить число по частям; пока невалидно — просто не трогаем selectedTon
-        selectedTon = 0;
-        updateTonContinueButton();
-        return;
-    }
-    if (amount > 200) {
-        amount = 200;
-        input.value = String(amount);
-    }
-    // Минимум 1 TON для покупки, но не мешаем вводу; просто считаем selectedTon валидным только от 1
-    selectedTon = (amount >= 1 && amount <= 200) ? amount : 0;
+    let amount = parseInt(input.value || '0', 10) || 0;
+    
+    if (amount < 1) amount = 0;
+    if (amount > 200) amount = 200;
+    
+    input.value = amount ? amount : '';
+    selectedTon = amount;
     
     updateTonContinueButton();
 }
@@ -1686,18 +1559,12 @@ function updateTonContinueButton() {
     const btn = document.getElementById('tonContinueBtn');
     if (!btn) return;
     
-    const wallet = (document.getElementById('tonWalletAddress')?.value || '').trim();
-    const network = (document.getElementById('tonNetwork')?.value || '').trim() || selectedTonNetwork;
-    const ok = selectedTon >= 1 && selectedTon <= 200 && wallet.length > 0 && (network || '').length > 0;
-    
-    if (ok) {
-        const rate = (typeof getTonToRubRate === 'function' ? getTonToRubRate() : 600) || 600;
-        const rub = Math.round(selectedTon * rate * 100) / 100;
-        btn.textContent = `Оплатить ${rub.toLocaleString('ru-RU')} ₽`;
+    if (selectedTon > 0) {
+        btn.textContent = 'Оплатить';
         btn.classList.remove('disabled');
         btn.style.opacity = '1';
     } else {
-        btn.textContent = 'Заполните данные (1–200 TON)';
+        btn.textContent = 'Введите число от 1 до 200';
         btn.classList.add('disabled');
         btn.style.opacity = '0.6';
     }
@@ -1711,32 +1578,12 @@ function openTonPopup() {
     selectedTon = 0;
     const amountInput = document.getElementById('tonAmountInput');
     if (amountInput) amountInput.value = '';
-
-    const walletInput = document.getElementById('tonWalletAddress');
-    if (walletInput) walletInput.value = '';
-    const netHidden = document.getElementById('tonNetwork');
-    if (netHidden) netHidden.value = '';
-    selectedTonNetwork = '';
-    document.querySelectorAll('.ton-network-btn').forEach(function(btn) {
-        btn.classList.remove('active');
-    });
     
     const preview = document.getElementById('tonUserPreview');
     if (preview) preview.style.display = 'none';
     
     updateTonContinueButton();
     popup.classList.add('active');
-}
-
-function selectTonNetwork(networkCode) {
-    selectedTonNetwork = networkCode || '';
-    const hidden = document.getElementById('tonNetwork');
-    if (hidden) hidden.value = selectedTonNetwork;
-    document.querySelectorAll('.ton-network-btn').forEach(function(btn) {
-        const val = btn.getAttribute('data-network');
-        btn.classList.toggle('active', val === selectedTonNetwork);
-    });
-    updateTonContinueButton();
 }
 
 // Закрытие окна покупки TON
@@ -1766,44 +1613,23 @@ function closeTonAttention() {
 
 // Покупка TON
 function proceedTonPurchase() {
-    const btn = document.getElementById('tonContinueBtn');
-    if (btn && btn.classList.contains('disabled')) return;
-    
-    const wallet = (document.getElementById('tonWalletAddress')?.value || '').trim();
-    const network = (document.getElementById('tonNetwork')?.value || '').trim() || selectedTonNetwork;
-    const amountTon = selectedTon || 0;
-    
-    if (!wallet) {
-        showStoreNotification('Введите адрес кошелька', 'error');
-        return;
-    }
-    if (!network) {
-        showStoreNotification('Выберите сеть', 'error');
-        return;
-    }
-    if (!amountTon || amountTon < 1 || amountTon > 200) {
-        showStoreNotification('Введите сумму TON от 1 до 200', 'error');
+    if (selectedTon <= 0) {
+        showStoreNotification('Введите количество TON от 1 до 200', 'error');
         return;
     }
     
-    const rate = (typeof getTonToRubRate === 'function' ? getTonToRubRate() : 600) || 600;
-    const rubAmount = Math.round(amountTon * rate * 100) / 100;
+    const recipient = document.getElementById('tonRecipient')?.value || '';
     
     currentPurchase = {
         type: 'ton',
-        amount: rubAmount,          // к оплате в рублях (без комиссии)
-        ton_amount: amountTon,      // сколько TON купить
-        wallet: wallet,
-        network: network,
+        amount: selectedTon,
+        login: recipient,
         productId: null,
-        productName: 'Покупка TON'
+        productName: `Покупка ${selectedTon} TON`
     };
     
     closeTonPopup();
-    // Небольшая задержка для гарантии, что попап TON закрылся перед открытием окна оплаты
-    setTimeout(function() {
-        showPaymentMethodSelection('ton');
-    }, 100);
+    showPaymentMethodSelection('ton');
 }
 
 window.selectPremiumByMonths = selectPremiumByMonths;
@@ -1890,30 +1716,19 @@ function switchSellStarsMethod(method) {
 function updateSellStarsUI() {
     const limitText = document.getElementById('sellStarsLimitText');
     const buyRateText = document.getElementById('sellStarsBuyRateText');
-    const input = document.getElementById('sellStarsAmountInput');
     const buyRate = getStarBuyRate();
     
-    var minStars = 100;
-    var placeholderMin = '100';
-    if (currentSellMethod === 'wallet') {
-        minStars = 100;
-        placeholderMin = '100';
-        if (limitText) limitText.textContent = 'Минимум 100 ⭐, максимум 50 000 ⭐ (продажа на кошелёк).';
-    } else if (currentSellMethod === 'sbp') {
-        minStars = 230;
-        placeholderMin = '230';
-        if (limitText) limitText.textContent = 'Минимум 230 ⭐, максимум 50 000 ⭐ (продажа по СБП).';
-    } else if (currentSellMethod === 'card') {
-        minStars = 1600;
-        placeholderMin = '1600';
-        if (limitText) limitText.textContent = 'Минимум 1600 ⭐, максимум 50 000 ⭐ (продажа на карту).';
+    if (limitText) {
+        if (currentSellMethod === 'wallet') {
+            limitText.textContent = 'Минимум 100 ⭐, максимум 50 000 ⭐ (продажа на кошелёк).';
+        } else if (currentSellMethod === 'sbp') {
+            limitText.textContent = 'Минимум 230 ⭐, максимум 50 000 ⭐ (продажа по СБП).';
+        } else if (currentSellMethod === 'card') {
+            limitText.textContent = 'Минимум 1600 ⭐, максимум 50 000 ⭐ (продажа на карту).';
+        }
     }
     if (buyRateText) {
         buyRateText.textContent = `1 звезда = ${buyRate} ₽ (курс скупки)`;
-    }
-    if (input) {
-        input.placeholder = 'Введите число от ' + placeholderMin + ' до 50 000';
-        input.setAttribute('min', minStars);
     }
     
     // Обновляем сумму и кнопку
@@ -2001,98 +1816,14 @@ function closeSellStarsConfirm() {
 }
 
 function confirmSellStars() {
-    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-    if (!apiBase) {
-        showStoreNotification('Не задан адрес API бота. Проверьте настройки.', 'error');
-        return;
-    }
-
-    var tg = window.Telegram && window.Telegram.WebApp;
-    var user = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
-    if (!user || !user.id) {
-        showStoreNotification('Не удалось определить пользователя. Откройте мини-приложение из бота.', 'error');
-        return;
-    }
-
-    var payload = {
-        telegram_id: user.id,
-        username: (user.username || '').trim(),
-        first_name: (user.first_name || '').trim(),
-        last_name: (user.last_name || '').trim(),
-        stars_amount: currentSellAmount,
-        method: currentSellMethod
-    };
-
-    if (currentSellMethod === 'wallet') {
-        var addr = (document.getElementById('sellWalletAddress') && document.getElementById('sellWalletAddress').value || '').trim();
-        if (!addr) {
-            showStoreNotification('Введите адрес кошелька для выплаты', 'error');
-            return;
-        }
-        payload.wallet_address = addr;
-        payload.wallet_memo = (document.getElementById('sellWalletMemo') && document.getElementById('sellWalletMemo').value || '').trim();
-    } else if (currentSellMethod === 'sbp') {
-        var phone = (document.getElementById('sellSbpPhone') && document.getElementById('sellSbpPhone').value || '').trim();
-        if (!phone) {
-            showStoreNotification('Введите номер телефона для СБП', 'error');
-            return;
-        }
-        payload.sbp_phone = phone;
-        payload.sbp_bank = (document.getElementById('sellSbpBank') && document.getElementById('sellSbpBank').value || '').trim();
-    } else if (currentSellMethod === 'card') {
-        var card = (document.getElementById('sellCardNumber') && document.getElementById('sellCardNumber').value || '').trim();
-        if (!card) {
-            showStoreNotification('Введите номер карты для выплаты', 'error');
-            return;
-        }
-        payload.card_number = card;
-        payload.card_bank = (document.getElementById('sellCardBank') && document.getElementById('sellCardBank').value || '').trim();
-    }
-
-    var btn = document.getElementById('sellStarsConfirmBtn');
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Отправка…';
-    }
-
-    fetch(apiBase.replace(/\/$/, '') + '/api/sellstars/create-invoice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, status: r.status, data: data }; }); })
-    .then(function(result) {
-        if (btn) {
-            btn.disabled = false;
-            var buyRate = getStarBuyRate();
-            btn.textContent = 'Подтвердить и продать ' + currentSellAmount.toLocaleString('ru-RU') + ' ⭐';
-        }
-        if (result.ok && result.data && result.data.success) {
-            closeSellStarsConfirm();
-            closeSellStarsPopup();
-            // Возврат в главное меню, чтобы не оставаться на экране магазина (покупка звёзд)
-            const mainMenuView = document.getElementById('mainMenuView');
-            const storeView = document.getElementById('storeView');
-            if (mainMenuView) mainMenuView.classList.remove('hidden');
-            if (storeView) storeView.classList.remove('active');
-            var mainNavButtons = document.querySelectorAll('.main-nav-btn');
-            mainNavButtons.forEach(function(b) { b.classList.remove('active'); });
-            var homeBtn = Array.from(mainNavButtons).find(function(b) { return b.textContent && b.textContent.includes('Главная'); });
-            if (homeBtn) homeBtn.classList.add('active');
-            showStoreNotification('Счёт отправлен в чат с ботом. Перейдите в чат и оплатите счёт звёздами.', 'success');
-        } else {
-            var msg = (result.data && result.data.message) ? result.data.message : ('Ошибка ' + (result.status || ''));
-            showStoreNotification(msg, 'error');
-        }
-    })
-    .catch(function(err) {
-        if (btn) {
-            btn.disabled = false;
-            var buyRate = getStarBuyRate();
-            btn.textContent = 'Подтвердить и продать ' + currentSellAmount.toLocaleString('ru-RU') + ' ⭐';
-        }
-        showStoreNotification('Нет связи с сервером. Проверьте интернет.', 'error');
-    });
+    const buyRate = getStarBuyRate();
+    const rub = Math.round(currentSellAmount * buyRate);
+    
+    // Здесь можно добавить реальную отправку данных боту
+    showStoreNotification(`Заявка на продажу ${currentSellAmount.toLocaleString('ru-RU')} ⭐ на сумму ${rub.toLocaleString('ru-RU')} ₽ отправлена`, 'success');
+    
+    closeSellStarsConfirm();
+    closeSellStarsPopup();
 }
 
 function openBankSelect(method) {
@@ -2264,9 +1995,6 @@ function showSteamTopup() {
         balanceEl.textContent = (v || 0).toLocaleString('ru-RU') + ' ₽';
     }
     
-    // Текущий курс пополнения Steam
-    updateSteamTopupRateText();
-    
     const loginInput = document.getElementById('steamLogin');
     const amountInput = document.getElementById('steamAmount');
     if (loginInput) loginInput.value = '';
@@ -2398,9 +2126,6 @@ function setSteamCurrency(code) {
             (id === 'steamCurUah' && code === 'UAH');
         btn.classList.toggle('active', isActive);
     });
-
-    // Обновляем текст курса в окне Steam под выбранную валюту
-    updateSteamTopupRateText();
 }
 
 // Сохраняем информацию о предыдущем окне для возврата
@@ -2415,7 +2140,7 @@ function showPaymentMethodSelection(purchaseType) {
     // Сохраняем данные покупки
     if (purchaseType === 'steam') {
         const login = document.getElementById('steamLogin')?.value.trim();
-        const amount = parseFloat(document.getElementById('steamAmount')?.value) || 0; // сколько придёт на Steam
+        const amount = parseFloat(document.getElementById('steamAmount')?.value) || 0;
         
         if (!login) {
             showStoreNotification('Введите логин Steam', 'error');
@@ -2426,18 +2151,14 @@ function showPaymentMethodSelection(purchaseType) {
             showStoreNotification('Введите сумму пополнения', 'error');
             return;
         }
-        const steamRate = (typeof getSteamTopupRate === 'function' ? getSteamTopupRate(currentSteamCurrency) : 1);
-        const payRub = Math.round(amount * steamRate * 100) / 100; // сколько платит клиент
         
         currentPurchase = {
             type: 'steam',
-            amount: payRub,           // сумма к оплате
-            steam_amount: amount,     // сумма пополнения Steam
+            amount: amount,
             login: login,
             productId: null,
             productName: 'Пополнение Steam',
-            currency: currentSteamCurrency,
-            steam_rate: steamRate
+            currency: currentSteamCurrency
         };
         
         // Сохраняем информацию о предыдущем окне
@@ -2463,8 +2184,8 @@ function showPaymentMethodSelection(purchaseType) {
     } else if (purchaseType === 'ton') {
         // Сохраняем информацию о предыдущем окне
         previousView = {
-            type: 'ton',
-            gameCategory: null,
+            type: 'store',
+            gameCategory: 'ton',
             supercellGame: null
         };
     } else if (purchaseType === 'game') {
@@ -2499,9 +2220,6 @@ function showPaymentMethodSelection(purchaseType) {
         }
     }
     
-    if (typeof window.fetchTonToRubRateFromApi === 'function') {
-        window.fetchTonToRubRateFromApi();
-    }
     const popup = document.getElementById('paymentMethodPopup');
     if (popup) {
         popup.classList.add('active');
@@ -2520,11 +2238,6 @@ function closePaymentMethodPopup() {
         // Возвращаем в окно Steam пополнения
         if (typeof showSteamTopup === 'function') {
             showSteamTopup();
-        }
-    } else if (previousView.type === 'ton') {
-        // Возвращаем в главное меню (покупка TON уже начата, данные в currentPurchase)
-        if (typeof showMainMenuView === 'function') {
-            showMainMenuView();
         }
     } else if (previousView.type === 'store') {
         // Возвращаем в окно магазина (звезды или премиум)
@@ -2574,88 +2287,9 @@ function selectPaymentMethod(method, bonusPercent) {
         totalAmount: totalAmount,
         purchase: currentPurchase
     };
-
-    // Persist pending payment per Telegram user (so return from CryptoBot restores UI)
-    try { savePendingPayment(window.paymentData); } catch (e) {}
     
     // Показываем экран ожидания оплаты
     showPaymentWaiting();
-}
-
-// ===========================
-// Pending payment persistence
-// ===========================
-var JET_PENDING_PAYMENT_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
-
-function getJetUserIdForStorage() {
-    try {
-        var tg = window.Telegram && window.Telegram.WebApp;
-        var tgId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id ? String(tg.initDataUnsafe.user.id) : null;
-        if (tgId) return tgId;
-    } catch (e) {}
-    try {
-        if (window.userData && window.userData.id && String(window.userData.id) !== 'test_user_default') return String(window.userData.id);
-    } catch (e) {}
-    try {
-        var db = window.Database;
-        if (db && typeof db.getFixedUserId === 'function') return String(db.getFixedUserId());
-    } catch (e) {}
-    return 'test_user_default';
-}
-
-function getPendingPaymentStorageKey() {
-    return 'jetstore_pending_payment_' + getJetUserIdForStorage();
-}
-
-function savePendingPayment(data) {
-    if (!data || typeof data !== 'object') return;
-    var payload = {
-        method: data.method,
-        bonusPercent: data.bonusPercent,
-        baseAmount: data.baseAmount,
-        commission: data.commission,
-        totalAmount: data.totalAmount,
-        purchase: data.purchase || null,
-        invoice_id: data.invoice_id || null,
-        order_id: data.order_id || null,
-        payment_url: data.payment_url || null,
-        pay_url: data.pay_url || null,
-        createdAt: Date.now()
-    };
-    localStorage.setItem(getPendingPaymentStorageKey(), JSON.stringify(payload));
-}
-
-function loadPendingPayment() {
-    try {
-        var raw = localStorage.getItem(getPendingPaymentStorageKey());
-        if (!raw) return null;
-        var data = JSON.parse(raw);
-        if (!data || typeof data !== 'object') return null;
-        if (!data.method || !data.purchase) return null;
-        if (data.createdAt && (Date.now() - data.createdAt) > JET_PENDING_PAYMENT_TTL_MS) return null;
-        return data;
-    } catch (e) { return null; }
-}
-
-function clearPendingPayment() {
-    try { localStorage.removeItem(getPendingPaymentStorageKey()); } catch (e) {}
-}
-
-function restorePendingPaymentToUI(reason) {
-    var pending = loadPendingPayment();
-    if (!pending) return false;
-    // If we already have a paymentData in memory, don't override unless it's empty
-    if (!window.paymentData || !window.paymentData.method) {
-        window.paymentData = pending;
-    } else {
-        // keep latest ids/urls
-        window.paymentData.invoice_id = window.paymentData.invoice_id || pending.invoice_id;
-        window.paymentData.order_id = window.paymentData.order_id || pending.order_id;
-        window.paymentData.payment_url = window.paymentData.payment_url || pending.payment_url || pending.pay_url;
-    }
-    // Show popup again
-    try { showPaymentWaiting(); } catch (e) {}
-    return true;
 }
 
 // Показать экран ожидания оплаты
@@ -2680,66 +2314,23 @@ function showPaymentWaiting() {
         primaryBtn.textContent = 'Перейти на страницу оплаты';
     }
 
-    // По умолчанию скрываем строку курса
-    const steamRateRow = document.getElementById('paymentDetailSteamRateRow');
-    if (steamRateRow) {
-        steamRateRow.style.display = 'none';
-    }
-
     // Обновляем данные на экране
     const steamCur = data.purchase?.currency || 'RUB';
     const steamSymbols = { RUB: '₽', KZT: '₸', UAH: '₴' };
     const curSym = steamSymbols[steamCur] || '₽';
 
     if (data.purchase?.type === 'steam') {
-        var steamTopupAmount = data.purchase.steam_amount || data.baseAmount || 0; // сколько придёт на Steam
         document.getElementById('paymentWaitingDescription').textContent =
-            `Пополнение Steam для ${data.purchase.login} на ${steamTopupAmount.toLocaleString('ru-RU')} ${curSym}`;
-        document.getElementById('paymentDetailAmount').textContent = `${steamTopupAmount.toLocaleString('ru-RU')} ${curSym}`;
-
-        // Показываем курс пополнения, если он есть
-        if (steamRateRow) {
-            const rateValueEl = document.getElementById('paymentDetailSteamRate');
-            const rate = data.purchase.steam_rate || (typeof getSteamTopupRate === 'function' ? getSteamTopupRate(data.purchase?.currency || 'RUB') : 1);
-            if (rateValueEl && rate && !isNaN(rate)) {
-                // Курс пополнения отображаем только в рублях
-                rateValueEl.textContent = `${rate.toFixed(2)} ₽ за 1 единицу пополнения на Steam`;
-                steamRateRow.style.display = 'flex';
-            }
-        }
-    } else if (data.method === 'cryptobot' && (data.purchase?.type === 'stars' || data.purchase?.type === 'premium')) {
-        var totRub = data.totalAmount || data.baseAmount || 0;
-        var usdtRt = (typeof getUsdtRate === 'function' ? getUsdtRate() : 80) || 80;
-        var usdtAmt = totRub > 0 ? Math.max(0.1, Math.round(totRub / usdtRt * 100) / 100) : 0;
-        document.getElementById('paymentWaitingDescription').textContent =
-            `Оплатите ${usdtAmt.toFixed(2)} USDT (~${data.totalAmount.toLocaleString('ru-RU')} ₽) через CryptoBot`;
-        document.getElementById('paymentDetailAmount').textContent = `${usdtAmt.toFixed(2)} USDT`;
-    } else if (data.purchase?.type === 'ton') {
-        var tonAmt = parseFloat(data.purchase.ton_amount || 0) || 0;
-        var net = (data.purchase.network || '').toString().trim();
-        var w = (data.purchase.wallet || '').toString().trim();
-        var wShort = w ? (w.length > 18 ? (w.slice(0, 10) + '…' + w.slice(-6)) : w) : '';
-        document.getElementById('paymentWaitingDescription').textContent =
-            `Покупка ${tonAmt.toLocaleString('ru-RU')} TON (${net || 'сеть не выбрана'}) на кошелёк ${wShort || '—'}`;
-        document.getElementById('paymentDetailAmount').textContent = `${tonAmt.toLocaleString('ru-RU')} TON`;
+            `Пополнение Steam для ${data.purchase.login} на ${data.baseAmount.toLocaleString('ru-RU')} ${curSym}`;
+        document.getElementById('paymentDetailAmount').textContent = `${data.baseAmount.toLocaleString('ru-RU')} ${curSym}`;
     } else {
         document.getElementById('paymentWaitingDescription').textContent =
             `Оплатите ${data.totalAmount.toLocaleString('ru-RU')} ₽ через ${methodNames[data.method]} (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)`;
         document.getElementById('paymentDetailAmount').textContent = `${data.baseAmount.toLocaleString('ru-RU')} ₽`;
     }
     document.getElementById('paymentDetailCommissionLabel').textContent = `Комиссия (${data.bonusPercent}%)`;
-    // Комиссию всегда показываем в рублях
-    document.getElementById('paymentDetailCommission').textContent = `+${data.commission.toLocaleString('ru-RU')} ₽`;
-    var totEl = document.getElementById('paymentDetailTotal');
-    if (data.method === 'cryptobot' && (data.purchase?.type === 'stars' || data.purchase?.type === 'premium') && totEl) {
-        var tr = data.totalAmount || data.baseAmount || 0;
-        var ur = (typeof getUsdtRate === 'function' ? getUsdtRate() : 80) || 80;
-        var ua = tr > 0 ? Math.max(0.1, Math.round(tr / ur * 100) / 100) : 0;
-        totEl.textContent = ua > 0 ? ua.toFixed(2) + ' USDT' : (data.totalAmount.toLocaleString('ru-RU') + ' ₽');
-    } else if (totEl) {
-        // Итог к оплате всегда показываем в рублях
-        totEl.textContent = `${data.totalAmount.toLocaleString('ru-RU')} ₽`;
-    }
+    document.getElementById('paymentDetailCommission').textContent = `+${data.commission.toLocaleString('ru-RU')} ${data.purchase?.type === 'steam' ? curSym : '₽'}`;
+    document.getElementById('paymentDetailTotal').textContent = `${data.totalAmount.toLocaleString('ru-RU')} ${data.purchase?.type === 'steam' ? curSym : '₽'}`;
     document.getElementById('paymentDetailMethod').textContent = `${methodNames[data.method]} (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)`;
     
     popup.classList.add('active');
@@ -2753,8 +2344,6 @@ function closePaymentWaiting() {
     }
     window.paymentData = null;
     currentPurchase = { type: null, amount: 0, login: null, productId: null, productName: null };
-    // Clear pending payment for this user when user closes/finishes flow
-    try { clearPendingPayment(); } catch (e) {}
 }
 
 // Подтвердить оплату: проверка платёжки, при успехе — выдача товара (Steam = DonateHub, звёзды/премиум — позже)
@@ -2837,30 +2426,7 @@ function confirmPayment() {
         });
 }
 
-// Уведомление бэкенда о покупке для реферальной программы
-function notifyReferralPurchase(totalRub) {
-    try {
-        var amount = parseFloat(totalRub);
-        if (!amount || amount <= 0) return;
-        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-        if (!apiBase) return;
-        var tg = window.Telegram && window.Telegram.WebApp;
-        var u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
-        if (!u || !u.id) return;
-        fetch(apiBase.replace(/\/$/, '') + '/api/referral/purchase', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: String(u.id),
-                amount_rub: amount
-            })
-        }).catch(function() {});
-    } catch (e) {
-        // тихо игнорируем
-    }
-}
-
-// Выдача товара после подтверждённой оплаты (Steam = DonateHub, звёзды/премиум = Fragment.com, TON)
+// Выдача товара после подтверждённой оплаты (Steam = DonateHub, звёзды/премиум = Fragment.com)
 function runDeliveryAfterPayment(data, checkResponse) {
     var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var statusEl = document.getElementById('paymentDetailStatus');
@@ -2878,7 +2444,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 account: data.purchase.login,
-                amount: data.purchase.steam_amount || data.baseAmount,
+                amount: data.baseAmount,
                 currency: data.purchase.currency || 'RUB'
             })
         })
@@ -2890,17 +2456,6 @@ function runDeliveryAfterPayment(data, checkResponse) {
                     return;
                 }
                 if (typeof showStoreNotification === 'function') showStoreNotification('✅ Заказ Steam создан. Пополнение в процессе.', 'success');
-                try {
-                    addPurchaseHistoryEntry({
-                        type: 'steam',
-                        productName: 'Пополнение Steam',
-                        price: data.baseAmount || 0,
-                        steamLogin: data.purchase.login || '',
-                        currency: data.purchase.currency || 'RUB'
-                    });
-                    // Реферальное начисление от покупки
-                    notifyReferralPurchase(data.baseAmount || 0);
-                } catch (e) {}
                 closePaymentWaiting();
                 if (typeof closeSteamTopup === 'function') closeSteamTopup();
             })
@@ -2910,7 +2465,14 @@ function runDeliveryAfterPayment(data, checkResponse) {
         return;
     }
 
-    // Fragment (ezstar): после оплаты CryptoBot вызываем deliver-stars — бот отправляет TON с кошелька, звёзды приходят получателю
+    // Fragment: заказ уже создан и оплачен (order_id из вебхука) — выдача уже выполнена Fragment
+    if (data.order_id && data.purchase && (data.purchase.type === 'stars' || data.purchase.type === 'premium')) {
+        if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+        closePaymentWaiting();
+        return;
+    }
+
+    // Fragment.com: выдача звёзд через iStar API (оплата TonKeeper)
     if (data.purchase && data.purchase.type === 'stars') {
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
         var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
@@ -2919,8 +2481,8 @@ function runDeliveryAfterPayment(data, checkResponse) {
             if (statusEl) statusEl.textContent = 'Ожидание...';
             return;
         }
-        if (statusEl) statusEl.textContent = 'Отправка звёзд...';
-        fetch(apiBase.replace(/\/$/, '') + '/api/fragment/deliver-stars', {
+        if (statusEl) statusEl.textContent = 'Выдача звёзд...';
+        fetch(apiBase + '/api/fragment/deliver-stars', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ stars_amount: starsAmount, recipient: recipient })
@@ -2929,28 +2491,16 @@ function runDeliveryAfterPayment(data, checkResponse) {
             .then(function(res) {
                 if (res.success) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
-                    try {
-                        var totalRub = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
-                        addPurchaseHistoryEntry({
-                            type: 'stars',
-                            productName: 'Звёзды Telegram',
-                            price: totalRub,
-                            starsAmount: starsAmount,
-                            recipient: recipient,
-                            method: data.method || ''
-                        });
-                        notifyReferralPurchase(totalRub);
-                    } catch (e) {}
                     closePaymentWaiting();
                 } else {
                     if (typeof showStoreNotification === 'function') {
-                        showStoreNotification(res.message || 'Ошибка выдачи звёзд.', 'error');
+                        showStoreNotification(res.message || 'Ошибка выдачи товара.', 'error');
                     }
                     if (statusEl) statusEl.textContent = 'Ожидание...';
                 }
             })
             .catch(function() {
-                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка выдачи звёзд.', 'error');
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка выдачи товара.', 'error');
                 if (statusEl) statusEl.textContent = 'Ожидание...';
             });
         return;
@@ -2976,18 +2526,6 @@ function runDeliveryAfterPayment(data, checkResponse) {
             .then(function(res) {
                 if (res.success) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
-                    try {
-                        var totalRub = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
-                        addPurchaseHistoryEntry({
-                            type: 'premium',
-                            productName: 'Premium Telegram',
-                            price: totalRub,
-                            months: months,
-                            recipient: recipient,
-                            method: data.method || ''
-                        });
-                        notifyReferralPurchase(totalRub);
-                    } catch (e) {}
                     closePaymentWaiting();
                 } else {
                     if (typeof showStoreNotification === 'function') {
@@ -2998,67 +2536,6 @@ function runDeliveryAfterPayment(data, checkResponse) {
             })
             .catch(function() {
                 if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка выдачи товара.', 'error');
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-            });
-        return;
-    }
-
-    // Покупка TON как отдельного товара
-    if (data.purchase && data.purchase.type === 'ton') {
-        // После подтверждения оплаты отправляем заявку в рабочую группу
-        var buyer = null;
-        try {
-            var tg = window.Telegram && window.Telegram.WebApp;
-            var u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
-            if (u) {
-                buyer = {
-                    id: u.id != null ? String(u.id) : null,
-                    username: u.username || null,
-                    first_name: u.first_name || null,
-                    last_name: u.last_name || null
-                };
-            }
-        } catch (e) {}
-        var payload = {
-            purchase: data.purchase || {},
-            method: data.method || '',
-            total_rub: parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0,
-            base_rub: parseFloat(data.baseAmount) || 0,
-            invoice_id: data.invoice_id || null,
-            order_id: data.order_id || null,
-            buyer: buyer
-        };
-        if (statusEl) statusEl.textContent = 'Отправляем заявку...';
-        fetch(apiBase.replace(/\/$/, '') + '/api/ton/notify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-            .then(function(r) { return r.json().catch(function() { return {}; }); })
-            .then(function(res) {
-                if (res && res.success) {
-                    try {
-                        var totalRubTon = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
-                        addPurchaseHistoryEntry({
-                            type: 'ton',
-                            productName: 'Покупка TON',
-                            price: totalRubTon,
-                            tonAmount: data.purchase.ton_amount || 0,
-                            wallet: data.purchase.wallet || '',
-                            network: data.purchase.network || '',
-                            method: data.method || ''
-                        });
-                        notifyReferralPurchase(totalRubTon);
-                    } catch (e) {}
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Заявка отправлена. Ожидайте обработки.', 'success');
-                    closePaymentWaiting();
-                } else {
-                    if (typeof showStoreNotification === 'function') showStoreNotification((res && res.message) || 'Не удалось отправить заявку. Попробуйте ещё раз.', 'error');
-                    if (statusEl) statusEl.textContent = 'Ожидание...';
-                }
-            })
-            .catch(function() {
-                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка связи при отправке заявки. Попробуйте ещё раз.', 'error');
                 if (statusEl) statusEl.textContent = 'Ожидание...';
             });
         return;
@@ -3076,106 +2553,6 @@ function openPaymentPage() {
     const statusEl = document.getElementById('paymentDetailStatus');
     const primaryBtn = document.getElementById('paymentWaitingPrimaryBtn');
 
-    // CryptoBot: счёт в USDT — проверяем ПЕРВЫМ, иначе звёзды/премиум идут в Fragment
-    if (data.method === 'cryptobot') {
-        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-        if (!apiBase) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js (JET_BOT_API_URL).', 'error');
-            return;
-        }
-        if (statusEl) statusEl.textContent = 'Создаём счёт CryptoBot...';
-        if (primaryBtn) primaryBtn.disabled = true;
-        var desc = 'Оплата в JET Store';
-        if (data.purchase) {
-            if (data.purchase.type === 'stars') desc = 'Звёзды Telegram — ' + (data.purchase.stars_amount || data.baseAmount || 0) + ' шт.';
-            else if (data.purchase.type === 'premium') desc = 'Premium Telegram — ' + (data.purchase.months || 3) + ' мес.';
-        }
-        var amountUsdt;
-        var totalRub = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || (data.purchase && parseFloat(data.purchase.amount)) || (data.purchase && parseFloat(data.purchase.price)) || 0;
-        if (totalRub > 0) {
-            var usdtRate = (typeof getUsdtRate === 'function' ? getUsdtRate() : 80) || 80;
-            amountUsdt = Math.max(0.1, Math.round(totalRub / usdtRate * 100) / 100);
-        } else {
-            amountUsdt = parseFloat(localStorage.getItem('jetstore_cryptobot_usdt_amount')) || 
-                (window.JET_CRYPTOBOT_USDT_AMOUNT != null ? parseFloat(window.JET_CRYPTOBOT_USDT_AMOUNT) : null) || 1;
-            if (amountUsdt < 0.1) amountUsdt = 1;
-        }
-        var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
-        fetch(createUrl, {
-            method: 'POST',
-            mode: 'cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount_usdt: amountUsdt,
-                description: desc,
-                payload: JSON.stringify({
-                    purchase: data.purchase,
-                    userId: (window.userData && window.userData.id) || 'unknown',
-                    timestamp: Date.now()
-                })
-            })
-        })
-            .then(function(r) {
-                return r.json().catch(function() { return { error: 'parse_error', message: 'Ответ сервера не JSON. Status: ' + r.status }; }).then(function(json) {
-                    return { ok: r.ok, status: r.status, json: json };
-                });
-            })
-            .then(function(result) {
-                var res = result.json || {};
-                if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (!result.ok && res.error === undefined) {
-                    res.message = res.message || 'Сервер вернул ошибку ' + result.status;
-                }
-                if (res.success && (res.payment_url || res.pay_url)) {
-                    window.paymentData = window.paymentData || {};
-                    window.paymentData.invoice_id = res.invoice_id;
-                    window.paymentData.payment_url = res.payment_url || res.pay_url;
-                    try { savePendingPayment(window.paymentData); } catch (e) {}
-                    var payUrl = (res.payment_url || res.pay_url || '').trim();
-                    if (!payUrl) {
-                        if (typeof showStoreNotification === 'function') showStoreNotification('Ссылка на оплату не получена от CryptoBot', 'error');
-                        return;
-                    }
-                    var tg = window.Telegram && window.Telegram.WebApp;
-                    if (tg && tg.openLink) {
-                        try { tg.openLink(payUrl); } catch (e) { console.warn('openLink failed:', e); window.open(payUrl, '_blank'); }
-                    } else if (tg && tg.openTelegramLink) {
-                        try { tg.openTelegramLink(payUrl); } catch (e) { console.warn('openTelegramLink failed:', e); window.open(payUrl, '_blank'); }
-                    } else {
-                        window.open(payUrl, '_blank');
-                    }
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Откройте оплату в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
-                    if (statusEl) {
-                        statusEl.innerHTML = 'Счёт создан. <a href="#" id="cryptobotOpenLink" style="color:#00d4ff;text-decoration:underline;">Открыть оплату</a>';
-                        var linkEl = document.getElementById('cryptobotOpenLink');
-                        if (linkEl) {
-                            linkEl.onclick = function(e) {
-                                e.preventDefault();
-                                var t = window.Telegram && window.Telegram.WebApp;
-                                if (t && t.openLink) t.openLink(payUrl);
-                                else window.open(payUrl, '_blank');
-                            };
-                        }
-                    }
-                } else {
-                    var errMsg = res.message || res.error || 'Ошибка создания счёта CryptoBot';
-                    if (res.details && typeof res.details === 'object') {
-                        if (res.details.name) errMsg += ' (' + res.details.name + ')';
-                        else if (typeof res.details === 'string') errMsg += ': ' + res.details;
-                    }
-                    if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
-                }
-            })
-            .catch(function(err) {
-                if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-                var msg = 'Нет связи с API. Проверьте URL бота в config.js. ' + (apiBase || '(URL пуст)');
-                if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
-            });
-        return;
-    }
-
     // Steam: переход на страницу оплаты (пополнение Steam запускается только после успешной оплаты в confirmPayment → runDeliveryAfterPayment)
     if (data.purchase?.type === 'steam') {
         if (typeof showStoreNotification === 'function') {
@@ -3192,81 +2569,7 @@ function openPaymentPage() {
         return;
     }
 
-    // TON (Tonkeeper): оплата сразу через привязанный Tonkeeper, без CryptoBot
-    if (data.method === 'ton') {
-        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-        if (!apiBase) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в настройках.', 'error');
-            return;
-        }
-        var totalRub = parseFloat(data.totalAmount) || parseFloat(data.baseAmount) || 0;
-        if (totalRub <= 0) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Сумма должна быть больше 0.', 'error');
-            return;
-        }
-        if (statusEl) statusEl.textContent = 'Создаём заказ...';
-        if (primaryBtn) primaryBtn.disabled = true;
-        fetch(apiBase.replace(/\/$/, '') + '/api/ton/create-order', {
-            method: 'POST',
-            mode: 'cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount_rub: totalRub,
-                purchase: data.purchase || {},
-                user_id: (window.userData && window.userData.id) ? String(window.userData.id) : (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.id ? String(window.Telegram.WebApp.initDataUnsafe.user.id) : 'unknown')
-            })
-        })
-            .then(function(r) { return r.json().catch(function() { return {}; }); })
-            .then(function(res) {
-                if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (!res.success || !res.order_id || !res.payment_address || res.amount_nanoton == null) {
-                    if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа TON.', 'error');
-                    return;
-                }
-                var orderId = res.order_id;
-                var address = (res.payment_address || '').toString().trim();
-                if (!address) {
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Адрес приёма TON не задан на сервере (TON_PAYMENT_ADDRESS).', 'error');
-                    return;
-                }
-                var amountNanoton = res.amount_nanoton;
-                window.paymentData = window.paymentData || {};
-                window.paymentData.order_id = orderId;
-                try { savePendingPayment(window.paymentData); } catch (e) {}
-                // Формируем HTTPS‑deeplink для Tonkeeper (WebApp принимает только http/https)
-                // Tonkeeper сам перехватит https://app.tonkeeper.com/transfer/... и откроется.
-                var link = 'https://app.tonkeeper.com/transfer/' + encodeURIComponent(address) +
-                    '?amount=' + encodeURIComponent(String(amountNanoton)) +
-                    '&text=' + encodeURIComponent(orderId);
-                var tg = window.Telegram && window.Telegram.WebApp;
-                try {
-                    // Для внешних ссылок (Tonkeeper) используем только openLink или fallback window.open.
-                    if (tg && typeof tg.openLink === 'function') {
-                        tg.openLink(link);
-                    } else {
-                        window.open(link, '_blank');
-                    }
-                    if (typeof showStoreNotification === 'function') {
-                        showStoreNotification('Откройте Tonkeeper, подтвердите перевод, затем нажмите «Подтвердить оплату».', 'info');
-                    }
-                    if (statusEl) statusEl.textContent = 'Ожидание перевода в Tonkeeper...';
-                } catch (err) {
-                    if (typeof showStoreNotification === 'function') {
-                        showStoreNotification('Не удалось открыть Tonkeeper: ' + (err && err.message ? err.message : ''), 'error');
-                    }
-                    if (statusEl) statusEl.textContent = 'Ожидание...';
-                }
-            })
-            .catch(function() {
-                if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка связи с сервером.', 'error');
-            });
-        return;
-    }
-
-    // Звёзды: Fragment.com (только при выборе CryptoBot — при TON оплата уже выше через Tonkeeper)
+    // Звёзды: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
     if (data.purchase?.type === 'stars') {
         var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
@@ -3286,19 +2589,16 @@ function openPaymentPage() {
             .then(function(res) {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
-                if (res.success && (res.order_id != null || res.mode === 'wallet')) {
+                if (res.success && res.order_id) {
                     window.paymentData = window.paymentData || {};
                     window.paymentData.order_id = res.order_id;
-                    window.paymentData.payment_url = res.payment_url || null;
-                    try { savePendingPayment(window.paymentData); } catch (e) {}
+                    if (res.payment_url) window.paymentData.payment_url = res.payment_url;
                     var payUrl = res.payment_url || res.pay_url || data.payment_url || data.pay_url;
                     if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
                         if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
                         else window.open(payUrl, '_blank');
                     } else {
-                        if (typeof showStoreNotification === 'function') {
-                            showStoreNotification(res.message || 'Оплатите через CryptoBot; после оплаты нажмите «Подтвердить оплату» — звёзды будут отправлены.', 'info');
-                        }
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment, затем нажмите «Подтвердить оплату».', 'info');
                     }
                 } else {
                     if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа.', 'error');
@@ -3337,7 +2637,6 @@ function openPaymentPage() {
                     window.paymentData = window.paymentData || {};
                     window.paymentData.order_id = res.order_id;
                     if (res.payment_url) window.paymentData.payment_url = res.payment_url;
-                    try { savePendingPayment(window.paymentData); } catch (e) {}
                     var payUrl = res.payment_url || res.pay_url || data.payment_url || data.pay_url;
                     if (payUrl && (window.Telegram?.WebApp?.openLink || window.open)) {
                         if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
@@ -3357,10 +2656,108 @@ function openPaymentPage() {
         return;
     }
     
-    if (data.method === 'sbp') {
+    if (data.method === 'cryptobot') {
+        var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (!apiBase) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js (JET_BOT_API_URL).', 'error');
+            return;
+        }
+        if (statusEl) statusEl.textContent = 'Создаём счёт CryptoBot...';
+        if (primaryBtn) primaryBtn.disabled = true;
+        var desc = 'Оплата в JET Store';
+        if (data.purchase) {
+            if (data.purchase.type === 'stars') desc = 'Звёзды Telegram — ' + (data.purchase.stars_amount || data.baseAmount || 0) + ' шт.';
+            else if (data.purchase.type === 'premium') desc = 'Premium Telegram — ' + (data.purchase.months || 3) + ' мес.';
+        }
+        var amountRub = data.totalAmount || data.baseAmount || (data.purchase && data.purchase.amount) || 0;
+        if (!amountRub || amountRub < 1) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('Сумма должна быть не менее 1 ₽', 'error');
+            return;
+        }
+        var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
+        fetch(createUrl, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: amountRub,
+                description: desc,
+                payload: JSON.stringify({
+                    purchase: data.purchase,
+                    userId: (window.userData && window.userData.id) || 'unknown',
+                    timestamp: Date.now()
+                })
+            })
+        })
+            .then(function(r) {
+                return r.json().catch(function() { return { error: 'parse_error', message: 'Ответ сервера не JSON. Status: ' + r.status }; }).then(function(json) {
+                    return { ok: r.ok, status: r.status, json: json };
+                });
+            })
+            .then(function(result) {
+                var res = result.json || {};
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                if (!result.ok && res.error === undefined) {
+                    res.message = res.message || 'Сервер вернул ошибку ' + result.status;
+                }
+                if (res.success && (res.payment_url || res.pay_url)) {
+                    window.paymentData = window.paymentData || {};
+                    window.paymentData.invoice_id = res.invoice_id;
+                    window.paymentData.payment_url = res.payment_url || res.pay_url;
+                    var payUrl = (res.payment_url || res.pay_url || '').trim();
+                    if (!payUrl) {
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Ссылка на оплату не получена от CryptoBot', 'error');
+                        return;
+                    }
+                    var tg = window.Telegram && window.Telegram.WebApp;
+                    if (tg && tg.openLink) {
+                        try { tg.openLink(payUrl); } catch (e) { console.warn('openLink failed:', e); window.open(payUrl, '_blank'); }
+                    } else if (tg && tg.openTelegramLink) {
+                        try { tg.openTelegramLink(payUrl); } catch (e) { console.warn('openTelegramLink failed:', e); window.open(payUrl, '_blank'); }
+                    } else {
+                        window.open(payUrl, '_blank');
+                    }
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Откройте оплату в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
+                    if (statusEl) {
+                        statusEl.innerHTML = 'Счёт создан. <a href="#" id="cryptobotOpenLink" style="color:#00d4ff;text-decoration:underline;">Открыть оплату</a>';
+                        var linkEl = document.getElementById('cryptobotOpenLink');
+                        if (linkEl) {
+                            linkEl.onclick = function(e) {
+                                e.preventDefault();
+                                var t = window.Telegram && window.Telegram.WebApp;
+                                if (t && t.openLink) t.openLink(payUrl);
+                                else window.open(payUrl, '_blank');
+                            };
+                        }
+                    }
+                } else {
+                    var errMsg = res.message || res.error || 'Ошибка создания счёта CryptoBot';
+                    if (res.details && typeof res.details === 'object') {
+                        if (res.details.name) errMsg += ' (' + res.details.name + ')';
+                        else if (typeof res.details === 'string') errMsg += ': ' + res.details;
+                    }
+                    console.error('CryptoBot create-invoice error:', res, 'URL:', createUrl);
+                    if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
+                }
+            })
+            .catch(function(err) {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание...';
+                var msg = 'Нет связи с API. Проверьте: 1) URL бота в config.js 2) Бот запущен на Railway. ' + (apiBase || '(URL пуст)');
+                console.error('CryptoBot fetch error:', err, 'apiBase:', apiBase);
+                if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
+            });
+        return;
+    } else if (data.method === 'sbp') {
+        // Здесь будет логика для СБП
         showStoreNotification('Открываем страницу оплаты СБП...', 'info');
     } else if (data.method === 'card') {
+        // Здесь будет логика для карты
         showStoreNotification('Открываем страницу оплаты картой...', 'info');
+    } else if (data.method === 'ton') {
+        // Здесь будет логика для TON Wallet
+        showStoreNotification('Открываем TON Wallet...', 'info');
     }
 }
 
@@ -3390,14 +2787,7 @@ window.showSteamTopup = showSteamTopup;
 window.closeSteamTopup = closeSteamTopup;
 window.clearSteamInput = clearSteamInput;
 window.setSteamAmount = setSteamAmount;
-window.processSteamPayment = function processSteamPayment() {
-    if (typeof showStoreNotification === 'function') {
-        showStoreNotification('Выберите способ оплаты и нажмите «Оплатить»', 'info');
-    }
-    if (typeof showPaymentMethodSelection === 'function') {
-        showPaymentMethodSelection('steam');
-    }
-};
+window.processSteamPayment = processSteamPayment;
 window.openSteamLoginHelpModal = openSteamLoginHelpModal;
 window.closeSteamLoginHelpModal = closeSteamLoginHelpModal;
 window.showAssetsView = showAssetsView;
