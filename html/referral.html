@@ -778,10 +778,66 @@
             document.getElementById('referralTotalEarnings').textContent = `${totalEarnings} ₽`;
             
             // Реферальная ссылка
-            const userId = userData.id || '000000';
-            const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
-            const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
-            document.getElementById('referralLinkText').textContent = referralLink;
+            let userId = null;
+            // 1) Пытаемся взять ID из Telegram WebApp
+            try {
+                const tg = window.Telegram && window.Telegram.WebApp;
+                const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+                if (u && u.id) {
+                    userId = String(u.id);
+                    userData.id = userId;
+                }
+            } catch (e) {}
+
+            // 2) Если нет — берём из userData/localStorage
+            if (!userId && userData.id) {
+                userId = String(userData.id);
+            }
+            if (!userId) {
+                try {
+                    const savedUserRaw = localStorage.getItem('jetstore_user_data');
+                    if (savedUserRaw) {
+                        const savedUser = JSON.parse(savedUserRaw);
+                        if (savedUser && savedUser.id) {
+                            userId = String(savedUser.id);
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            const linkEl = document.getElementById('referralLinkText');
+
+            // 3) Если так и не нашли ID
+            if (!userId) {
+                if (linkEl) {
+                    linkEl.textContent = 'Откройте мини‑приложение из бота, чтобы получить свою реферальную ссылку.';
+                }
+            } else {
+                const apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+                // Если есть API, просим бекенд сгенерировать ссылку (единая логика для всего проекта)
+                if (apiBase && /^https?:\/\//i.test(apiBase)) {
+                    fetch(apiBase.replace(/\/$/, '') + '/api/referral/link?user_id=' + encodeURIComponent(userId))
+                        .then(r => r.json())
+                        .then(data => {
+                            if (!linkEl) return;
+                            if (data && data.url) {
+                                linkEl.textContent = data.url;
+                            } else {
+                                const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
+                                linkEl.textContent = `https://t.me/${botUsername}?start=ref_${userId}`;
+                            }
+                        })
+                        .catch(function() {
+                            if (!linkEl) return;
+                            const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
+                            linkEl.textContent = `https://t.me/${botUsername}?start=ref_${userId}`;
+                        });
+                } else if (linkEl) {
+                    // Фолбэк: простая t.me ссылка без обращения к API
+                    const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
+                    linkEl.textContent = `https://t.me/${botUsername}?start=ref_${userId}`;
+                }
+            }
             
             // Обновляем счетчик друзей во вкладке
             const friendsTab = document.querySelector('.referral-tab[onclick*="friends"]');
