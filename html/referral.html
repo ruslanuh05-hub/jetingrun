@@ -50,7 +50,7 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
+        
         .referral-back-btn:hover {
             background: rgba(0, 212, 255, 0.15);
             border-color: rgba(0, 212, 255, 0.3);
@@ -358,7 +358,7 @@
         .referral-progress-text .diamond {
             color: #00d4ff;
         }
-
+        
         /* TON icon */
         .ton-icon {
             width: 22px;
@@ -520,7 +520,7 @@
         
         .withdraw-submit-btn {
             width: 100%;
-            padding: 16px;
+                padding: 16px;
             background: #00d4ff;
             color: #000000;
             border: none;
@@ -567,7 +567,7 @@
         
         .profile-nav-btn {
             display: flex;
-            flex-direction: column;
+                flex-direction: column;
             align-items: center;
             gap: 6px;
             background: none;
@@ -629,22 +629,22 @@
             </div>
             <div class="referral-intro-title">
                 ПРИГЛАШАЙТЕ ДРУЗЕЙ И ЗАРАБАТЫВАЙТЕ TON
-            </div>
+        </div>
             <div class="referral-intro-banner" style="margin-bottom: 0;">
                 <div class="referral-intro-icon">
-                    <i class="fas fa-star"></i>
-                </div>
+                        <i class="fas fa-star"></i>
+                    </div>
                 <div>
                     <div class="referral-intro-text-main">
                         Получите больше преимуществ
                     </div>
                     <div class="referral-intro-text-sub">
                         Зарабатывайте до 25% JetRefs с покупок друзей. Больше объём&nbsp;— выше уровень и доход.
-                    </div>
+                </div>
                 </div>
             </div>
         </div>
-
+        
         <!-- Bubble 2: JetRefs -->
         <div class="referral-bubble">
             <div class="referral-card">
@@ -677,9 +677,9 @@
                     <div class="referral-earnings-row" style="padding-top: 4px; border-top: none;">
                         <span class="referral-earnings-label" style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.5);">≈</span>
                         <span class="referral-earnings-value" id="refEarnRubInTon" style="font-size: 0.9rem; color: rgba(0, 212, 255, 0.8); font-weight: 500;">0 ₽</span>
-                    </div>
-                </div>
-
+            </div>
+        </div>
+        
                 <!-- Metrics: Referrals -->
                 <div class="referral-metrics">
                     <div class="referral-metric">
@@ -688,47 +688,47 @@
                         </div>
                         <div class="referral-metric-label">Рефералы</div>
                         <div class="referral-metric-value" id="refTotalRefs">0</div>
-                    </div>
-        </div>
-        
+                </div>
+            </div>
+            
                 <!-- Volume Section -->
                 <div class="referral-volume-section">
                     <div class="referral-volume-header">
                         <i class="fas fa-chart-line referral-volume-icon"></i>
                         <span class="referral-volume-label">Объем рефералов</span>
-                    </div>
+                </div>
                     <div class="referral-volume-value">
                         <span id="refVolumeTon">0</span>
                         <i class="fas fa-coins" style="color: #00d4ff; font-size: 1.2rem;"></i>
-                    </div>
-        
+            </div>
+            
                     <!-- Progress Bar -->
                     <div class="referral-progress-bar">
                         <div class="referral-progress-fill" id="refProgressBar" style="width: 0%;"></div>
                         <div class="referral-progress-tick l2"></div>
                         <div class="referral-progress-tick l3"></div>
-                    </div>
+                </div>
         
                     <!-- Progress Text -->
                     <div class="referral-progress-text" id="refProgressText">
                         <span>0</span>
                         <img class="ton-icon small" src="../assets/ton.png" alt="TON">
                         <span>осталось до следующего уровня</span>
-                    </div>
             </div>
-            
+        </div>
+        
                 <!-- Invite Button -->
                 <button class="referral-invite-btn" id="inviteFriendsBtn">
                     Пригласить друзей
                 </button>
-                </div>
-
+        </div>
+        
             <!-- Withdraw Tab -->
             <div id="withdrawTab" class="referral-tab-content">
                 <div class="withdraw-balance-info">
                     <div class="withdraw-balance-label">Доступно к выводу</div>
                     <div class="withdraw-balance-value" id="withdrawBalance">0 ₽</div>
-            </div>
+                </div>
             
                 <form class="withdraw-form" id="withdrawForm" onsubmit="submitWithdraw(event)">
                     <div class="withdraw-form-group">
@@ -742,7 +742,7 @@
                             step="0.01"
                             required
                         >
-        </div>
+            </div>
         
                     <div class="withdraw-form-group">
                         <label class="withdraw-form-label">Способ вывода</label>
@@ -763,7 +763,7 @@
                             placeholder="Введите реквизиты для вывода"
                             required
                         >
-        </div>
+                </div>
         
                     <button type="submit" class="withdraw-submit-btn" id="withdrawSubmitBtn">
                         Вывести средства
