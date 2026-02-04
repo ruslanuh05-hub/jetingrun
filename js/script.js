@@ -2729,38 +2729,43 @@ function openPaymentPage() {
     }
     
     if (data.method === 'cryptobot') {
+        // Ссылки CryptoBot имеют вид https://t.me/CryptoBot?start=... — в Mini App их нужно открывать через openTelegramLink
+        function openPayUrl(url) {
+            if (!url || !url.trim()) return false;
+            var u = url.trim();
+            var tg = window.Telegram && window.Telegram.WebApp;
+            var isTme = /^https:\/\/t\.me\//i.test(u);
+            if (tg && isTme && tg.openTelegramLink) {
+                try {
+                    tg.openTelegramLink(u);
+                    return true;
+                } catch (e) {
+                    console.warn('openTelegramLink failed:', e);
+                }
+            }
+            if (tg && tg.openLink) {
+                try {
+                    tg.openLink(u);
+                    return true;
+                } catch (e) {
+                    console.warn('openLink failed:', e);
+                }
+            }
+            try {
+                window.open(u, '_blank');
+                return true;
+            } catch (e) {
+                console.error('window.open failed:', e);
+                return false;
+            }
+        }
         // Если ссылка на оплату уже есть - просто открываем её
         const existingPayUrl = data.payment_url || data.pay_url;
         if (existingPayUrl) {
-            const tg = window.Telegram && window.Telegram.WebApp;
-            if (tg && tg.openLink) {
-                try {
-                    tg.openLink(existingPayUrl);
-                    if (typeof showStoreNotification === 'function') {
-                        showStoreNotification('Открываем страницу оплаты...', 'info');
-                    }
-                    return;
-                } catch (e) {
-                    console.warn('openLink failed:', e);
-                    window.open(existingPayUrl, '_blank');
-                    return;
-                }
-            } else if (tg && tg.openTelegramLink) {
-                try {
-                    tg.openTelegramLink(existingPayUrl);
-                    if (typeof showStoreNotification === 'function') {
-                        showStoreNotification('Открываем страницу оплаты...', 'info');
-                    }
-                    return;
-                } catch (e) {
-                    console.warn('openTelegramLink failed:', e);
-                    window.open(existingPayUrl, '_blank');
-                    return;
-                }
-            } else {
-                window.open(existingPayUrl, '_blank');
-                return;
+            if (openPayUrl(existingPayUrl) && typeof showStoreNotification === 'function') {
+                showStoreNotification('Открываем страницу оплаты...', 'info');
             }
+            return;
         }
         
         // Если ссылки нет - создаём новый инвойс
@@ -2819,60 +2824,13 @@ function openPaymentPage() {
                         return;
                     }
                     
-                    // Сохраняем ссылку для последующего использования
                     console.log('CryptoBot payment URL:', payUrl);
-                    
-                    // Открываем ссылку автоматически
-                    var tg = window.Telegram && window.Telegram.WebApp;
-                    var opened = false;
-                    if (tg && tg.openLink) {
-                        try { 
-                            tg.openLink(payUrl);
-                            opened = true;
-                            console.log('Opened via Telegram.WebApp.openLink');
-                        } catch (e) { 
-                            console.warn('openLink failed:', e);
-                            try {
-                                window.open(payUrl, '_blank');
-                                opened = true;
-                            } catch (e2) {
-                                console.error('window.open also failed:', e2);
-                            }
-                        }
-                    } else if (tg && tg.openTelegramLink) {
-                        try { 
-                            tg.openTelegramLink(payUrl);
-                            opened = true;
-                            console.log('Opened via Telegram.WebApp.openTelegramLink');
-                        } catch (e) { 
-                            console.warn('openTelegramLink failed:', e);
-                            try {
-                                window.open(payUrl, '_blank');
-                                opened = true;
-                            } catch (e2) {
-                                console.error('window.open also failed:', e2);
-                            }
-                        }
-                    } else {
-                        try {
-                            window.open(payUrl, '_blank');
-                            opened = true;
-                            console.log('Opened via window.open');
-                        } catch (e) {
-                            console.error('window.open failed:', e);
-                        }
+                    var opened = openPayUrl(payUrl);
+                    if (opened && typeof showStoreNotification === 'function') {
+                        showStoreNotification('Открываем страницу оплаты CryptoBot...', 'info');
+                    } else if (!opened && typeof showStoreNotification === 'function') {
+                        showStoreNotification('Не удалось открыть ссылку. Нажмите «Открыть оплату» ниже.', 'error');
                     }
-                    
-                    if (opened) {
-                        if (typeof showStoreNotification === 'function') {
-                            showStoreNotification('Открываем страницу оплаты CryptoBot...', 'info');
-                        }
-                    } else {
-                        if (typeof showStoreNotification === 'function') {
-                            showStoreNotification('Не удалось открыть ссылку. Скопируйте её вручную.', 'error');
-                        }
-                    }
-                    
                     if (statusEl) {
                         statusEl.innerHTML = 'Счёт создан. <a href="#" id="cryptobotOpenLink" style="color:#00d4ff;text-decoration:underline;cursor:pointer;">Открыть оплату</a>';
                         var linkEl = document.getElementById('cryptobotOpenLink');
@@ -2880,25 +2838,7 @@ function openPaymentPage() {
                             linkEl.onclick = function(e) {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                console.log('Manual link click, opening:', payUrl);
-                                var t = window.Telegram && window.Telegram.WebApp;
-                                if (t && t.openLink) {
-                                    try {
-                                        t.openLink(payUrl);
-                                    } catch (err) {
-                                        console.error('Manual openLink failed:', err);
-                                        window.open(payUrl, '_blank');
-                                    }
-                                } else if (t && t.openTelegramLink) {
-                                    try {
-                                        t.openTelegramLink(payUrl);
-                                    } catch (err) {
-                                        console.error('Manual openTelegramLink failed:', err);
-                                        window.open(payUrl, '_blank');
-                                    }
-                                } else {
-                                    window.open(payUrl, '_blank');
-                                }
+                                openPayUrl(payUrl);
                                 return false;
                             };
                         }
