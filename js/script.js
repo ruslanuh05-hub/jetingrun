@@ -2729,6 +2729,41 @@ function openPaymentPage() {
     }
     
     if (data.method === 'cryptobot') {
+        // Если ссылка на оплату уже есть - просто открываем её
+        const existingPayUrl = data.payment_url || data.pay_url;
+        if (existingPayUrl) {
+            const tg = window.Telegram && window.Telegram.WebApp;
+            if (tg && tg.openLink) {
+                try {
+                    tg.openLink(existingPayUrl);
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification('Открываем страницу оплаты...', 'info');
+                    }
+                    return;
+                } catch (e) {
+                    console.warn('openLink failed:', e);
+                    window.open(existingPayUrl, '_blank');
+                    return;
+                }
+            } else if (tg && tg.openTelegramLink) {
+                try {
+                    tg.openTelegramLink(existingPayUrl);
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification('Открываем страницу оплаты...', 'info');
+                    }
+                    return;
+                } catch (e) {
+                    console.warn('openTelegramLink failed:', e);
+                    window.open(existingPayUrl, '_blank');
+                    return;
+                }
+            } else {
+                window.open(existingPayUrl, '_blank');
+                return;
+            }
+        }
+        
+        // Если ссылки нет - создаём новый инвойс
         var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (!apiBase) {
             if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js (JET_BOT_API_URL).', 'error');
