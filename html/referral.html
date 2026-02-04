@@ -859,12 +859,37 @@
         
         function updateReferralLink() {
             try {
-                let savedUser = null;
-                const savedRaw = localStorage.getItem('jetstore_user_data');
-                if (savedRaw) {
-                    savedUser = JSON.parse(savedRaw);
+                let userId = currentUserId;
+
+                // Пытаемся получить стабильный ID через Database (как в профильном модуле)
+                try {
+                    const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
+                    if (!userId && db && typeof db.getFixedUserId === 'function') {
+                        userId = String(db.getFixedUserId() || '');
+                    }
+                } catch (e) {}
+
+                // Фолбэки: userData из памяти / localStorage
+                if (!userId && window.userData && window.userData.id) {
+                    userId = String(window.userData.id);
                 }
-                const userId = currentUserId || (savedUser && savedUser.id) || '000000';
+                if (!userId) {
+                    const savedRaw = localStorage.getItem('jetstore_user_data');
+                    if (savedRaw) {
+                        try {
+                            const savedUser = JSON.parse(savedRaw);
+                            if (savedUser && savedUser.id) {
+                                userId = String(savedUser.id);
+                            }
+                        } catch (e) {}
+                    }
+                }
+
+                // Если так и не нашли — оставляем заглушку, но стараемся всегда иметь реальный ID
+                if (!userId) {
+                    userId = '000000';
+                }
+
                 const botUsername = window.JET_BOT_USERNAME || 'JetStoreApp_bot';
                 const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
                 const el = document.getElementById('referralLinkText');
