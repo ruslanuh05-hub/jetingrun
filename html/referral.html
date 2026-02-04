@@ -802,7 +802,21 @@
             }
             const tg = window.Telegram?.WebApp;
             const u = tg?.initDataUnsafe?.user;
-            currentUserId = u && u.id ? String(u.id) : null;
+            if (u && u.id) {
+                currentUserId = String(u.id);
+                // Синхронизируем ID с локальными данными, чтобы другие страницы тоже его видели
+                try {
+                    if (!window.userData) window.userData = {};
+                    window.userData.id = currentUserId;
+                    const savedRaw = localStorage.getItem('jetstore_user_data') || '{}';
+                    let saved = {};
+                    try { saved = JSON.parse(savedRaw); } catch (e) { saved = {}; }
+                    saved.id = currentUserId;
+                    localStorage.setItem('jetstore_user_data', JSON.stringify(saved));
+                } catch (e) {}
+            } else {
+                currentUserId = null;
+            }
             
             // Загружаем конфиг бота для ссылки
             var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';

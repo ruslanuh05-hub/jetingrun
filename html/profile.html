@@ -491,12 +491,15 @@
         }
         
         .tonkeeper-icon {
-            flex: 0 0 84px;
-            height: 84px;
-            background: radial-gradient(circle at 30% 20%, rgba(0,212,255,0.4), transparent 55%), 
-                        radial-gradient(circle at 80% 80%, rgba(64,224,208,0.35), transparent 55%),
-                        #04040a;
-            border-radius: 16px 0 0 16px;
+            flex: 0 0 72px;
+            height: 72px;
+            margin: 10px 0 10px 12px;
+            background:
+                radial-gradient(circle at 30% 20%, rgba(0,212,255,0.45), transparent 55%),
+                radial-gradient(circle at 80% 80%, rgba(64,224,208,0.35), transparent 55%),
+                #020814;
+            border-radius: 24px;
+            box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.15), 0 10px 25px rgba(0, 0, 0, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -504,8 +507,8 @@
         }
         
         .tonkeeper-icon img {
-            width: 88%;
-            height: 88%;
+            width: 64%;
+            height: 64%;
             object-fit: contain;
         }
         
@@ -2238,7 +2241,7 @@
                 </div>
                 <button type="button" id="tonkeeperConnectBtn" class="btn-tonkeeper" onclick="connectTonkeeper()">
                     <div class="tonkeeper-icon">
-                        <img src="../assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;">
+                        <img src="../assets/tonkeeper-icon.png" alt="TonKeeper">
                     </div>
                     <div class="tonkeeper-text">
                         <span class="tonkeeper-title">Подключить TonKeeper</span>
@@ -2664,7 +2667,7 @@
                     if (link) {
                         var btn = document.getElementById('tonkeeperConnectBtn');
                         if (btn) {
-                            btn.innerHTML = '<div class="tonkeeper-icon"><img src="../assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;"></div><div class="tonkeeper-text"><span class="tonkeeper-title" style="color:#00d4ff;text-decoration:underline;">Открыть Tonkeeper</span><span class="tonkeeper-subtitle">Нажмите если не открылось</span></div><i class="fas fa-chevron-right tonkeeper-arrow"></i>';
+                            btn.innerHTML = '<div class="tonkeeper-icon"><img src="../assets/tonkeeper-icon.png" alt="TonKeeper"></div><div class="tonkeeper-text"><span class="tonkeeper-title" style="color:#00d4ff;text-decoration:underline;">Открыть Tonkeeper</span><span class="tonkeeper-subtitle">Нажмите если не открылось</span></div><i class="fas fa-chevron-right tonkeeper-arrow"></i>';
                             btn.onclick = function() { openTonkeeperLink(link); };
                         }
                     }
@@ -2677,7 +2680,7 @@
                 doOpen(linkToOpen);
                 var btn = document.getElementById('tonkeeperConnectBtn');
                 if (btn) {
-                    btn.innerHTML = '<div class="tonkeeper-icon"><img src="../assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;"></div><div class="tonkeeper-text"><span class="tonkeeper-title" style="color:#00d4ff;text-decoration:underline;">Открыть Tonkeeper</span><span class="tonkeeper-subtitle">Нажмите если не открылось</span></div><i class="fas fa-chevron-right tonkeeper-arrow"></i>';
+                    btn.innerHTML = '<div class="tonkeeper-icon"><img src="../assets/tonkeeper-icon.png" alt="TonKeeper"></div><div class="tonkeeper-text"><span class="tonkeeper-title" style="color:#00d4ff;text-decoration:underline;">Открыть Tonkeeper</span><span class="tonkeeper-subtitle">Нажмите если не открылось</span></div><i class="fas fa-chevron-right tonkeeper-arrow"></i>';
                     btn.onclick = function() { openTonkeeperLink(linkToOpen); };
                 }
             } else {
