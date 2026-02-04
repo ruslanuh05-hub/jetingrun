@@ -453,8 +453,9 @@
         .btn-tonkeeper {
             width: 100%;
             display: flex;
-            align-items: stretch;
-            padding: 0;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 20px;
             background: #0a0a0a;
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
@@ -462,7 +463,6 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            min-height: 90px;
         }
         
         .btn-tonkeeper::before {
@@ -491,35 +491,29 @@
         }
         
         .tonkeeper-icon {
-            flex: 0 0 72px;
-            height: 72px;
-            margin: 10px 0 10px 12px;
-            background:
-                radial-gradient(circle at 30% 20%, rgba(0,212,255,0.45), transparent 55%),
-                radial-gradient(circle at 80% 80%, rgba(64,224,208,0.35), transparent 55%),
-                #020814;
-            border-radius: 24px;
-            box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.15), 0 10px 25px rgba(0, 0, 0, 0.8);
+            width: 44px;
+            height: 44px;
+            background: #0a0a0a;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
             overflow: hidden;
         }
         
         .tonkeeper-icon img {
-            width: 64%;
-            height: 64%;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
         }
         
         .tonkeeper-text {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: flex-start;
             flex-grow: 1;
             min-width: 0;
-            padding: 12px 18px;
         }
         
         .tonkeeper-title {
@@ -543,10 +537,6 @@
         
         .btn-tonkeeper .tonkeeper-arrow {
             color: rgba(255, 255, 255, 0.5);
-            margin-right: 16px;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
         }
         
         /* Блок «подключено»: адрес, баланс, отвязать */
@@ -2241,7 +2231,7 @@
                 </div>
                 <button type="button" id="tonkeeperConnectBtn" class="btn-tonkeeper" onclick="connectTonkeeper()">
                     <div class="tonkeeper-icon">
-                        <img src="../assets/tonkeeper-icon.png" alt="TonKeeper">
+                        <img src="../assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;">
                     </div>
                     <div class="tonkeeper-text">
                         <span class="tonkeeper-title">Подключить TonKeeper</span>
@@ -2667,7 +2657,7 @@
                     if (link) {
                         var btn = document.getElementById('tonkeeperConnectBtn');
                         if (btn) {
-                            btn.innerHTML = '<div class="tonkeeper-icon"><img src="../assets/tonkeeper-icon.png" alt="TonKeeper"></div><div class="tonkeeper-text"><span class="tonkeeper-title" style="color:#00d4ff;text-decoration:underline;">Открыть Tonkeeper</span><span class="tonkeeper-subtitle">Нажмите если не открылось</span></div><i class="fas fa-chevron-right tonkeeper-arrow"></i>';
+                            btn.innerHTML = '<div class="tonkeeper-icon"><img src="../assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;"></div><div class="tonkeeper-text"><span class="tonkeeper-title" style="color:#00d4ff;text-decoration:underline;">Открыть Tonkeeper</span><span class="tonkeeper-subtitle">Нажмите если не открылось</span></div><i class="fas fa-chevron-right tonkeeper-arrow"></i>';
                             btn.onclick = function() { openTonkeeperLink(link); };
                         }
                     }
@@ -2680,7 +2670,7 @@
                 doOpen(linkToOpen);
                 var btn = document.getElementById('tonkeeperConnectBtn');
                 if (btn) {
-                    btn.innerHTML = '<div class="tonkeeper-icon"><img src="../assets/tonkeeper-icon.png" alt="TonKeeper"></div><div class="tonkeeper-text"><span class="tonkeeper-title" style="color:#00d4ff;text-decoration:underline;">Открыть Tonkeeper</span><span class="tonkeeper-subtitle">Нажмите если не открылось</span></div><i class="fas fa-chevron-right tonkeeper-arrow"></i>';
+                    btn.innerHTML = '<div class="tonkeeper-icon"><img src="../assets/tonkeeper-icon.png" alt="TonKeeper" style="border-radius:50%;"></div><div class="tonkeeper-text"><span class="tonkeeper-title" style="color:#00d4ff;text-decoration:underline;">Открыть Tonkeeper</span><span class="tonkeeper-subtitle">Нажмите если не открылось</span></div><i class="fas fa-chevron-right tonkeeper-arrow"></i>';
                     btn.onclick = function() { openTonkeeperLink(linkToOpen); };
                 }
             } else {
@@ -3038,45 +3028,6 @@
             }
         });
         
-        // Общая функция получения ID пользователя для реферальной ссылки
-        function getReferralUserIdForProfile() {
-            // 1) Пытаемся взять ID из Telegram WebApp
-            try {
-                const tg = window.Telegram && window.Telegram.WebApp;
-                const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-                if (u && u.id) {
-                    return String(u.id);
-                }
-            } catch (e) {}
-
-            // 2) ID из userData / window.userData
-            if (userData && userData.id) {
-                return String(userData.id);
-            }
-            if (window.userData && window.userData.id) {
-                return String(window.userData.id);
-            }
-
-            // 3) Из DOM (ID профиля)
-            const elId = document.getElementById('profileUserId')?.textContent;
-            if (elId && elId.trim()) {
-                return elId.trim();
-            }
-
-            // 4) Стабильный локальный ID (не 000000)
-            const localKey = 'jetstore_local_ref_id';
-            try {
-                let localId = localStorage.getItem(localKey);
-                if (!localId) {
-                    localId = 'user_' + Math.floor(Date.now() / 1000);
-                    localStorage.setItem(localKey, localId);
-                }
-                return localId;
-            } catch (e) {
-                return 'user_' + Math.floor(Date.now() / 1000);
-            }
-        }
-
         // Функции для реферальной программы
         function initializeReferralProgram() {
             // Инициализируем реферальные данные, если их нет
@@ -3104,7 +3055,7 @@
             }
             
             // Генерация реферальной ссылки на основе ID пользователя
-            const userId = getReferralUserIdForProfile();
+            const userId = userData.id || document.getElementById('profileUserId')?.textContent || '000000';
             const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
             const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
             const referralLinkElement = document.getElementById('referralLinkText');
@@ -3198,8 +3149,9 @@
         
         // Показать информацию о реферальной программе
         function showReferralInfo() {
+            // Получаем userData из глобального объекта
             const currentUserData = window.userData || {};
-            const userId = getReferralUserIdForProfile();
+            const userId = currentUserData.id || '000000';
             const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
             const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
             const referralsCount = currentUserData.referrals?.count || 0;

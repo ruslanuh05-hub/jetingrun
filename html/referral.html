@@ -575,64 +575,57 @@
         <button class="referral-back-btn" onclick="window.location.href='index.html'">
             <i class="fas fa-chevron-left"></i>
         </button>
-        <h1 class="referral-page-title">Заработать</h1>
+        <h1 class="referral-page-title">Реферальная программа</h1>
     </div>
     
     <div class="referral-page-content">
-        <!-- Верхний блок как на скрине -->
+        <!-- Заголовок -->
         <div class="referral-header-section">
             <div class="referral-header-icon">
                 <img src="../assets/jet-logo.png" alt="JET">
             </div>
-            <div style="display:flex;align-items:center;justify-content:flex-start;gap:8px;margin-bottom:8px;">
-                <h2 class="referral-header-title" style="font-size:1.3rem;">Уровень JetRefs</h2>
-                <span style="background:#007bff;border-radius:999px;padding:4px 10px;font-size:0.8rem;font-weight:600;" id="refLevelPercent">15%</span>
-            </div>
-            <p class="referral-header-subtitle" style="margin-bottom:0;font-size:0.8rem;color:rgba(255,255,255,0.6);">
-                Зарабатывай с покупок друзей в магазине JET.
-            </p>
+            <h2 class="referral-header-title">Пригласи друга</h2>
+            <p class="referral-header-subtitle">Получай 4% с каждой покупки своего друга</p>
         </div>
         
-        <!-- Карточка статистики как на скрине -->
-        <div class="referral-stats-block" style="margin-bottom:18px;padding:18px 16px;border-radius:20px;">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-                <div>
-                    <div style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">
-                        <i class="fa-solid fa-wallet" style="color:#35d07f;"></i>
-                        <span>Заработано (TON)</span>
+        <!-- Статистика приглашенных друзей -->
+        <div class="referral-stats-block">
+            <div class="referral-stats-number" id="referralsCount">0</div>
+            <div class="referral-stats-label">Приглашено друзей</div>
+        </div>
+        
+        <!-- Блок доходов (Звёзды) -->
+        <div class="referral-earnings-block">
+            <div class="referral-earnings-item">
+                <div class="referral-earnings-left">
+                    <div class="referral-earnings-title">
+                        <i class="fas fa-star"></i>
+                        <span>Звёзды <strong>(4%)</strong></span>
                     </div>
-                    <div style="font-size:1.8rem;font-weight:700;" id="refEarnTon">0.00</div>
-                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);" id="refEarnRub">≈ 0 ₽</div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">
-                        <i class="fa-solid fa-user-group" style="color:#a855f7;"></i>
-                        <span>Рефералы</span>
+                    <div class="referral-earnings-subtitle">Куплено рефералами</div>
+                    <div class="referral-earnings-amount">
+                        <i class="fas fa-star star-icon"></i>
+                        <span id="referralStarsCount">0</span> ≈ <span id="referralStarsRub">0</span> ₽
                     </div>
-                    <div style="font-size:1.8rem;font-weight:700;" id="refTotalRefs">0</div>
-                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);" id="refLevelsSplit">1 ур. 0 • 2 ур. 0 • 3 ур. 0</div>
                 </div>
-            </div>
-            
-            <div style="margin-top:6px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:6px;">
-                    <span>Объём рефералов</span>
-                    <span id="refVolumeTon">0.00 TON</span>
-                </div>
-                <div style="position:relative;height:6px;border-radius:999px;background:rgba(255,255,255,0.1);overflow:hidden;margin-bottom:6px;">
-                    <div id="refLevelProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#00d4ff,#4ade80);transition:width .3s;"></div>
-                </div>
-                <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);" id="refToNextVolume">
-                    5000.00 TON осталось до следующего уровня
+                <div class="referral-earnings-right">
+                    <div class="referral-earnings-label">Твой доход</div>
+                    <div class="referral-earnings-value" id="referralStarsEarnings">+0 ₽</div>
                 </div>
             </div>
         </div>
         
-        <!-- Реферальная ссылка + кнопка пригласить -->
-        <div class="referral-link-section" style="margin-bottom:18px;">
-            <h3 class="referral-link-title">Реферальная ссылка</h3>
-            <div class="referral-link-input" id="referralLinkText"></div>
-            <div class="referral-link-buttons" style="margin-bottom:12px;">
+        <!-- Общий доход -->
+        <div class="referral-total-income">
+            <div class="referral-total-label">Общий доход</div>
+            <div class="referral-total-value" id="referralTotalEarnings">0 ₽</div>
+        </div>
+        
+        <!-- Реферальная ссылка -->
+        <div class="referral-link-section">
+            <h3 class="referral-link-title">Твоя реферальная ссылка</h3>
+            <div class="referral-link-input" id="referralLinkText">https://t.me/JetSold_bot?start=ref_000000</div>
+            <div class="referral-link-buttons">
                 <button class="referral-link-btn copy" onclick="copyReferralLink()">
                     <i class="fas fa-copy"></i>
                     <span>Копировать</span>
@@ -642,118 +635,59 @@
                     <span>Поделиться</span>
                 </button>
             </div>
-            <button style="width:100%;padding:14px 20px;border:none;border-radius:16px;background:#007bff;color:#fff;font-weight:700;font-size:1rem;cursor:pointer;" onclick="shareReferralLink()">
-                Пригласить друзей
-            </button>
         </div>
         
-        <!-- Вкладки: статистика / вывод -->
+        <!-- Как это работает -->
+        <div class="referral-how-it-works">
+            <h3 class="referral-how-title">Как это работает</h3>
+            
+            <div class="referral-step">
+                <div class="referral-step-number">1</div>
+                <div class="referral-step-content">
+                    <div class="referral-step-title">Поделись ссылкой</div>
+                    <div class="referral-step-description">Отправь реферальную ссылку друзьям</div>
+                </div>
+            </div>
+            
+            <div class="referral-step">
+                <div class="referral-step-number">2</div>
+                <div class="referral-step-content">
+                    <div class="referral-step-title">Друг регистрируется</div>
+                    <div class="referral-step-description">Друг открывает приложение по твоей ссылке</div>
+                </div>
+            </div>
+            
+            <div class="referral-step">
+                <div class="referral-step-number">3</div>
+                <div class="referral-step-content">
+                    <div class="referral-step-title">Получай бонусы</div>
+                    <div class="referral-step-description">4% от каждой покупки друга начисляется тебе</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Вкладки -->
         <div class="referral-tabs">
-            <button class="referral-tab active" onclick="switchReferralTab('stats')">Статистика</button>
-            <button class="referral-tab" onclick="switchReferralTab('withdraw')">Вывести средства</button>
+            <button class="referral-tab active" onclick="switchReferralTab('friends')">Друзья (0)</button>
+            <button class="referral-tab" onclick="switchReferralTab('accruals')">Начисления</button>
         </div>
         
-        <!-- Статистика: краткая инфа по уровням и процентам -->
-        <div id="statsTab" class="referral-tab-content active">
-            <div class="referral-how-it-works">
-                <h3 class="referral-how-title">Как работает рефералка</h3>
-                <div class="referral-step">
-                    <div class="referral-step-number">1</div>
-                    <div class="referral-step-content">
-                        <div class="referral-step-title">Поделись ссылкой</div>
-                        <div class="referral-step-description">Отправь друзьям свою реферальную ссылку из этого окна.</div>
-                    </div>
+        <!-- Контент вкладок -->
+        <div id="friendsTab" class="referral-tab-content active">
+            <div class="referral-empty-state">
+                <div class="referral-empty-icon">
+                    <i class="fas fa-users"></i>
                 </div>
-                <div class="referral-step">
-                    <div class="referral-step-number">2</div>
-                    <div class="referral-step-content">
-                        <div class="referral-step-title">Друг покупает в магазине</div>
-                        <div class="referral-step-description">Каждая покупка реферала в магазине увеличивает твой доход и объём.</div>
-                    </div>
-                </div>
-                <div class="referral-step">
-                    <div class="referral-step-number">3</div>
-                    <div class="referral-step-content">
-                        <div class="referral-step-title">Получай до 25% с 3 уровней</div>
-                        <div class="referral-step-description">
-                            1 уровень — <b>15%</b>, 2 уровень — <b>20%</b>, 3 уровень — <b>25%</b> от всех покупок рефералов.
-                        </div>
-                    </div>
-                </div>
+                <p class="referral-empty-text">Пока нет приглашенных друзей</p>
             </div>
         </div>
         
-        <!-- Вкладка вывода средств -->
-        <div id="withdrawTab" class="referral-tab-content">
-            <div class="referral-total-income" style="margin-bottom:16px;">
-                <div class="referral-total-label">Доступно к выводу</div>
-                <div class="referral-total-value" id="refWithdrawBalanceRub">0 ₽</div>
-                <div style="margin-top:6px;font-size:0.85rem;color:rgba(255,255,255,0.6);" id="refWithdrawBalanceTon">≈ 0.00 TON</div>
-            </div>
-            
-            <div class="referral-earnings-block" style="margin-bottom:16px;">
-                <div class="referral-earnings-title" style="margin-bottom:12px;">
-                    <i class="fas fa-money-bill-transfer"></i>
-                    <span>Способ вывода</span>
+        <div id="accrualsTab" class="referral-tab-content">
+            <div class="referral-empty-state">
+                <div class="referral-empty-icon">
+                    <i class="fas fa-chart-line"></i>
                 </div>
-                <div style="display:flex;gap:8px;margin-bottom:12px;">
-                    <button class="referral-tab" id="withdrawMethodWallet" onclick="switchWithdrawMethod('wallet')" style="padding:10px 12px;font-size:0.85rem;">Кошелёк</button>
-                    <button class="referral-tab" id="withdrawMethodSbp" onclick="switchWithdrawMethod('sbp')" style="padding:10px 12px;font-size:0.85rem;">СБП</button>
-                    <button class="referral-tab" id="withdrawMethodCard" onclick="switchWithdrawMethod('card')" style="padding:10px 12px;font-size:0.85rem;">Карта</button>
-                </div>
-                
-                <div id="withdrawWalletForm">
-                    <label class="store-label" style="font-size:0.85rem;margin-bottom:4px;display:block;">Кошелёк (TON / USDT)</label>
-                    <div class="store-input-wrapper" style="margin-bottom:8px;">
-                        <i class="fas fa-wallet store-input-icon"></i>
-                        <input type="text" id="withdrawWalletAddress" class="store-input" placeholder="Адрес кошелька для выплаты">
-                    </div>
-                    <div class="store-input-wrapper">
-                        <i class="fas fa-comment-dots store-input-icon"></i>
-                        <input type="text" id="withdrawWalletMemo" class="store-input" placeholder="Memo / комментарий (если требуется)">
-                    </div>
-                </div>
-                
-                <div id="withdrawSbpForm" style="display:none;">
-                    <label class="store-label" style="font-size:0.85rem;margin-bottom:4px;display:block;">Телефон для СБП</label>
-                    <div class="store-input-wrapper" style="margin-bottom:8px;">
-                        <i class="fas fa-phone store-input-icon"></i>
-                        <input type="tel" id="withdrawSbpPhone" class="store-input" placeholder="+7 (___) ___-__-__">
-                    </div>
-                    <div class="store-input-wrapper">
-                        <i class="fas fa-university store-input-icon"></i>
-                        <input type="text" id="withdrawSbpBank" class="store-input" placeholder="Банк получателя">
-                    </div>
-                </div>
-                
-                <div id="withdrawCardForm" style="display:none;">
-                    <label class="store-label" style="font-size:0.85rem;margin-bottom:4px;display:block;">Карта получателя</label>
-                    <div class="store-input-wrapper" style="margin-bottom:8px;">
-                        <i class="fas fa-credit-card store-input-icon"></i>
-                        <input type="text" id="withdrawCardNumber" class="store-input" placeholder="Номер карты (РФ / Казахстан)">
-                    </div>
-                    <div class="store-input-wrapper">
-                        <i class="fas fa-university store-input-icon"></i>
-                        <input type="text" id="withdrawCardBank" class="store-input" placeholder="Банк получателя">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="referral-earnings-block">
-                <div class="referral-earnings-title" style="margin-bottom:10px;">
-                    <i class="fas fa-coins"></i>
-                    <span>Сумма вывода</span>
-                </div>
-                <div class="store-input-wrapper" style="margin-bottom:8px;">
-                    <i class="fas fa-ruble-sign store-input-icon"></i>
-                    <input type="number" id="withdrawAmountInput" class="store-input" placeholder="Минимум 100 ₽" min="100">
-                </div>
-                <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:10px;">
-                    Доступно: <span id="withdrawAvailableText">0 ₽</span>. Вывод обрабатывается вручную оператором.
-                </div>
-                <button class="continue-btn" style="width:100%;" onclick="submitReferralWithdraw()">
-                    Вывести средства
-                </button>
+                <p class="referral-empty-text">Пока нет начислений</p>
             </div>
         </div>
     </div>
@@ -789,200 +723,71 @@
     <script src="../js/config.js"></script>
     <script src="../js/database.js"></script>
     <script>
-        let currentReferralStats = null;
-        let currentWithdrawMethod = 'wallet';
-        let currentUserId = null;
-        let currentTonRate = 600;
-        let currentEarnedRub = 0;
-        let currentEarnedTon = 0;
+        // Загружаем данные пользователя
+        let userData = window.userData || {};
         
+        // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof Database !== 'undefined') {
                 Database.init();
             }
-
-            // Определяем ID пользователя для реферальной ссылки (многоступенчато, чтобы работать и на внутренних страницах)
-            currentUserId = getReferralUserId();
-
-            // Загружаем конфиг бота для ссылки
-            var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_BOT_API_URL || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-
-            // Сразу рисуем ссылку с дефолтным bot_username (JetSold_bot)
-            updateReferralLink();
-
+            // Загружаем username бота с сервера
+            var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
             if (apiBase && /^https?:\/\//i.test(apiBase)) {
-                fetch(apiBase.replace(/\/$/, '') + '/api/config')
-                    .then(r => r.json())
-                    .then(c => {
-                        if (c && c.bot_username) {
-                            window.JET_BOT_USERNAME = c.bot_username;
-                        }
-                        updateReferralLink();
-                    })
-                    .catch(() => { updateReferralLink(); });
-                
-                // Загружаем статистику реферальной программы
-                if (currentUserId) {
-                    fetch(apiBase.replace(/\/$/, '') + '/api/referral/stats?user_id=' + encodeURIComponent(currentUserId))
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data && !data.error) {
-                                currentReferralStats = data;
-                                currentTonRate = data.ton_rate_rub || currentTonRate;
-                                currentEarnedRub = data.earned_rub || 0;
-                                currentEarnedTon = data.earned_ton || 0;
-                                updateReferralStatsUI();
-                            }
-                        })
-                        .catch(() => {});
-                } else {
-                    updateReferralLink();
-                }
-            } else {
-                updateReferralLink();
+                fetch(apiBase.replace(/\/$/, '') + '/api/config').then(r => r.json()).then(c => {
+                    if (c && c.bot_username) {
+                        window.JET_BOT_USERNAME = c.bot_username;
+                    }
+                }).catch(() => {});
             }
-            
-            // По умолчанию способ вывода — кошелёк
-            switchWithdrawMethod('wallet');
-
-            // Обновляем отображение по умолчанию (даже если статистика ещё не подгрузилась)
-            if (!currentReferralStats) {
-                currentReferralStats = {
-                    level: 1,
-                    earned_rub: 0,
-                    earned_ton: 0,
-                    volume_ton: 0,
-                    total_referrals: 0,
-                    referrals_level1: 0,
-                    referrals_level2: 0,
-                    referrals_level3: 0,
-                    progress_percent: 0,
-                    to_next_volume_rub: 0,
-                    ton_rate_rub: currentTonRate
-                };
-            }
-            updateReferralStatsUI();
+            // Загружаем данные из localStorage
+            loadReferralData();
         });
         
-        function updateReferralLink() {
+        function loadReferralData() {
             try {
-                let userId = currentUserId || getReferralUserId();
-                const el = document.getElementById('referralLinkText');
-                if (!el) return;
-
-                const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
-                const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
-                el.textContent = referralLink;
-            } catch (e) {}
-        }
-
-        // Универсальная функция получения ID пользователя для реферальной ссылки
-        function getReferralUserId() {
-            // 1) Пытаемся взять из Telegram WebApp initData
-            try {
-                const tg = window.Telegram && window.Telegram.WebApp;
-                const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-                if (u && u.id) {
-                    return String(u.id);
+                const savedUser = localStorage.getItem('jetstore_user_data');
+                if (savedUser) {
+                    const parsed = JSON.parse(savedUser);
+                    userData = parsed;
+                    window.userData = userData;
                 }
-            } catch (e) {}
-
-            // 2) Пытаемся взять из Database.getFixedUserId()
-            try {
-                const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
-                if (db && typeof db.getFixedUserId === 'function') {
-                    const fixedId = db.getFixedUserId();
-                    if (fixedId) return String(fixedId);
-                }
-            } catch (e) {}
-
-            // 3) Из window.userData
-            if (window.userData && window.userData.id) {
-                return String(window.userData.id);
-            }
-
-            // 4) Из jetstore_user_data
-            try {
-                const savedRaw = localStorage.getItem('jetstore_user_data');
-                if (savedRaw) {
-                    const savedUser = JSON.parse(savedRaw);
-                    if (savedUser && savedUser.id) return String(savedUser.id);
-                }
-            } catch (e) {}
-
-            // Если совсем ничего нет — создаём стабильный локальный ID (но НЕ 000000)
-            const localKey = 'jetstore_local_ref_id';
-            try {
-                let localId = localStorage.getItem(localKey);
-                if (!localId) {
-                    localId = 'user_' + Math.floor(Date.now() / 1000);
-                    localStorage.setItem(localKey, localId);
-                }
-                return localId;
-            } catch (e) {
-                return 'user_' + Math.floor(Date.now() / 1000);
+                
+                // Обновляем отображение
+                updateReferralDisplay();
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
             }
         }
         
-        function updateReferralStatsUI() {
-            const s = currentReferralStats || {};
-            const lvl = s.level || 1;
-            const progressPercent = s.progress_percent != null ? s.progress_percent : 0;
-            const totalRefs = s.total_referrals || 0;
-            const l1 = s.referrals_level1 || 0;
-            const l2 = s.referrals_level2 || 0;
-            const l3 = s.referrals_level3 || 0;
-            const earnedRub = s.earned_rub || 0;
-            const earnedTon = s.earned_ton || 0;
-            const volumeTon = s.volume_ton || 0;
-            const toNextRub = s.to_next_volume_rub != null ? s.to_next_volume_rub : 0;
+        function updateReferralDisplay() {
+            const referrals = userData.referrals || { count: 0, earnings: 0, starsCount: 0, starsEarnings: 0 };
             
-            const percentEl = document.getElementById('refLevelPercent');
-            const earnTonEl = document.getElementById('refEarnTon');
-            const earnRubEl = document.getElementById('refEarnRub');
-            const totalRefsEl = document.getElementById('refTotalRefs');
-            const levelsSplitEl = document.getElementById('refLevelsSplit');
-            const volumeTonEl = document.getElementById('refVolumeTon');
-            const progressBar = document.getElementById('refLevelProgressBar');
-            const toNextEl = document.getElementById('refToNextVolume');
-            const withdrawRubEl = document.getElementById('refWithdrawBalanceRub');
-            const withdrawTonEl = document.getElementById('refWithdrawBalanceTon');
-            const withdrawAvail = document.getElementById('withdrawAvailableText');
+            // Приглашено друзей
+            document.getElementById('referralsCount').textContent = referrals.count || 0;
             
-            // Процент с покупок рефералов в зависимости от уровня:
-            // 1 уровень → 15%, 2 уровень → 20%, 3+ уровень → 25%
-            let jetRefsPercent = 15;
-            if (lvl === 2) {
-                jetRefsPercent = 20;
-            } else if (lvl >= 3) {
-                jetRefsPercent = 25;
+            // Звёзды
+            const starsCount = referrals.starsCount || 0;
+            const starsRub = Math.round(starsCount * 1.37); // Примерный курс
+            document.getElementById('referralStarsCount').textContent = starsCount;
+            document.getElementById('referralStarsRub').textContent = starsRub;
+            document.getElementById('referralStarsEarnings').textContent = `+${referrals.starsEarnings || 0} ₽`;
+            
+            // Общий доход
+            const totalEarnings = (referrals.earnings || 0) + (referrals.starsEarnings || 0);
+            document.getElementById('referralTotalEarnings').textContent = `${totalEarnings} ₽`;
+            
+            // Реферальная ссылка
+            const userId = userData.id || '000000';
+            const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
+            const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
+            document.getElementById('referralLinkText').textContent = referralLink;
+            
+            // Обновляем счетчик друзей во вкладке
+            const friendsTab = document.querySelector('.referral-tab[onclick*="friends"]');
+            if (friendsTab) {
+                friendsTab.textContent = `Друзья (${referrals.count || 0})`;
             }
-            if (percentEl) percentEl.textContent = jetRefsPercent + '%';
-            if (earnTonEl) earnTonEl.textContent = earnedTon.toFixed(2);
-            if (earnRubEl) earnRubEl.textContent = '≈ ' + earnedRub.toFixed(2) + ' ₽';
-            if (totalRefsEl) totalRefsEl.textContent = totalRefs;
-            if (levelsSplitEl) levelsSplitEl.textContent = '1 ур. ' + l1 + ' • 2 ур. ' + l2 + ' • 3 ур. ' + l3;
-            if (volumeTonEl) volumeTonEl.textContent = volumeTon.toFixed(2) + ' TON';
-            if (progressBar) progressBar.style.width = Math.max(0, Math.min(100, progressPercent)) + '%';
-            if (toNextEl) {
-                let targetTon = 0;
-                if (lvl >= 3) {
-                    toNextEl.textContent = 'Максимальный уровень JetRefs';
-                } else {
-                    if (lvl === 1) targetTon = 5000;
-                    else if (lvl === 2) targetTon = 15000;
-                    const remainingTon = Math.max(0, targetTon - volumeTon);
-                    toNextEl.textContent =
-                        remainingTon.toFixed(2) + ' TON осталось до следующего уровня';
-                }
-            }
-            
-            currentEarnedRub = earnedRub;
-            currentEarnedTon = earnedTon;
-            
-            if (withdrawRubEl) withdrawRubEl.textContent = earnedRub.toFixed(2) + ' ₽';
-            if (withdrawTonEl) withdrawTonEl.textContent = '≈ ' + (earnedTon || (earnedRub / currentTonRate)).toFixed(4) + ' TON';
-            if (withdrawAvail) withdrawAvail.textContent = earnedRub.toFixed(2) + ' ₽';
         }
         
         function copyReferralLink() {
@@ -1037,139 +842,23 @@
         }
         
         function switchReferralTab(tabName) {
+            // Убираем активный класс со всех вкладок
             document.querySelectorAll('.referral-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
+            
             document.querySelectorAll('.referral-tab-content').forEach(content => {
                 content.classList.remove('active');
             });
-            if (tabName === 'stats') {
-                const btn = document.querySelector('.referral-tab[onclick*=\"stats\"]');
-                if (btn) btn.classList.add('active');
-                const tab = document.getElementById('statsTab');
-                if (tab) tab.classList.add('active');
-            } else if (tabName === 'withdraw') {
-                const btn = document.querySelector('.referral-tab[onclick*=\"withdraw\"]');
-                if (btn) btn.classList.add('active');
-                const tab = document.getElementById('withdrawTab');
-                if (tab) tab.classList.add('active');
-            }
-        }
-        
-        function switchWithdrawMethod(method) {
-            currentWithdrawMethod = method;
-            ['withdrawMethodWallet','withdrawMethodSbp','withdrawMethodCard'].forEach(function(id) {
-                var btn = document.getElementById(id);
-                if (!btn) return;
-                var m = id.endsWith('Wallet') ? 'wallet' : id.endsWith('Sbp') ? 'sbp' : 'card';
-                btn.classList.toggle('active', m === method);
-            });
-            var wf = document.getElementById('withdrawWalletForm');
-            var sf = document.getElementById('withdrawSbpForm');
-            var cf = document.getElementById('withdrawCardForm');
-            if (wf) wf.style.display = method === 'wallet' ? 'block' : 'none';
-            if (sf) sf.style.display = method === 'sbp' ? 'block' : 'none';
-            if (cf) cf.style.display = method === 'card' ? 'block' : 'none';
-        }
-        
-        function submitReferralWithdraw() {
-            var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-            if (!apiBase) {
-                showNotification('Не задан адрес API бота. Проверьте настройки.', 'error');
-                return;
-            }
-            if (!currentUserId) {
-                showNotification('Не удалось определить пользователя. Откройте мини-приложение из бота.', 'error');
-                return;
-            }
-            var amountInput = document.getElementById('withdrawAmountInput');
-            var amount = parseFloat(amountInput && amountInput.value || '0');
-            if (!amount || amount <= 0) {
-                showNotification('Введите сумму вывода', 'error');
-                return;
-            }
-            if (amount < 100) {
-                showNotification('Минимальная сумма вывода: 100 ₽', 'error');
-                return;
-            }
-            if (currentEarnedRub && amount > currentEarnedRub + 1e-6) {
-                showNotification('Недостаточно средств на реферальном балансе', 'error');
-                return;
-            }
             
-            var method = currentWithdrawMethod;
-            var details = '';
-            if (method === 'wallet') {
-                var addr = (document.getElementById('withdrawWalletAddress')?.value || '').trim();
-                var memo = (document.getElementById('withdrawWalletMemo')?.value || '').trim();
-                if (!addr) {
-                    showNotification('Укажите адрес кошелька для вывода', 'error');
-                    return;
-                }
-                details = 'wallet: ' + addr + (memo ? '\\nmemo: ' + memo : '');
-            } else if (method === 'sbp') {
-                var phone = (document.getElementById('withdrawSbpPhone')?.value || '').trim();
-                var bank = (document.getElementById('withdrawSbpBank')?.value || '').trim();
-                if (!phone) {
-                    showNotification('Укажите телефон для СБП', 'error');
-                    return;
-                }
-                details = 'sbp: ' + phone + (bank ? '\\nbank: ' + bank : '');
-            } else if (method === 'card') {
-                var card = (document.getElementById('withdrawCardNumber')?.value || '').trim();
-                var bankc = (document.getElementById('withdrawCardBank')?.value || '').trim();
-                if (!card) {
-                    showNotification('Укажите номер карты для вывода', 'error');
-                    return;
-                }
-                details = 'card: ' + card + (bankc ? '\\nbank: ' + bankc : '');
+            // Добавляем активный класс выбранной вкладке
+            if (tabName === 'friends') {
+                document.querySelector('.referral-tab[onclick*="friends"]').classList.add('active');
+                document.getElementById('friendsTab').classList.add('active');
+            } else if (tabName === 'accruals') {
+                document.querySelector('.referral-tab[onclick*="accruals"]').classList.add('active');
+                document.getElementById('accrualsTab').classList.add('active');
             }
-            
-            var btn = document.querySelector('#withdrawTab .continue-btn');
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = 'Отправка заявки...';
-            }
-            
-            fetch(apiBase.replace(/\/$/, '') + '/api/referral/withdraw', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: currentUserId,
-                    amount_rub: amount,
-                    method: method,
-                    details: details
-                })
-            })
-            .then(function(r) { return r.json().then(function(d){ return { ok:r.ok,status:r.status,data:d};}); })
-            .then(function(res) {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Вывести средства';
-                }
-                if (!res.ok || res.data.error) {
-                    var msg = res.data && (res.data.message || res.data.error) || 'Ошибка вывода средств';
-                    showNotification(msg, 'error');
-                    return;
-                }
-                var nb = res.data.new_balance_rub != null ? res.data.new_balance_rub : currentEarnedRub - amount;
-                currentEarnedRub = nb;
-                currentEarnedTon = currentEarnedRub / currentTonRate;
-                if (currentReferralStats) {
-                    currentReferralStats.earned_rub = currentEarnedRub;
-                    currentReferralStats.earned_ton = currentEarnedTon;
-                }
-                updateReferralStatsUI();
-                if (amountInput) amountInput.value = '';
-                showNotification('Заявка на вывод отправлена. Ожидайте обработки.', 'success');
-            })
-            .catch(function() {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Вывести средства';
-                }
-                showNotification('Ошибка связи с сервером. Попробуйте позже.', 'error');
-            });
         }
         
         function showNotification(message, type = 'info') {

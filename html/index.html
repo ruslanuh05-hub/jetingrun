@@ -6,16 +6,6 @@
     <title>JET - официальный бот</title>
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
-    <script>
-        (function() {
-            if (typeof TonConnectSDK !== 'undefined') {
-                var manifestUrl = (window.location.origin || 'https://jetstoreapp.ru') + '/tonconnect-manifest.json';
-                window.tonConnectConnector = new TonConnectSDK.TonConnect({ manifestUrl: manifestUrl });
-                window.tonConnectConnector.restoreConnection().catch(function() {});
-            }
-        })();
-    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Предотвращение горизонтального скролла на мобильных */
@@ -2246,12 +2236,6 @@
             margin-top: 14px;
         }
         
-        .steam-topup-rate {
-            margin-top: 6px;
-            font-size: 0.8rem;
-            color: rgba(102, 192, 244, 0.9);
-        }
-        
         .steam-topup-input-group { margin-bottom: 20px; }
         .steam-topup-input-group:last-of-type { margin-bottom: 0; }
 
@@ -3611,53 +3595,6 @@
             background: rgba(255, 255, 255, 0.06);
         }
         
-        .ton-network-wrapper {
-            padding-right: 0;
-        }
-        
-        .ton-network-options {
-            display: flex;
-            gap: 6px;
-            width: 100%;
-            overflow-x: auto;
-            padding: 6px 0;
-            justify-content: center;
-        }
-        
-        .ton-network-btn {
-            flex: 1;
-            min-width: 0;
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.02);
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.8rem;
-            padding: 8px 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-        
-        @media (max-width: 400px) {
-            .ton-network-options {
-                flex-wrap: wrap;
-                overflow-x: visible;
-                justify-content: center;
-            }
-            
-            .ton-network-btn {
-                flex: 0 0 calc(50% - 3px);
-                min-width: calc(50% - 3px);
-            }
-        }
-        
-        .ton-network-btn.active {
-            background: linear-gradient(135deg, #00d4ff 0%, #0077ff 100%);
-            border-color: rgba(0, 212, 255, 0.8);
-            color: #000;
-            font-weight: 600;
-        }
-        
         .main-menu-card-icon.yellow {
             background: rgba(0, 212, 255, 0.2);
             color: #00d4ff;
@@ -4290,12 +4227,11 @@
                     </div>
                 </div>
                 
-                <!-- Карточка «Купить TON» -->
-                <div class="main-menu-card main-menu-card-ton" onclick="openTonPopup()">
+                <div class="main-menu-card main-menu-card-ton" onclick="showStoreView('ton')">
                     <div class="main-menu-card-title">Купить TON</div>
-                    <div class="main-menu-card-subtitle">криптовалюта</div>
+                    <div class="main-menu-card-subtitle">TON</div>
                     <div class="main-menu-card-icons">
-                        <img src="../assets/ton-icon.png" alt="TON" class="card-icon-img">
+                        <img src="../assets/tonkeeper-icon.png" alt="TON" class="card-icon-img">
                     </div>
                 </div>
                 
@@ -4587,9 +4523,6 @@
                             <div class="steam-topup-conversion">
                                 Конвертация в валюту вашей страны производится автоматически по текущему курсу.
                             </div>
-                            <div class="steam-topup-rate" id="steamTopupRateText">
-                                <!-- Текущий курс будет подставлен скриптом -->
-                            </div>
                         </div>
                     </div>
                     
@@ -4673,7 +4606,15 @@
                     <div class="payment-category">
                         <h3 class="payment-category-title">Криптовалюта</h3>
                         <div class="payment-methods-list payment-methods-compact">
-                            <!-- Кнопка оплаты TON временно отключена -->
+                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('ton', 0)">
+                                <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
+                                    <i class="fas fa-gem" style="color: #fff;"></i>
+                                </div>
+                                <div class="payment-method-info">
+                                    <span class="payment-method-name">TON</span>
+                                    <span class="payment-method-bonus">0%</span>
+                                </div>
+                            </button>
                             <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('cryptobot', 2)">
                                 <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
                                     <i class="fas fa-robot" style="color: #fff;"></i>
@@ -4723,10 +4664,6 @@
                         <div class="payment-detail-row">
                             <span class="payment-detail-label">Метод</span>
                             <span class="payment-detail-value" id="paymentDetailMethod">СБП (+10%)</span>
-                        </div>
-                        <div class="payment-detail-row" id="paymentDetailSteamRateRow" style="display: none;">
-                            <span class="payment-detail-label">Курс пополнения</span>
-                            <span class="payment-detail-value" id="paymentDetailSteamRate">1.00</span>
                         </div>
                         <div class="payment-detail-row">
                             <span class="payment-detail-label">Статус</span>
@@ -5007,7 +4944,7 @@
             </button>
         </nav>
         
-        <!-- Окно покупки TON (вывод на криптокошелёк) -->
+        <!-- Окно покупки TON -->
         <div id="tonPopup" class="popup">
             <div class="popup-content ton-popup-content">
                 <div class="steam-popup-header">
@@ -5021,27 +4958,15 @@
                 <div class="steam-popup-body ton-popup-body">
                     <div class="store-form">
                         <div class="store-field">
-                            <label class="store-label">Криптокошелёк для получения</label>
-                            <div class="store-input-wrapper">
-                                <i class="fas fa-wallet store-input-icon"></i>
-                                <input type="text" id="tonWalletAddress" class="store-input" placeholder="Введите адрес кошелька">
-                            </div>
-                            <p class="store-field-hint" style="margin-top: 8px; color: rgba(255,255,255,0.6); font-size: 0.85rem;">Проверьте адрес и сеть — при ошибке средства могут быть утеряны.</p>
-                        </div>
-
-                        <div class="store-field">
-                            <label class="store-label">Сеть</label>
-                            <div class="store-input-wrapper ton-network-wrapper">
-                                <i class="fas fa-network-wired store-input-icon"></i>
-                                <div class="ton-network-options">
-                                    <button type="button" class="ton-network-btn" data-network="TRC20" onclick="selectTonNetwork('TRC20')">TRC20</button>
-                                    <button type="button" class="ton-network-btn" data-network="ERC20" onclick="selectTonNetwork('ERC20')">ERC20</button>
-                                    <button type="button" class="ton-network-btn" data-network="BEP20" onclick="selectTonNetwork('BEP20')">BEP20</button>
-                                    <button type="button" class="ton-network-btn" data-network="TON" onclick="selectTonNetwork('TON')">TON</button>
-                                    <button type="button" class="ton-network-btn" data-network="OTHER" onclick="selectTonNetwork('OTHER')">Другое</button>
+                            <label class="store-label">Получатель</label>
+                            <div class="store-input-row">
+                                <div class="store-input-wrapper">
+                                    <i class="fas fa-user store-input-icon"></i>
+                                    <input type="text" id="tonRecipient" class="store-input" placeholder="@username получателя">
                                 </div>
-                                <input type="hidden" id="tonNetwork" value="">
+                                <button type="button" class="store-input-action" onclick="fillOwnUsername('tonRecipient')">/купить себе</button>
                             </div>
+                            <p class="store-field-hint" style="margin-top: 8px; color: rgba(255,255,255,0.6); font-size: 0.85rem;">Если указан неверный @username — ответственность несёт покупатель.</p>
                         </div>
                         
                         <div class="store-field">
@@ -5055,13 +4980,13 @@
                         <div class="ton-info-box">
                             <div class="ton-info-title">Обратите внимание</div>
                             <div class="ton-info-text">
-                                После успешной оплаты заявка уходит в обработку. Реквизиты (кошелёк + сеть + сумма TON) будут отправлены в нашу группу для ручной обработки.
+                                Telegram TON — это внутренняя валюта, которая используется для оплаты услуг внутри Telegram. Не является криптовалютой. Будет отправлена на ваш Telegram‑аккаунт.
                             </div>
                             <div class="ton-info-link" onclick="openTonAttention()">Подробнее</div>
                         </div>
                         
                         <button class="continue-btn" id="tonContinueBtn" onclick="proceedTonPurchase()">
-                            Заполните данные
+                            Введите число от 1 до 200
                         </button>
                     </div>
                 </div>
@@ -5073,7 +4998,8 @@
             <div class="ton-attention-content">
                 <div class="ton-attention-title">Обратите внимание</div>
                 <div class="ton-attention-text">
-                    Укажите корректные реквизиты получения (кошелёк и сеть). После подтверждения оплаты мы отправим информацию в рабочую группу для обработки заявки.
+                    Telegram TON — это внутренняя валюта, которая используется для оплаты услуг внутри Telegram. 
+                    Не является криптовалютой. Будет отправлена на ваш Telegram‑аккаунт.
                 </div>
                 <button class="ton-attention-close-btn" onclick="closeTonAttention()">Закрыть</button>
             </div>
