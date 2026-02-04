@@ -1,0 +1,27 @@
+# Зависимости и окружение
+node_modules/
+.env
+*.pyc
+__pycache__/
+venv/
+.venv/
+
+# Конфиги с секретами (не коммитить в GitHub!)
+cryptobot_config.json
+telethon_config.json
+telethon_session.txt
+donatehub_config.json
+fragment_config.json
+fragment_site_config.json
+# Любые другие локальные конфиги с секретами:
+# my_secrets.json
+
+# Логи
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Не игнорируем html/, css/, js/, assets/ — они должны быть в репозитории для GitHub Pages
