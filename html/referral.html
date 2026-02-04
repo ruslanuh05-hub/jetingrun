@@ -800,22 +800,24 @@
             if (typeof Database !== 'undefined') {
                 Database.init();
             }
-            const tg = window.Telegram?.WebApp;
-            const u = tg?.initDataUnsafe?.user;
-            if (u && u.id) {
-                currentUserId = String(u.id);
-                // Синхронизируем ID с локальными данными, чтобы другие страницы тоже его видели
-                try {
-                    if (!window.userData) window.userData = {};
-                    window.userData.id = currentUserId;
-                    const savedRaw = localStorage.getItem('jetstore_user_data') || '{}';
-                    let saved = {};
-                    try { saved = JSON.parse(savedRaw); } catch (e) { saved = {}; }
-                    saved.id = currentUserId;
-                    localStorage.setItem('jetstore_user_data', JSON.stringify(saved));
-                } catch (e) {}
-            } else {
-                currentUserId = null;
+            // Надёжно получаем стабильный ID пользователя через Database.getFixedUserId()
+            try {
+                const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
+                if (db && typeof db.getFixedUserId === 'function') {
+                    const fixedId = db.getFixedUserId();
+                    if (fixedId) {
+                        currentUserId = String(fixedId);
+                        if (!window.userData) window.userData = {};
+                        window.userData.id = currentUserId;
+                        const savedRaw = localStorage.getItem('jetstore_user_data') || '{}';
+                        let saved = {};
+                        try { saved = JSON.parse(savedRaw); } catch (e) { saved = {}; }
+                        saved.id = currentUserId;
+                        localStorage.setItem('jetstore_user_data', JSON.stringify(saved));
+                    }
+                }
+            } catch (e) {
+                currentUserId = currentUserId || null;
             }
             
             // Загружаем конфиг бота для ссылки
@@ -874,50 +876,7 @@
         function updateReferralLink() {
             try {
                 let userId = currentUserId;
-
-                // ПЕРВЫЙ источник — прямо из Telegram WebApp (самый надёжный)
-                try {
-                    const tg = window.Telegram && window.Telegram.WebApp;
-                    const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-                    if (u && u.id) {
-                        userId = String(u.id);
-                        currentUserId = userId;
-                        // Сохраняем сразу в userData и localStorage
-                        if (!window.userData) window.userData = {};
-                        window.userData.id = userId;
-                        const savedRaw2 = localStorage.getItem('jetstore_user_data') || '{}';
-                        let saved2 = {};
-                        try { saved2 = JSON.parse(savedRaw2); } catch (e) { saved2 = {}; }
-                        saved2.id = userId;
-                        localStorage.setItem('jetstore_user_data', JSON.stringify(saved2));
-                    }
-                } catch (e) {}
-
-                // Пытаемся получить стабильный ID через Database (как в профильном модуле)
-                try {
-                    const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
-                    if (!userId && db && typeof db.getFixedUserId === 'function') {
-                        userId = String(db.getFixedUserId() || '');
-                    }
-                } catch (e) {}
-
-                // Фолбэки: userData из памяти / localStorage
-                if (!userId && window.userData && window.userData.id) {
-                    userId = String(window.userData.id);
-                }
-                if (!userId) {
-                    const savedRaw = localStorage.getItem('jetstore_user_data');
-                    if (savedRaw) {
-                        try {
-                            const savedUser = JSON.parse(savedRaw);
-                            if (savedUser && savedUser.id) {
-                                userId = String(savedUser.id);
-                            }
-                        } catch (e) {}
-                    }
-                }
-
-                // Если так и не нашли — создаём стабильный локальный ID, но НЕ 000000
+                // Если ID ещё нет — создаём стабильный локальный идентификатор, но НЕ 000000
                 if (!userId) {
                     const localKey = 'jetstore_local_ref_id';
                     let localId = null;
