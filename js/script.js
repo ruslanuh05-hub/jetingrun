@@ -2478,14 +2478,25 @@ function runDeliveryAfterPayment(data, checkResponse) {
         // Уведомляем реферальную систему о покупке
         if (data.baseAmount && data.purchase) {
             var amountRub = data.baseAmount;
-            // Для CryptoBot платежей (USDT) baseAmount уже в рублях после конвертации
-            // Для других методов тоже baseAmount в рублях
+            // Для CryptoBot платежей (USDT) используем amount_rub из ответа если есть, иначе baseAmount
+            if (data.method === 'cryptobot' && checkResponse.amount_rub) {
+                amountRub = checkResponse.amount_rub;
+            }
+            // Для CryptoBot платежей (USDT) и других методов
             if (data.method === 'cryptobot' || !data.purchase.currency || data.purchase.currency === 'RUB') {
                 notifyReferralPurchase(amountRub);
             }
         }
         closePaymentWaiting();
         return;
+    }
+
+    // CryptoBot оплата: используем amount_rub из ответа (конвертированный из USDT если нужно)
+    if (data.method === 'cryptobot' && checkResponse && checkResponse.amount_rub) {
+        var amountRub = checkResponse.amount_rub;
+        if (amountRub && amountRub > 0) {
+            notifyReferralPurchase(amountRub);
+        }
     }
 
     if (data.purchase && data.purchase.type === 'steam') {
@@ -2611,6 +2622,20 @@ function runDeliveryAfterPayment(data, checkResponse) {
     // TON покупки и другие типы
     if (data.purchase && data.purchase.type === 'ton' && data.baseAmount) {
         notifyReferralPurchase(data.baseAmount);
+    }
+
+    // CryptoBot оплата (если еще не обработали выше): используем amount_rub из ответа или baseAmount
+    // Проверяем, что еще не вызывали notifyReferralPurchase для CryptoBot выше
+    var cryptobotProcessed = false;
+    if (data.method === 'cryptobot') {
+        if (checkResponse && checkResponse.amount_rub) {
+            // Уже обработали выше с amount_rub
+            cryptobotProcessed = true;
+        } else if (data.baseAmount) {
+            // Используем baseAmount (для RUB платежей через CryptoBot)
+            notifyReferralPurchase(data.baseAmount);
+            cryptobotProcessed = true;
+        }
     }
 
     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
