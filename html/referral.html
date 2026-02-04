@@ -801,14 +801,8 @@
                 Database.init();
             }
 
-            // Берём ID только из Telegram WebApp. Это самый надёжный источник внутри мини‑приложения.
-            try {
-                const tg = window.Telegram && window.Telegram.WebApp;
-                const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-                currentUserId = (u && u.id) ? String(u.id) : null;
-            } catch (e) {
-                currentUserId = null;
-            }
+            // Определяем ID пользователя для реферальной ссылки (многоступенчато, чтобы работать и на внутренних страницах)
+            currentUserId = getReferralUserId();
 
             // Загружаем конфиг бота для ссылки
             var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
@@ -868,11 +862,11 @@
         
         function updateReferralLink() {
             try {
-                let userId = currentUserId;
+                let userId = currentUserId || getReferralUserId();
                 const el = document.getElementById('referralLinkText');
                 if (!el) return;
 
-                // Если ID нет (например, страница открыта вне Telegram) — показываем понятный текст
+                // Если ID нет (например, страница открыта совсем вне контекста) — показываем понятный текст
                 if (!userId) {
                     el.textContent = 'Откройте мини‑приложение из бота, чтобы получить свою реферальную ссылку.';
                     return;
@@ -882,6 +876,54 @@
                 const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
                 el.textContent = referralLink;
             } catch (e) {}
+        }
+
+        // Универсальная функция получения ID пользователя для реферальной ссылки
+        function getReferralUserId() {
+            // 1) Пытаемся взять из Telegram WebApp initData
+            try {
+                const tg = window.Telegram && window.Telegram.WebApp;
+                const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+                if (u && u.id) {
+                    return String(u.id);
+                }
+            } catch (e) {}
+
+            // 2) Пытаемся взять из Database.getFixedUserId()
+            try {
+                const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
+                if (db && typeof db.getFixedUserId === 'function') {
+                    const fixedId = db.getFixedUserId();
+                    if (fixedId) return String(fixedId);
+                }
+            } catch (e) {}
+
+            // 3) Из window.userData
+            if (window.userData && window.userData.id) {
+                return String(window.userData.id);
+            }
+
+            // 4) Из jetstore_user_data
+            try {
+                const savedRaw = localStorage.getItem('jetstore_user_data');
+                if (savedRaw) {
+                    const savedUser = JSON.parse(savedRaw);
+                    if (savedUser && savedUser.id) return String(savedUser.id);
+                }
+            } catch (e) {}
+
+            // Если совсем ничего нет — создаём стабильный локальный ID (но НЕ 000000)
+            const localKey = 'jetstore_local_ref_id';
+            try {
+                let localId = localStorage.getItem(localKey);
+                if (!localId) {
+                    localId = 'user_' + Math.floor(Date.now() / 1000);
+                    localStorage.setItem(localKey, localId);
+                }
+                return localId;
+            } catch (e) {
+                return 'user_' + Math.floor(Date.now() / 1000);
+            }
         }
         
         function updateReferralStatsUI() {
