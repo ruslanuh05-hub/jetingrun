@@ -2532,7 +2532,8 @@ function runDeliveryAfterPayment(data, checkResponse) {
     }
 
     // Fragment: заказ уже создан и оплачен (order_id из вебхука) — выдача уже выполнена Fragment
-    if (data.order_id && data.purchase && (data.purchase.type === 'stars' || data.purchase.type === 'premium')) {
+    // ВАЖНО: для CryptoBot платежей order_id нет, поэтому пропускаем эту проверку
+    if (data.order_id && data.purchase && (data.purchase.type === 'stars' || data.purchase.type === 'premium') && data.method !== 'cryptobot') {
         if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
         // Уведомляем реферальную систему о покупке
         if (data.baseAmount) {
@@ -2542,7 +2543,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
         return;
     }
 
-    // Fragment.com: выдача звёзд через iStar API (оплата TonKeeper)
+    // Fragment.com: выдача звёзд через iStar API (оплата TonKeeper или CryptoBot)
     if (data.purchase && data.purchase.type === 'stars') {
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
         var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
@@ -2562,8 +2563,13 @@ function runDeliveryAfterPayment(data, checkResponse) {
                 if (res.success) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
                     // Уведомляем реферальную систему о покупке звёзд
-                    if (data.baseAmount) {
-                        notifyReferralPurchase(data.baseAmount);
+                    // Для CryptoBot платежей (USDT) используем amount_rub из ответа checkResponse если есть
+                    var amountRub = data.baseAmount;
+                    if (data.method === 'cryptobot' && checkResponse && checkResponse.amount_rub) {
+                        amountRub = checkResponse.amount_rub;
+                    }
+                    if (amountRub && amountRub > 0) {
+                        notifyReferralPurchase(amountRub);
                     }
                     closePaymentWaiting();
                 } else {
@@ -2601,8 +2607,13 @@ function runDeliveryAfterPayment(data, checkResponse) {
                 if (res.success) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
                     // Уведомляем реферальную систему о покупке Premium
-                    if (data.baseAmount) {
-                        notifyReferralPurchase(data.baseAmount);
+                    // Для CryptoBot платежей (USDT) используем amount_rub из ответа checkResponse если есть
+                    var amountRub = data.baseAmount;
+                    if (data.method === 'cryptobot' && checkResponse && checkResponse.amount_rub) {
+                        amountRub = checkResponse.amount_rub;
+                    }
+                    if (amountRub && amountRub > 0) {
+                        notifyReferralPurchase(amountRub);
                     }
                     closePaymentWaiting();
                 } else {
@@ -2626,20 +2637,29 @@ function runDeliveryAfterPayment(data, checkResponse) {
 
     // CryptoBot оплата (если еще не обработали выше): используем amount_rub из ответа или baseAmount
     // Проверяем, что еще не вызывали notifyReferralPurchase для CryptoBot выше
+    // ВАЖНО: для CryptoBot платежей звёзд/премиум выдача уже должна была произойти выше
     var cryptobotProcessed = false;
     if (data.method === 'cryptobot') {
-        if (checkResponse && checkResponse.amount_rub) {
-            // Уже обработали выше с amount_rub
-            cryptobotProcessed = true;
-        } else if (data.baseAmount) {
-            // Используем baseAmount (для RUB платежей через CryptoBot)
-            notifyReferralPurchase(data.baseAmount);
-            cryptobotProcessed = true;
+        // Если это не звёзды и не премиум (т.е. уже обработали выше), то обрабатываем рефералку
+        if (data.purchase && data.purchase.type !== 'stars' && data.purchase.type !== 'premium') {
+            if (checkResponse && checkResponse.amount_rub) {
+                // Уже обработали выше с amount_rub
+                cryptobotProcessed = true;
+            } else if (data.baseAmount) {
+                // Используем baseAmount (для RUB платежей через CryptoBot)
+                notifyReferralPurchase(data.baseAmount);
+                cryptobotProcessed = true;
+            }
         }
     }
 
-    if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
-    closePaymentWaiting();
+    // Показываем сообщение только если это не звёзды/премиум (для них сообщение уже показано выше)
+    if (data.purchase && (data.purchase.type === 'stars' || data.purchase.type === 'premium')) {
+        // Сообщение уже показано в блоке выдачи выше
+    } else {
+        if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+        closePaymentWaiting();
+    }
 }
 
 // Открыть страницу оплаты
