@@ -732,13 +732,13 @@
             
                 <form class="withdraw-form" id="withdrawForm" onsubmit="submitWithdraw(event)">
                     <div class="withdraw-form-group">
-                        <label class="withdraw-form-label">Сумма вывода (₽)</label>
+                        <label class="withdraw-form-label">Сумма вывода (TON)</label>
                         <input 
                             type="number" 
                             class="withdraw-form-input" 
                             id="withdrawAmount" 
-                            placeholder="Введите сумму"
-                            min="1"
+                            placeholder="Введите сумму в TON"
+                            min="0.01"
                             step="0.01"
                             required
                         >
@@ -930,9 +930,19 @@
                 `;
             }
 
-            // Обновляем баланс для вывода
-            document.getElementById('withdrawBalance').textContent = `${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
-            document.getElementById('withdrawAmount').max = earnedRub;
+            // Обновляем баланс для вывода (в рублях) и максимум в TON
+            const withdrawBalanceEl = document.getElementById('withdrawBalance');
+            const withdrawAmountEl = document.getElementById('withdrawAmount');
+            withdrawBalanceEl.textContent = `${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
+            if (withdrawAmountEl) {
+                if (tonRate && tonRate > 0) {
+                    const earnedRubNum = parseFloat(stats.earned_rub || 0);
+                    const maxTon = earnedRubNum > 0 ? (earnedRubNum / tonRate) : 0;
+                    withdrawAmountEl.max = maxTon > 0 ? maxTon.toFixed(4) : '';
+                } else {
+                    withdrawAmountEl.removeAttribute('max');
+                }
+            }
         }
 
         // Переключение вкладок
@@ -1010,12 +1020,24 @@
                 return;
             }
 
-            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            const amountTon = parseFloat(document.getElementById('withdrawAmount').value);
             const method = document.getElementById('withdrawMethod').value;
             const details = document.getElementById('withdrawDetails').value.trim();
 
-            if (!amount || amount <= 0) {
-                alert('Введите корректную сумму');
+            if (!amountTon || amountTon <= 0) {
+                alert('Введите корректную сумму в TON');
+                return;
+            }
+
+            // Минимальная сумма вывода: 25 TON
+            const minTon = 25;
+            if (amountTon < minTon) {
+                if (tonRate && tonRate > 0) {
+                    const minRub = tonRate * minTon;
+                    alert(`Минимальная сумма вывода 25 TON (~${minRub.toFixed(2)} ₽).`);
+                } else {
+                    alert('Минимальная сумма вывода 25 TON.');
+                }
                 return;
             }
 
@@ -1029,10 +1051,19 @@
                 return;
             }
 
-            // Проверяем баланс
-            const currentBalance = referralStats?.earned_rub || 0;
-            if (amount > currentBalance) {
-                alert(`Недостаточно средств. Доступно: ${currentBalance.toFixed(2)} ₽`);
+            // Проверяем баланс (в рублях, конвертируем TON→RUB)
+            const currentBalanceRub = referralStats?.earned_rub || 0;
+            let requiredRub = amountTon;
+            if (tonRate && tonRate > 0) {
+                requiredRub = amountTon * tonRate;
+            }
+            if (requiredRub > currentBalanceRub + 1e-6) {
+                let availableTonText = '';
+                if (tonRate && tonRate > 0) {
+                    const availableTon = currentBalanceRub / tonRate;
+                    availableTonText = ` (~${availableTon.toFixed(2)} TON)`;
+                }
+                alert(`Недостаточно средств. Доступно: ${currentBalanceRub.toFixed(2)} ₽${availableTonText}`);
                 return;
             }
 
@@ -1042,12 +1073,15 @@
 
             try {
                 const apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+                // Конвертируем сумму вывода в рубли для бэкенда
+                const amountRub = (tonRate && tonRate > 0) ? (amountTon * tonRate) : requiredRub;
+
                 const response = await fetch(apiBase + '/api/referral/withdraw', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         user_id: userId,
-                        amount_rub: amount,
+                        amount_rub: amountRub,
                         method: method,
                         details: details
                     })

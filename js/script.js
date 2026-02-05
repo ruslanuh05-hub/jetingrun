@@ -2491,9 +2491,12 @@ function runDeliveryAfterPayment(data, checkResponse) {
         return;
     }
 
-    // CryptoBot оплата: используем amount_rub из ответа (конвертированный из USDT если нужно)
-    if (data.method === 'cryptobot' && checkResponse && checkResponse.amount_rub) {
+    // CryptoBot оплата: рефералка по amount_rub из ответа (USDT→RUB) или по baseAmount/totalAmount
+    if (data.method === 'cryptobot' && checkResponse) {
         var amountRub = checkResponse.amount_rub;
+        if (!amountRub || amountRub <= 0) {
+            amountRub = data.baseAmount || data.totalAmount;
+        }
         if (amountRub && amountRub > 0) {
             notifyReferralPurchase(amountRub);
         }
@@ -2563,11 +2566,10 @@ function runDeliveryAfterPayment(data, checkResponse) {
                 if (res.success) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
                     // Уведомляем реферальную систему о покупке звёзд
-                    // Для CryptoBot платежей (USDT) используем amount_rub из ответа checkResponse если есть
-                    var amountRub = data.baseAmount;
-                    if (data.method === 'cryptobot' && checkResponse && checkResponse.amount_rub) {
-                        amountRub = checkResponse.amount_rub;
-                    }
+                    // Рефералка: для CryptoBot (USDT) — amount_rub из ответа, иначе baseAmount
+                    var amountRub = (data.method === 'cryptobot' && checkResponse && checkResponse.amount_rub)
+                        ? checkResponse.amount_rub
+                        : (data.baseAmount || data.totalAmount);
                     if (amountRub && amountRub > 0) {
                         notifyReferralPurchase(amountRub);
                     }
@@ -2606,12 +2608,10 @@ function runDeliveryAfterPayment(data, checkResponse) {
             .then(function(res) {
                 if (res.success) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
-                    // Уведомляем реферальную систему о покупке Premium
-                    // Для CryptoBot платежей (USDT) используем amount_rub из ответа checkResponse если есть
-                    var amountRub = data.baseAmount;
-                    if (data.method === 'cryptobot' && checkResponse && checkResponse.amount_rub) {
-                        amountRub = checkResponse.amount_rub;
-                    }
+                    // Рефералка: для CryptoBot (USDT) — amount_rub из ответа, иначе baseAmount
+                    var amountRub = (data.method === 'cryptobot' && checkResponse && checkResponse.amount_rub)
+                        ? checkResponse.amount_rub
+                        : (data.baseAmount || data.totalAmount);
                     if (amountRub && amountRub > 0) {
                         notifyReferralPurchase(amountRub);
                     }
