@@ -15,7 +15,7 @@
         }
         
         body {
-            background: linear-gradient(180deg, #0a0e27 0%, #1a1a3e 30%, #16213e 60%, #0f3460 100%);
+            background: linear-gradient(180deg, #000000 0%, #031e1c 25%, #053832 50%, #07524a 75%, #0a655a 100%);
             color: #ffffff;
             margin: 0;
             padding: 0;
@@ -227,6 +227,12 @@
         
         .referral-metric-icon.referrals {
             color: #9C27B0;
+        }
+        
+        .referral-metric-icon.referrals img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         
         .referral-metric-label {
@@ -578,7 +584,7 @@
         
         .profile-nav-btn {
             display: flex;
-            flex-direction: column;
+                flex-direction: column;
             align-items: center;
             gap: 4px;
             background: transparent;
@@ -672,7 +678,7 @@
             <div class="referral-tabs">
                 <button class="referral-tab active" onclick="switchReferralTab('stats')">Статистика</button>
                 <button class="referral-tab" onclick="switchReferralTab('withdraw')">Вывести средства</button>
-        </div>
+                    </div>
         
             <!-- Stats Tab -->
             <div id="statsTab" class="referral-tab-content active">
@@ -688,32 +694,32 @@
                     <div class="referral-earnings-row" style="padding-top: 4px; border-top: none;">
                         <span class="referral-earnings-label" style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.5);">≈</span>
                         <span class="referral-earnings-value" id="refEarnRubInTon" style="font-size: 0.9rem; color: rgba(0, 212, 255, 0.8); font-weight: 500;">0 ₽</span>
-            </div>
-        </div>
+                </div>
+                </div>
         
-                <!-- Metrics: Referrals -->
+                <!-- Metrics: Referrals + Volume в один ряд -->
                 <div class="referral-metrics">
                     <div class="referral-metric">
                         <div class="referral-metric-icon referrals">
-                            <i class="fas fa-user-friends"></i>
+                            <img src="../assets/ref-icon.png" alt="Рефералы" style="width: 32px; height: 32px; object-fit: contain;">
                         </div>
                         <div class="referral-metric-label">Рефералы</div>
                         <div class="referral-metric-value" id="refTotalRefs">0</div>
+                    </div>
+                    <div class="referral-metric">
+                        <div class="referral-volume-header">
+                            <i class="fas fa-chart-line referral-volume-icon"></i>
+                            <span class="referral-volume-label">Объем рефералов</span>
+                        </div>
+                        <div class="referral-volume-value">
+                            <span id="refVolumeTon">0</span>
+                            <i class="fas fa-coins" style="color: #00d4ff; font-size: 1.2rem;"></i>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-                <!-- Volume Section -->
+        
+                <!-- Progress Bar -->
                 <div class="referral-volume-section">
-                    <div class="referral-volume-header">
-                        <i class="fas fa-chart-line referral-volume-icon"></i>
-                        <span class="referral-volume-label">Объем рефералов</span>
-                </div>
-                    <div class="referral-volume-value">
-                        <span id="refVolumeTon">0</span>
-                        <i class="fas fa-coins" style="color: #00d4ff; font-size: 1.2rem;"></i>
-            </div>
-            
-                    <!-- Progress Bar -->
                     <div class="referral-progress-bar">
                         <div class="referral-progress-fill" id="refProgressBar" style="width: 0%;"></div>
                         <div class="referral-progress-tick l2"></div>
@@ -732,7 +738,7 @@
                 <button class="referral-invite-btn" id="inviteFriendsBtn">
                     Пригласить друзей
                 </button>
-        </div>
+            </div>
         
             <!-- Withdraw Tab -->
             <div id="withdrawTab" class="referral-tab-content">
@@ -740,8 +746,8 @@
                     <div class="withdraw-balance-info">
                         <div class="withdraw-balance-label">Доступно к выводу</div>
                         <div class="withdraw-balance-value" id="withdrawBalance">0 ₽</div>
-                    </div>
-                    
+        </div>
+        
                     <form class="withdraw-form" id="withdrawForm" onsubmit="submitWithdraw(event)">
                         <!-- Выбор валюты -->
                         <div class="withdraw-form-group">
@@ -765,7 +771,7 @@
                                     step="0.01"
                                     required
                                 >
-                            </div>
+                </div>
 
                             <div class="withdraw-form-group">
                                 <label class="withdraw-form-label">Способ вывода</label>
@@ -774,8 +780,8 @@
                                     <option value="sbp">СБП</option>
                                     <option value="card">Карта</option>
                                 </select>
-                            </div>
-
+            </div>
+            
                             <div class="withdraw-form-group">
                                 <label class="withdraw-form-label">Банк</label>
                                 <input 
@@ -785,7 +791,7 @@
                                     placeholder="Название банка"
                                     required
                                 >
-                            </div>
+                </div>
 
                             <div class="withdraw-form-group">
                                 <label class="withdraw-form-label">Номер карты / счёта</label>
@@ -797,8 +803,8 @@
                                     maxlength="32"
                                     required
                                 >
-                            </div>
-
+            </div>
+            
                             <div class="withdraw-form-group">
                                 <label class="withdraw-form-label">Имя и первая буква фамилии</label>
                                 <input 
@@ -808,23 +814,23 @@
                                     placeholder="Иван И."
                                     required
                                 >
-                            </div>
-                        </div>
+                </div>
+            </div>
 
                         <!-- Блок вывода в TON -->
                         <div id="withdrawTonFields" style="display: none;">
                             <div class="withdraw-warning">
                                 Внимание: TON переводы выполняются <b>только</b> в сети TON. Убедитесь, что ваш кошелёк поддерживает выбранную сеть.
-                            </div>
-
+        </div>
+        
                             <div class="withdraw-form-group">
                                 <label class="withdraw-form-label">Сеть</label>
                                 <select class="withdraw-form-select" id="withdrawTonNetwork">
                                     <option value="TON">TON</option>
                                     <option value="TRC20">TRC20</option>
                                 </select>
-                            </div>
-
+        </div>
+        
                             <div class="withdraw-form-group">
                                 <label class="withdraw-form-label">Криптовалюта</label>
                                 <select class="withdraw-form-select" id="withdrawTonAsset">
@@ -832,7 +838,7 @@
                                     <option value="USDT">USDT (TON)</option>
                                     <option value="USDC">USDC (TON)</option>
                                 </select>
-                            </div>
+                </div>
 
                             <div class="withdraw-form-group">
                                 <label class="withdraw-form-label">Сумма вывода (TON)</label>
@@ -854,9 +860,9 @@
                                     id="withdrawTonAddress" 
                                     placeholder="TON-адрес получателя"
                                 >
-                            </div>
-                        </div>
-
+            </div>
+        </div>
+        
                         <button type="submit" class="withdraw-submit-btn" id="withdrawSubmitBtn">
                             Вывести средства
                         </button>
@@ -869,30 +875,30 @@
     <!-- Нижняя навигация -->
     <nav class="profile-nav">
         <div class="profile-nav-inner">
-            <button class="profile-nav-btn" onclick="window.location.href='index.html'">
-                <div class="nav-icon-wrapper">
-                    <i class="fas fa-home"></i>
-                </div>
+        <button class="profile-nav-btn" onclick="window.location.href='index.html'">
+            <div class="nav-icon-wrapper">
+                <i class="fas fa-home"></i>
+            </div>
                 <span>Маркет</span>
-            </button>
-            <button class="profile-nav-btn active">
-                <div class="nav-icon-wrapper">
-                    <i class="fas fa-coins"></i>
-                </div>
-                <span>Рефералы</span>
-            </button>
-            <button class="profile-nav-btn" onclick="window.location.href='assets.html'">
-                <div class="nav-icon-wrapper">
-                    <i class="fab fa-telegram-plane"></i>
-                </div>
-                <span>Активы</span>
-            </button>
-            <button class="profile-nav-btn" onclick="window.location.href='profile.html'">
-                <div class="nav-icon-wrapper">
-                    <i class="fas fa-user"></i>
-                </div>
-                <span>Профиль</span>
-            </button>
+        </button>
+        <button class="profile-nav-btn active">
+            <div class="nav-icon-wrapper">
+                <i class="fas fa-coins"></i>
+            </div>
+                <span>Заработать</span>
+        </button>
+        <button class="profile-nav-btn" onclick="window.location.href='assets.html'">
+            <div class="nav-icon-wrapper">
+                <i class="fab fa-telegram-plane"></i>
+            </div>
+            <span>Активы</span>
+        </button>
+        <button class="profile-nav-btn" onclick="window.location.href='profile.html'">
+            <div class="nav-icon-wrapper">
+                <i class="fas fa-user"></i>
+            </div>
+            <span>Профиль</span>
+        </button>
         </div>
     </nav>
     

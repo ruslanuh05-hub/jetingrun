@@ -51,7 +51,7 @@
         }
         
         body {
-            background: #000000;
+            background: linear-gradient(180deg, #000000 0%, #031e1c 25%, #053832 50%, #07524a 75%, #0a655a 100%);
             margin: 0;
             padding: 0;
             min-height: 100vh;
@@ -64,7 +64,7 @@
             margin: 0 auto;
             padding: 0;
             min-height: 100vh;
-            background: linear-gradient(180deg, #0a0e27 0%, #1a1a3e 30%, #16213e 60%, #0f3460 100%);
+            background: linear-gradient(180deg, #000000 0%, #031e1c 25%, #053832 50%, #07524a 75%, #0a655a 100%);
             padding-bottom: 100px; /* место под фиксированную нижнюю панель */
         }
         
@@ -140,8 +140,8 @@
         }
         
         .topup-btn-header {
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.1) 100%);
-            border: 1px solid rgba(76, 175, 80, 0.3);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(64, 224, 208, 0.12) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.4);
             border-radius: 12px;
             padding: 10px 16px;
             display: flex;
@@ -155,7 +155,7 @@
         }
         
         .topup-btn-header:hover {
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.3) 0%, rgba(76, 175, 80, 0.2) 100%);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(64, 224, 208, 0.2) 100%);
             transform: scale(1.02);
         }
         
@@ -180,15 +180,16 @@
         }
         
         .profile-card {
-            background: white;
-            border-radius: 15px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(10, 10, 10, 0.9) 100%);
+            border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            border: 1px solid #f0f0f0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            backdrop-filter: blur(10px);
         }
         
         .profile-card h2 {
-            color: #333;
+            color: #ffffff;
             margin-bottom: 20px;
             font-size: 1.4rem;
             display: flex;
@@ -256,13 +257,13 @@
             background: #00d4ff;
             border: 3px solid #000000;
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.6);
             animation: pulse-online 2s infinite;
         }
         
         @keyframes pulse-online {
-            0%, 100% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.6); }
+            50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.9); }
         }
         
         .user-info-main {
@@ -305,7 +306,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #6c5ce7 0%, #00d4ff 50%, #6c5ce7 100%);
+            background: linear-gradient(90deg, #00d4ff 0%, #40e0d0 50%, #00d4ff 100%);
         }
         
         .balance-label {
@@ -336,10 +337,10 @@
         
         .btn-deposit-main {
             flex: 1;
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 50%, rgba(173, 216, 230, 0.4) 100%);
-            color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 4px 20px rgba(135, 206, 250, 0.2);
-            border: none;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.25) 0%, rgba(64, 224, 208, 0.2) 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+            border: 1px solid rgba(0, 212, 255, 0.4);
             border-radius: 14px;
             padding: 16px;
             font-size: 1rem;
@@ -371,7 +372,7 @@
         
         .btn-deposit-main:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(135, 206, 250, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
             animation: buttonFloat 1.5s ease-in-out infinite;
         }
         
@@ -390,9 +391,9 @@
         
         .btn-promo-main {
             flex: 1;
-            background: rgba(135, 206, 250, 0.15);
-            color: rgba(173, 216, 230, 0.9);
-            border: 1px solid rgba(135, 206, 250, 0.25);
+            background: rgba(0, 212, 255, 0.12);
+            color: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 212, 255, 0.35);
             border-radius: 14px;
             padding: 16px;
             font-size: 1rem;
@@ -406,9 +407,9 @@
         }
         
         .btn-promo-main:hover {
-            background: rgba(135, 206, 250, 0.25);
+            background: rgba(0, 212, 255, 0.22);
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(135, 206, 250, 0.15);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.25);
             animation: buttonFloat 1.5s ease-in-out infinite;
         }
         
@@ -441,7 +442,7 @@
         }
         
         .stat-label {
-            color: #888;
+            color: rgba(255, 255, 255, 0.6);
             font-size: 0.85rem;
         }
         
@@ -604,12 +605,12 @@
             align-items: center;
             gap: 16px;
             padding: 18px 20px;
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.35) 0%, rgba(173, 216, 230, 0.3) 50%, rgba(176, 224, 230, 0.35) 100%);
-            border: 1px solid rgba(135, 206, 250, 0.3);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(64, 224, 208, 0.15) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.35);
             border-radius: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(135, 206, 250, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.15);
             position: relative;
             overflow: hidden;
         }
@@ -631,7 +632,7 @@
         
         .btn-user-gifts:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(135, 206, 250, 0.3);
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.35);
         }
         
         .btn-user-gifts:active {
@@ -688,7 +689,7 @@
         .balance-amount {
             font-size: 2.5rem;
             font-weight: bold;
-            color: #333;
+            color: #ffffff;
             margin-bottom: 10px;
         }
         
@@ -699,7 +700,7 @@
         }
         
         .balance-currency {
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 1.2rem;
         }
         
@@ -710,10 +711,11 @@
         .currency-selector select {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
             font-size: 1rem;
-            background: white;
+            background: rgba(0, 0, 0, 0.5);
+            color: #ffffff;
             cursor: pointer;
         }
         
@@ -745,13 +747,15 @@
         }
         
         .balance-btn.deposit {
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 100%);
-            color: rgba(255, 255, 255, 0.95);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.25) 0%, rgba(64, 224, 208, 0.2) 100%);
+            color: #ffffff;
+            border: 1px solid rgba(0, 212, 255, 0.4);
         }
         
         .balance-btn.promo {
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 100%);
-            color: rgba(255, 255, 255, 0.95);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.25) 0%, rgba(64, 224, 208, 0.2) 100%);
+            color: #ffffff;
+            border: 1px solid rgba(0, 212, 255, 0.4);
         }
         
         .balance-btn:hover {
@@ -769,7 +773,7 @@
             display: flex;
             align-items: center;
             padding: 15px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.15);
             transition: background 0.3s;
             flex-wrap: wrap;
         }
@@ -818,14 +822,14 @@
         
         .order-title {
             font-weight: bold;
-            color: #333;
+            color: #ffffff;
             margin-bottom: 5px;
             font-size: 1rem;
         }
         
         .order-date {
             font-size: 0.85rem;
-            color: #888;
+            color: rgba(255, 255, 255, 0.6);
         }
         
         .order-status {
@@ -838,8 +842,8 @@
         }
         
         .order-status.completed {
-            background: #d4edda;
-            color: #155724;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
         }
         
         .order-price {
@@ -891,7 +895,7 @@
         }
         
         .info-link i:last-child {
-            color: #888;
+            color: rgba(255, 255, 255, 0.6);
         }
         
         /* Стили для реферальной программы (НОВЫЙ БЛОК) */
@@ -964,16 +968,17 @@
         }
         
         .copy-referral-btn:hover {
-            background: #f0f0f0;
+            background: rgba(0, 212, 255, 0.2);
             transform: translateY(-2px);
         }
         
         .referral-info {
-            background: #e7f3ff;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.25);
             border-radius: 8px;
             padding: 10px;
             font-size: 0.85rem;
-            color: #0066cc;
+            color: #00d4ff;
             line-height: 1.4;
             margin-top: 10px;
         }
@@ -985,11 +990,11 @@
         .referral-rules {
             margin-top: 15px;
             padding-top: 15px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
         }
         
         .referral-rules h4 {
-            color: #333;
+            color: #ffffff;
             margin-bottom: 10px;
             font-size: 1rem;
         }
@@ -997,7 +1002,7 @@
         .referral-rules ul {
             padding-left: 20px;
             margin: 0;
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 0.85rem;
         }
         
@@ -1107,7 +1112,7 @@
         }
         
         .deposit-option:hover {
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4) 0%, rgba(64, 224, 208, 0.4) 100%);
             color: rgba(255, 255, 255, 0.95);
             transform: scale(1.05);
         }
@@ -1117,9 +1122,9 @@
         }
         
         .deposit-option.selected {
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4) 0%, rgba(64, 224, 208, 0.4) 100%);
             color: rgba(255, 255, 255, 0.95);
-            border: 2px solid rgba(135, 206, 250, 0.6);
+            border: 2px solid rgba(0, 212, 255, 0.6);
             transform: scale(1.05);
         }
         
@@ -1169,12 +1174,12 @@
         
         .payment-method-btn.usdt {
             background: linear-gradient(135deg, #1a2e1a 0%, #162a16 100%);
-            border-color: rgba(76, 175, 80, 0.3);
+            border-color: rgba(0, 212, 255, 0.3);
         }
         
         .payment-method-btn.usdt:hover {
-            border-color: rgba(76, 175, 80, 0.6);
-            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+            border-color: rgba(0, 212, 255, 0.6);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
         }
         
         .payment-method-btn.sbp {
@@ -1202,7 +1207,7 @@
         }
         
         .payment-icon.card {
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4) 0%, rgba(64, 224, 208, 0.4) 100%);
             color: rgba(255, 255, 255, 0.95);
         }
         
@@ -1219,7 +1224,7 @@
         }
         
         .payment-icon.usdt {
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4) 0%, rgba(64, 224, 208, 0.4) 100%);
             color: rgba(255, 255, 255, 0.95);
         }
         
@@ -1238,7 +1243,7 @@
         }
         
         .payment-badge.active {
-            background: rgba(76, 175, 80, 0.2);
+            background: rgba(0, 212, 255, 0.2);
             color: #00d4ff;
         }
         
@@ -1411,7 +1416,7 @@
         }
         
         .custom-amount input::placeholder {
-            color: #888;
+            color: rgba(255, 255, 255, 0.5);
         }
         
         .custom-amount input:focus {
@@ -1538,9 +1543,9 @@
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 50%, rgba(173, 216, 230, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4) 0%, rgba(64, 224, 208, 0.4) 50%, rgba(64, 224, 208, 0.4) 100%);
             color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 4px 15px rgba(135, 206, 250, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
         }
         
         .btn-secondary {
@@ -1551,7 +1556,7 @@
         
         .btn-primary:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(135, 206, 250, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.3);
             animation: buttonFloat 1.5s ease-in-out infinite;
         }
         
@@ -1564,7 +1569,7 @@
         .empty-state {
             text-align: center;
             padding: 40px 20px;
-            color: #888;
+            color: rgba(255, 255, 255, 0.6);
         }
         
         .empty-state i {
@@ -1574,7 +1579,7 @@
         }
         
         .empty-state p {
-            color: #888;
+            color: rgba(255, 255, 255, 0.6);
             margin-top: 10px;
         }
         
@@ -1700,12 +1705,12 @@
         }
         
         .info-icon.purple {
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 50%, rgba(173, 216, 230, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4) 0%, rgba(64, 224, 208, 0.4) 50%, rgba(64, 224, 208, 0.4) 100%);
             color: rgba(255, 255, 255, 0.95);
         }
         
         .info-icon.orange {
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4) 0%, rgba(64, 224, 208, 0.4) 100%);
             color: rgba(255, 255, 255, 0.95);
         }
         
@@ -1782,9 +1787,9 @@
         }
         
         .tab-btn.active {
-            background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(176, 224, 230, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4) 0%, rgba(64, 224, 208, 0.4) 100%);
             color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 4px 20px rgba(135, 206, 250, 0.25);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.25);
         }
         
         /* Контент вкладок */
@@ -2286,7 +2291,7 @@
                 <div class="nav-icon-wrapper">
                     <i class="fas fa-coins"></i>
                 </div>
-                <span>Рефералы</span>
+                <span>Заработать</span>
             </button>
             <button class="profile-nav-btn" onclick="window.location.href='assets.html'">
                 <div class="nav-icon-wrapper">
@@ -3175,7 +3180,7 @@
                         
                         <div class="referral-link-container" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 12px; padding: 16px; margin-bottom: 15px;">
                             <h4 style="color: white; margin-bottom: 10px; font-size: 1rem;">Ваша реферальная ссылка:</h4>
-                            <div class="referral-link" id="referralLinkText" style="background: rgba(255, 255, 255, 0.9); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.9rem; word-break: break-all; margin-bottom: 10px; color: #333;">
+                            <div class="referral-link" id="referralLinkText" style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.9rem; word-break: break-all; margin-bottom: 10px; color: #ffffff;">
                                 ${referralLink}
                             </div>
                             <button class="copy-referral-btn" onclick="copyReferralLinkFromPopup();" style="width: 100%; padding: 12px; background: white; color: #f5576c; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
@@ -3190,7 +3195,7 @@
                         
                         <div class="referral-rules" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #2a2a2a;">
                             <h4 style="color: #ffffff; margin-bottom: 10px; font-size: 1rem;">Как это работает:</h4>
-                            <ul style="padding-left: 20px; margin: 0; color: #888; font-size: 0.85rem; line-height: 1.6;">
+                            <ul style="padding-left: 20px; margin: 0; color: rgba(255, 255, 255, 0.75); font-size: 0.85rem; line-height: 1.6;">
                                 <li>Делитесь своей реферальной ссылкой с друзьями</li>
                                 <li>Когда друг пополняет баланс, вы получаете 10% от суммы</li>
                                 <li>Максимальный бонус за одного реферала: 1000₽</li>

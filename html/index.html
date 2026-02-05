@@ -23,7 +23,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #000000 0%, #0a0a0a 30%, #1a1a1a 60%, #0f0f0f 100%);
+            background: linear-gradient(180deg, #000000 0%, #031e1c 25%, #053832 50%, #07524a 75%, #0a655a 100%);
             z-index: 10000;
             display: flex;
             flex-direction: column;
@@ -176,7 +176,7 @@
         .main-menu-container {
             display: none;
             min-height: 100vh;
-            background: linear-gradient(180deg, #000000 0%, #0a0a0a 30%, #1a1a1a 60%, #0f0f0f 100%);
+            background: linear-gradient(180deg, #000000 0%, #031e1c 25%, #053832 50%, #07524a 75%, #0a655a 100%);
             color: #ffffff;
         }
         
@@ -1171,7 +1171,7 @@
 
         /* Окно продажи звёзд */
         .sell-popup-content {
-            background: linear-gradient(180deg, #000000 0%, #0a0a0a 40%, #0f0f0f 100%);
+            background: linear-gradient(180deg, #000000 0%, #031e1c 25%, #053832 50%, #07524a 75%, #0a655a 100%);
             border-radius: 24px;
             max-width: 480px;
             width: 100%;
@@ -1524,103 +1524,93 @@
             box-shadow: 0 0 10px rgba(0, 212, 255, 0.9);
         }
         
-        /* Нижняя навигация - закреплена поверх всего, не выходит за экран */
-        .main-bottom-nav {
+        /* Нижняя навигация – как в referral/assets/profile, увеличенный подвал */
+        .profile-nav {
             position: fixed !important;
             bottom: 0 !important;
             left: 0;
             right: 0;
-            max-width: 100vw;
-            box-sizing: border-box;
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            padding: 10px 0;
+            padding: 14px 0;
             z-index: 9999;
             pointer-events: none;
         }
 
-        .main-bottom-inner {
+        .profile-nav-inner {
             pointer-events: auto;
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 6px;
+            gap: 6px;
+            padding: 10px 8px;
             border-radius: 999px;
-            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.35), rgba(0, 0, 0, 0.9));
+            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.35), rgba(0, 0, 0, 0.85));
             border: 1px solid rgba(0, 212, 255, 0.4);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
         }
 
         @supports (padding: max(0px)) {
-            .main-bottom-nav {
-                padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+            .profile-nav {
+                padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
             }
         }
 
-        body:has(input:focus) .main-bottom-nav,
-        body:has(textarea:focus) .main-bottom-nav {
+        body:has(input:focus) .profile-nav,
+        body:has(textarea:focus) .profile-nav {
             position: fixed !important;
             bottom: 0 !important;
             transform: none !important;
         }
 
-        .main-nav-btn {
+        .profile-nav-btn {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             background: transparent;
             border: none;
+            padding: 8px 18px;
             color: rgba(255, 255, 255, 0.55);
             cursor: pointer;
-            padding: 6px 14px;
             transition: all 0.25s ease;
-            font-size: 0.72rem;
-            font-weight: 500;
+            font-size: 0.8rem;
         }
 
-        .main-nav-btn:hover:not(.active) {
-            color: rgba(255, 255, 255, 0.8);
+        .profile-nav-btn:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
         }
 
-        .main-nav-btn i {
-            font-size: 1.3rem;
-            transition: transform 0.2s ease;
+        .profile-nav-btn i {
+            font-size: 1.55rem;
         }
 
-        .main-nav-btn.active {
+        .profile-nav-btn.active {
             color: #ffffff;
         }
 
-        .nav-icon-bg {
-            min-width: 38px;
-            min-height: 38px;
+        .profile-nav-btn.active .nav-icon-wrapper {
+            background: linear-gradient(135deg, #00d4ff 0%, #1464ff 50%, #0a2cff 100%);
+            border-radius: 999px;
+            padding: 9px 16px;
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.6);
+        }
+
+        .profile-nav-btn.active .nav-icon-wrapper i {
+            color: #ffffff;
+        }
+
+        .nav-icon-wrapper {
+            min-width: 44px;
+            min-height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 999px;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.35);
             transition: all 0.25s ease;
-        }
-
-        .main-nav-btn.active .nav-icon-bg {
-            background: linear-gradient(135deg, #00d4ff 0%, #1464ff 50%, #0a2cff 100%);
-            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.6);
-        }
-
-        .main-nav-btn.active .nav-icon-bg i {
-            color: #ffffff;
-        }
-        
-        .nav-icon-bg {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            transition: all 0.3s ease;
         }
         
         /* Анимации для уведомлений */
@@ -1702,7 +1692,7 @@
         /* Маркет */
         .market-view {
             min-height: 100vh;
-            background: linear-gradient(180deg, #000000 0%, #0a0a0a 30%, #1a1a1a 60%, #0f0f0f 100%);
+            background: linear-gradient(180deg, #000000 0%, #031e1c 25%, #053832 50%, #07524a 75%, #0a655a 100%);
             padding-bottom: 100px;
         }
         
@@ -3126,7 +3116,7 @@
         
         /* Стили для Supercell - попап на весь экран */
         .supercell-popup-content {
-            background: linear-gradient(180deg, #000000 0%, #0a0a0a 30%, #1a1a1a 60%, #0f0f0f 100%);
+            background: linear-gradient(180deg, #000000 0%, #031e1c 25%, #053832 50%, #07524a 75%, #0a655a 100%);
             border-radius: 0;
             max-width: 100%;
             width: 100%;
@@ -3376,21 +3366,40 @@
 
         .banner-card {
             padding: 0;
-            background: none;
-            border: none;
-            box-shadow: none;
-            border-radius: 14px;
-            overflow: hidden;
         }
         .banner-image-wrapper {
             width: 100%;
-            height: 100%;
+            height: auto;
         }
         .banner-image {
             display: block;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
+        }
+        
+        /* Полноширинные карточки (Premium) */
+        .main-menu-card-premium {
+            grid-column: 1 / -1;
+        }
+
+        /* Баннер «Купить звёзды» – нормальный размер, без обрезания текста */
+        .main-menu-card-stars.banner-card {
+            grid-column: 1 / -1;
+            padding: 0;
+        }
+
+        .main-menu-card-stars.banner-card .banner-image-wrapper {
+            height: auto;
+            max-height: 130px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .main-menu-card-stars.banner-card .banner-image {
+            width: 100%;
+            height: auto;
         }
         
         .main-menu-card:hover {
@@ -3976,22 +3985,27 @@
                 font-size: 0.95rem;
             }
             
-            .main-bottom-nav {
-                padding: 8px 0 max(15px, env(safe-area-inset-bottom, 15px)) 0;
+            .profile-nav {
+                padding: 12px 0 max(18px, env(safe-area-inset-bottom, 18px)) 0;
             }
             
-            .main-nav-btn {
-                padding: 6px 12px;
-                font-size: 0.65rem;
+            .profile-nav-inner {
+                padding: 8px 6px;
+                gap: 4px;
             }
             
-            .main-nav-btn i {
-                font-size: 1.2rem;
+            .profile-nav-btn {
+                padding: 6px 14px;
+                font-size: 0.75rem;
             }
             
-            .nav-icon-bg {
-                width: 35px;
-                height: 35px;
+            .profile-nav-btn i {
+                font-size: 1.35rem;
+            }
+            
+            .nav-icon-wrapper {
+                min-width: 40px;
+                min-height: 40px;
             }
         }
         
@@ -4207,10 +4221,28 @@
         <div class="main-menu-view" id="mainMenuView">
             <!-- Карточки меню -->
             <div class="main-menu-cards">
-                <!-- Карточка «Купить звёзды» с баннером -->
+                <!-- Баннер «Купить звёзды» -->
                 <div class="main-menu-card main-menu-card-stars banner-card" onclick="showStoreView('stars')">
                     <div class="banner-image-wrapper">
                         <img src="../assets/buy-stars.jpg" alt="Купить звёзды" class="banner-image">
+                    </div>
+                </div>
+                
+                <!-- Premium отдельной строкой -->
+                <a href="premium.html" class="main-menu-card main-menu-card-premium" style="text-decoration: none; color: inherit;">
+                    <div class="main-menu-card-title">Premium оформить</div>
+                    <div class="main-menu-card-subtitle">Premium</div>
+                    <div class="main-menu-card-icons">
+                        <img src="../assets/premium-icon.png" alt="Premium" style="width: 38px; height: 38px; object-fit: contain; border-radius: 10px; display: block;">
+                    </div>
+                </a>
+                
+                <!-- Ряд: Купить TON | Продать звёзды -->
+                <div class="main-menu-card main-menu-card-ton" onclick="window.location.href='Tonnel.html'">
+                    <div class="main-menu-card-title">Купить TON</div>
+                    <div class="main-menu-card-subtitle">криптовалюта</div>
+                    <div class="main-menu-card-icons">
+                        <img src="../assets/tonkeeper-icon.png" alt="TON" class="card-icon-img">
                     </div>
                 </div>
                 
@@ -4222,22 +4254,7 @@
                     </div>
                 </div>
                 
-                <div class="main-menu-card main-menu-card-ton" onclick="window.location.href='Tonnel.html'">
-                    <div class="main-menu-card-title">Купить TON</div>
-                    <div class="main-menu-card-subtitle">TON</div>
-                    <div class="main-menu-card-icons">
-                        <img src="../assets/tonkeeper-icon.png" alt="TON" class="card-icon-img">
-                    </div>
-                </div>
-                
-                <a href="premium.html" class="main-menu-card main-menu-card-premium" style="text-decoration: none; color: inherit;">
-                    <div class="main-menu-card-title">Premium оформить</div>
-                    <div class="main-menu-card-subtitle">Premium</div>
-                    <div class="main-menu-card-icons">
-                        <img src="../assets/premium-icon.png" alt="Premium" style="width: 38px; height: 38px; object-fit: contain; border-radius: 10px; display: block;">
-                    </div>
-                </a>
-                
+                <!-- Steam как был -->
                 <div class="main-menu-card steam-card" onclick="showStoreView('steam')">
                     <div class="main-menu-card-title">STEAM</div>
                     <div class="main-menu-card-subtitle">Пополнить рублями</div>
@@ -4911,29 +4928,29 @@
             </div>
         </div>
         
-        <!-- Нижняя навигация -->
-        <nav class="main-bottom-nav">
-            <div class="main-bottom-inner">
-                <button class="main-nav-btn active" onclick="showMainMenuView()">
-                    <div class="nav-icon-bg">
+        <!-- Нижняя навигация (как в других окнах) -->
+        <nav class="profile-nav">
+            <div class="profile-nav-inner">
+                <button class="profile-nav-btn active" onclick="showMainMenuView()">
+                    <div class="nav-icon-wrapper">
                         <i class="fas fa-home"></i>
                     </div>
                     <span>Главная</span>
                 </button>
-                <button class="main-nav-btn" onclick="goToReferral()">
-                    <div class="nav-icon-bg">
+                <button class="profile-nav-btn" onclick="goToReferral()">
+                    <div class="nav-icon-wrapper">
                         <i class="fas fa-coins"></i>
                     </div>
-                    <span>Рефералы</span>
+                    <span>Заработать</span>
                 </button>
-                <button class="main-nav-btn" onclick="window.location.href='assets.html'">
-                    <div class="nav-icon-bg">
+                <button class="profile-nav-btn" onclick="window.location.href='assets.html'">
+                    <div class="nav-icon-wrapper">
                         <i class="fab fa-telegram-plane"></i>
                     </div>
                     <span>Активы</span>
                 </button>
-                <button class="main-nav-btn" onclick="window.location.href='profile.html'">
-                    <div class="nav-icon-bg">
+                <button class="profile-nav-btn" onclick="window.location.href='profile.html'">
+                    <div class="nav-icon-wrapper">
                         <i class="fas fa-user"></i>
                     </div>
                     <span>Профиль</span>
@@ -5421,7 +5438,7 @@
     <script>
         // Фиксация нижней навигации при открытии клавиатуры
         (function() {
-            const nav = document.querySelector('.main-bottom-nav');
+            const nav = document.querySelector('.profile-nav');
             if (nav) {
                 let initialBottom = 0;
                 
