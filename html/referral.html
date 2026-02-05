@@ -550,33 +550,44 @@
             left: 0;
             right: 0;
             width: 100%;
-            background: rgba(10, 14, 39, 0.25);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             display: flex;
-            justify-content: space-around;
-            padding: 12px 0;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 10px 0;
             z-index: 100;
+            pointer-events: none;
+        }
+
+        .profile-nav-inner {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px;
+            border-radius: 999px;
+            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.35), rgba(0, 0, 0, 0.85));
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
         }
         
         @supports (padding: max(0px)) {
             .profile-nav {
-                padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+                padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
             }
         }
         
         .profile-nav-btn {
             display: flex;
-                flex-direction: column;
+            flex-direction: column;
             align-items: center;
-            gap: 6px;
-            background: none;
+            gap: 4px;
+            background: transparent;
             border: none;
-            padding: 8px 16px;
-            color: rgba(255, 255, 255, 0.4);
+            padding: 6px 14px;
+            color: rgba(255, 255, 255, 0.55);
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.75rem;
+            transition: all 0.25s ease;
+            font-size: 0.72rem;
         }
 
         .profile-nav-btn:hover:not(.active) {
@@ -588,27 +599,27 @@
         }
         
         .profile-nav-btn.active {
-            color: #00d4ff;
+            color: #ffffff;
         }
-        
+
         .profile-nav-btn.active .nav-icon-wrapper {
-            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 50%, #20b2aa 100%);
-            border-radius: 12px;
-            padding: 8px;
-            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
+            background: linear-gradient(135deg, #00d4ff 0%, #1464ff 50%, #0a2cff 100%);
+            border-radius: 999px;
+            padding: 7px 14px;
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.6);
         }
-        
+
         .profile-nav-btn.active .nav-icon-wrapper i {
             color: #ffffff;
         }
         
         .nav-icon-wrapper {
-            width: 40px;
-            height: 40px;
+            min-width: 38px;
+            min-height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
+            border-radius: 999px;
             transition: all 0.3s ease;
         }
     </style>
@@ -725,80 +736,164 @@
         
             <!-- Withdraw Tab -->
             <div id="withdrawTab" class="referral-tab-content">
-                <div class="withdraw-balance-info">
-                    <div class="withdraw-balance-label">Доступно к выводу</div>
-                    <div class="withdraw-balance-value" id="withdrawBalance">0 ₽</div>
+                <div class="withdraw-card">
+                    <div class="withdraw-balance-info">
+                        <div class="withdraw-balance-label">Доступно к выводу</div>
+                        <div class="withdraw-balance-value" id="withdrawBalance">0 ₽</div>
+                    </div>
+                    
+                    <form class="withdraw-form" id="withdrawForm" onsubmit="submitWithdraw(event)">
+                        <!-- Выбор валюты -->
+                        <div class="withdraw-form-group">
+                            <label class="withdraw-form-label">Валюта вывода</label>
+                            <select class="withdraw-form-select" id="withdrawCurrency" onchange="updateWithdrawCurrencyUI()" required>
+                                <option value="RUB">Рубли (₽)</option>
+                                <option value="TON">TON</option>
+                            </select>
+                        </div>
+
+                        <!-- Блок вывода в рублях -->
+                        <div id="withdrawRubFields">
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Сумма вывода (₽)</label>
+                                <input 
+                                    type="number" 
+                                    class="withdraw-form-input" 
+                                    id="withdrawAmountRub" 
+                                    placeholder="Введите сумму в рублях"
+                                    min="1"
+                                    step="0.01"
+                                    required
+                                >
+                            </div>
+
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Способ вывода</label>
+                                <select class="withdraw-form-select" id="withdrawMethodRub" required>
+                                    <option value="">Выберите способ</option>
+                                    <option value="sbp">СБП</option>
+                                    <option value="card">Карта</option>
+                                </select>
+                            </div>
+
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Банк</label>
+                                <input 
+                                    type="text" 
+                                    class="withdraw-form-input" 
+                                    id="withdrawBankName" 
+                                    placeholder="Название банка"
+                                    required
+                                >
+                            </div>
+
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Номер карты / счёта</label>
+                                <input 
+                                    type="text" 
+                                    class="withdraw-form-input" 
+                                    id="withdrawCardNumber" 
+                                    placeholder="Номер карты или счёта"
+                                    maxlength="32"
+                                    required
+                                >
+                            </div>
+
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Имя и первая буква фамилии</label>
+                                <input 
+                                    type="text" 
+                                    class="withdraw-form-input" 
+                                    id="withdrawCardHolder" 
+                                    placeholder="Иван И."
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Блок вывода в TON -->
+                        <div id="withdrawTonFields" style="display: none;">
+                            <div class="withdraw-warning">
+                                Внимание: TON переводы выполняются <b>только</b> в сети TON. Убедитесь, что ваш кошелёк поддерживает выбранную сеть.
+                            </div>
+
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Сеть</label>
+                                <select class="withdraw-form-select" id="withdrawTonNetwork">
+                                    <option value="TON">TON</option>
+                                    <option value="TRC20">TRC20</option>
+                                </select>
+                            </div>
+
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Криптовалюта</label>
+                                <select class="withdraw-form-select" id="withdrawTonAsset">
+                                    <option value="TON">TON</option>
+                                    <option value="USDT">USDT (TON)</option>
+                                    <option value="USDC">USDC (TON)</option>
+                                </select>
+                            </div>
+
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Сумма вывода (TON)</label>
+                                <input 
+                                    type="number" 
+                                    class="withdraw-form-input" 
+                                    id="withdrawAmountTon" 
+                                    placeholder="Введите сумму в TON"
+                                    min="0.01"
+                                    step="0.01"
+                                >
+                            </div>
+
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Адрес кошелька</label>
+                                <input 
+                                    type="text" 
+                                    class="withdraw-form-input" 
+                                    id="withdrawTonAddress" 
+                                    placeholder="TON-адрес получателя"
+                                >
+                            </div>
+                        </div>
+
+                        <button type="submit" class="withdraw-submit-btn" id="withdrawSubmitBtn">
+                            Вывести средства
+                        </button>
+                    </form>
                 </div>
-            
-                <form class="withdraw-form" id="withdrawForm" onsubmit="submitWithdraw(event)">
-                    <div class="withdraw-form-group">
-                        <label class="withdraw-form-label">Сумма вывода (TON)</label>
-                        <input 
-                            type="number" 
-                            class="withdraw-form-input" 
-                            id="withdrawAmount" 
-                            placeholder="Введите сумму в TON"
-                            min="0.01"
-                            step="0.01"
-                            required
-                        >
-            </div>
-        
-                    <div class="withdraw-form-group">
-                        <label class="withdraw-form-label">Способ вывода</label>
-                        <select class="withdraw-form-select" id="withdrawMethod" required>
-                            <option value="">Выберите способ</option>
-                            <option value="wallet">Кошелек</option>
-                            <option value="sbp">СБП</option>
-                            <option value="card">Карта</option>
-                        </select>
-        </div>
-        
-                    <div class="withdraw-form-group">
-                        <label class="withdraw-form-label">Реквизиты</label>
-                        <input 
-                            type="text" 
-                            class="withdraw-form-input" 
-                            id="withdrawDetails" 
-                            placeholder="Введите реквизиты для вывода"
-                            required
-                        >
-                </div>
-        
-                    <button type="submit" class="withdraw-submit-btn" id="withdrawSubmitBtn">
-                        Вывести средства
-                    </button>
-                </form>
             </div>
         </div>
     </div>
     
     <!-- Нижняя навигация -->
     <nav class="profile-nav">
-        <button class="profile-nav-btn" onclick="window.location.href='index.html'">
-            <div class="nav-icon-wrapper">
-                <i class="fas fa-home"></i>
-            </div>
-            <span>Главная</span>
-        </button>
-        <button class="profile-nav-btn active">
-            <div class="nav-icon-wrapper">
-                <i class="fas fa-coins"></i>
-            </div>
-            <span>Заработать</span>
-        </button>
-        <button class="profile-nav-btn" onclick="window.location.href='assets.html'">
-            <div class="nav-icon-wrapper">
-                <i class="fab fa-telegram-plane"></i>
-            </div>
-            <span>Активы</span>
-        </button>
-        <button class="profile-nav-btn" onclick="window.location.href='profile.html'">
-            <div class="nav-icon-wrapper">
-                <i class="fas fa-user"></i>
-            </div>
-            <span>Профиль</span>
-        </button>
+        <div class="profile-nav-inner">
+            <button class="profile-nav-btn" onclick="window.location.href='index.html'">
+                <div class="nav-icon-wrapper">
+                    <i class="fas fa-home"></i>
+                </div>
+                <span>Маркет</span>
+            </button>
+            <button class="profile-nav-btn active">
+                <div class="nav-icon-wrapper">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <span>Рефералы</span>
+            </button>
+            <button class="profile-nav-btn" onclick="window.location.href='assets.html'">
+                <div class="nav-icon-wrapper">
+                    <i class="fab fa-telegram-plane"></i>
+                </div>
+                <span>Активы</span>
+            </button>
+            <button class="profile-nav-btn" onclick="window.location.href='profile.html'">
+                <div class="nav-icon-wrapper">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span>Профиль</span>
+            </button>
+        </div>
     </nav>
     
     <script>
@@ -819,13 +914,24 @@
             return null;
         }
 
-        // Загружаем курс TON
+        // Загружаем курс TON через API бота
         async function loadTonRate() {
             try {
-                const response = await fetch('/api/ton-rate');
+                var apiBase = (window.getJetApiBase && window.getJetApiBase())
+                    || window.JET_API_BASE
+                    || localStorage.getItem('jet_api_base')
+                    || '';
+                if (!apiBase) {
+                    console.warn('TON rate: apiBase is empty, using default 600');
+                    tonRate = 600;
+                    return;
+                }
+                const response = await fetch(apiBase.replace(/\/$/, '') + '/api/ton-rate');
                 if (response.ok) {
                     const data = await response.json();
-                    tonRate = data.rate || data.ton_rate_rub || 600;
+                    tonRate = data.TON || data.ton_rate_rub || data.rate || 600;
+                } else {
+                    console.warn('TON rate HTTP error:', response.status);
                 }
             } catch (error) {
                 console.warn('Failed to load TON rate:', error);
@@ -930,18 +1036,38 @@
                 `;
             }
 
-            // Обновляем баланс для вывода (в рублях) и максимум в TON
+            // Обновляем баланс для вывода (в рублях) и максимумы для RUB/TON
             const withdrawBalanceEl = document.getElementById('withdrawBalance');
-            const withdrawAmountEl = document.getElementById('withdrawAmount');
+            const withdrawAmountRubEl = document.getElementById('withdrawAmountRub');
+            const withdrawAmountTonEl = document.getElementById('withdrawAmountTon');
             withdrawBalanceEl.textContent = `${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
-            if (withdrawAmountEl) {
-                if (tonRate && tonRate > 0) {
-                    const earnedRubNum = parseFloat(stats.earned_rub || 0);
-                    const maxTon = earnedRubNum > 0 ? (earnedRubNum / tonRate) : 0;
-                    withdrawAmountEl.max = maxTon > 0 ? maxTon.toFixed(4) : '';
+            const earnedRubNum = parseFloat(stats.earned_rub || 0);
+            if (withdrawAmountRubEl) {
+                withdrawAmountRubEl.max = earnedRubNum > 0 ? earnedRubNum.toFixed(2) : '';
+            }
+            if (withdrawAmountTonEl) {
+                if (tonRate && tonRate > 0 && earnedRubNum > 0) {
+                    const maxTon = earnedRubNum / tonRate;
+                    withdrawAmountTonEl.max = maxTon.toFixed(4);
                 } else {
-                    withdrawAmountEl.removeAttribute('max');
+                    withdrawAmountTonEl.removeAttribute('max');
                 }
+            }
+        }
+
+        // Переключение UI для валюты вывода
+        function updateWithdrawCurrencyUI() {
+            const currencySelect = document.getElementById('withdrawCurrency');
+            const rubFields = document.getElementById('withdrawRubFields');
+            const tonFields = document.getElementById('withdrawTonFields');
+            const currency = currencySelect ? currencySelect.value : 'RUB';
+
+            if (currency === 'TON') {
+                if (rubFields) rubFields.style.display = 'none';
+                if (tonFields) tonFields.style.display = 'block';
+            } else {
+                if (rubFields) rubFields.style.display = 'block';
+                if (tonFields) tonFields.style.display = 'none';
             }
         }
 
@@ -1020,63 +1146,102 @@
                 return;
             }
 
-            const amountTon = parseFloat(document.getElementById('withdrawAmount').value);
-            const method = document.getElementById('withdrawMethod').value;
-            const details = document.getElementById('withdrawDetails').value.trim();
-
-            if (!amountTon || amountTon <= 0) {
-                alert('Введите корректную сумму в TON');
-                return;
-            }
-
-            // Минимальная сумма вывода: 25 TON
-            const minTon = 25;
-            if (amountTon < minTon) {
-                if (tonRate && tonRate > 0) {
-                    const minRub = tonRate * minTon;
-                    alert(`Минимальная сумма вывода 25 TON (~${minRub.toFixed(2)} ₽).`);
-                } else {
-                    alert('Минимальная сумма вывода 25 TON.');
-                }
-                return;
-            }
-
-            if (!method) {
-                alert('Выберите способ вывода');
-                return;
-            }
-
-            if (!details) {
-                alert('Введите реквизиты для вывода');
-                return;
-            }
-
-            // Проверяем баланс (в рублях, конвертируем TON→RUB)
+            const currency = (document.getElementById('withdrawCurrency')?.value || 'RUB');
             const currentBalanceRub = referralStats?.earned_rub || 0;
-            let requiredRub = amountTon;
-            if (tonRate && tonRate > 0) {
-                requiredRub = amountTon * tonRate;
-            }
-            if (requiredRub > currentBalanceRub + 1e-6) {
-                let availableTonText = '';
-                if (tonRate && tonRate > 0) {
-                    const availableTon = currentBalanceRub / tonRate;
-                    availableTonText = ` (~${availableTon.toFixed(2)} TON)`;
+            const submitBtn = document.getElementById('withdrawSubmitBtn');
+
+            // Общий минимум: эквивалент 25 TON
+            const minTon = 25;
+            const effectiveTonRate = tonRate && tonRate > 0 ? tonRate : 600; // fallback
+            const minRub = minTon * effectiveTonRate;
+
+            let amountRub = 0;
+            let method = '';
+            let details = '';
+
+            if (currency === 'RUB') {
+                const amountRubInput = parseFloat(document.getElementById('withdrawAmountRub').value);
+                const methodRub = document.getElementById('withdrawMethodRub').value;
+                const bankName = document.getElementById('withdrawBankName').value.trim();
+                const cardNumber = document.getElementById('withdrawCardNumber').value.trim();
+                const cardHolder = document.getElementById('withdrawCardHolder').value.trim();
+
+                if (!amountRubInput || amountRubInput <= 0) {
+                    alert('Введите корректную сумму в рублях');
+                    return;
                 }
-                alert(`Недостаточно средств. Доступно: ${currentBalanceRub.toFixed(2)} ₽${availableTonText}`);
-                return;
+                if (amountRubInput < minRub) {
+                    alert(`Минимальная сумма вывода 25 TON (~${minRub.toFixed(2)} ₽).`);
+                    return;
+                }
+                if (!methodRub) {
+                    alert('Выберите способ вывода (СБП или Карта)');
+                    return;
+                }
+                if (!bankName) {
+                    alert('Введите название банка');
+                    return;
+                }
+                if (!cardNumber) {
+                    alert('Введите номер карты / счёта');
+                    return;
+                }
+                if (!cardHolder) {
+                    alert('Введите имя и первую букву фамилии');
+                    return;
+                }
+                if (amountRubInput > currentBalanceRub + 1e-6) {
+                    alert(`Недостаточно средств. Доступно: ${currentBalanceRub.toFixed(2)} ₽`);
+                    return;
+                }
+
+                amountRub = amountRubInput;
+                method = methodRub;
+                details = `Банк: ${bankName}\nКарта/счёт: ${cardNumber}\nВладелец: ${cardHolder}`;
+            } else {
+                const amountTon = parseFloat(document.getElementById('withdrawAmountTon').value);
+                const asset = document.getElementById('withdrawTonAsset').value;
+                const tonAddress = document.getElementById('withdrawTonAddress').value.trim();
+                const networkSelect = document.getElementById('withdrawTonNetwork');
+                const network = networkSelect ? networkSelect.value : 'TON';
+
+                if (!amountTon || amountTon <= 0) {
+                    alert('Введите корректную сумму в TON');
+                    return;
+                }
+                if (amountTon < minTon) {
+                    alert('Минимальная сумма вывода 25 TON.');
+                    return;
+                }
+                if (!tonAddress) {
+                    alert('Введите адрес TON-кошелька');
+                    return;
+                }
+                if (!tonRate || tonRate <= 0) {
+                    alert('Курс TON не загружен. Попробуйте обновить страницу и повторить позже.');
+                    return;
+                }
+
+                amountRub = amountTon * tonRate;
+                if (amountRub > currentBalanceRub + 1e-6) {
+                    const availableTon = currentBalanceRub / tonRate;
+                    alert(`Недостаточно средств. Доступно: ${currentBalanceRub.toFixed(2)} ₽ (~${availableTon.toFixed(2)} TON).`);
+                    return;
+                }
+
+                method = `ton_${asset}_${network}`;
+                details = `Сеть: ${network}\nКриптовалюта: ${asset}\nАдрес: ${tonAddress}\nСумма: ${amountTon.toFixed(4)} ${asset}`;
             }
 
-            const submitBtn = document.getElementById('withdrawSubmitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Отправка...';
 
             try {
-                const apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-                // Конвертируем сумму вывода в рубли для бэкенда
-                const amountRub = (tonRate && tonRate > 0) ? (amountTon * tonRate) : requiredRub;
-
-                const response = await fetch(apiBase + '/api/referral/withdraw', {
+                const apiBase = (window.getJetApiBase && window.getJetApiBase())
+                    || window.JET_API_BASE
+                    || localStorage.getItem('jet_api_base')
+                    || '';
+                const response = await fetch(apiBase.replace(/\/$/, '') + '/api/referral/withdraw', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1091,10 +1256,9 @@
 
                 if (response.ok && result.success) {
                     alert('Заявка на вывод успешно отправлена!');
-                    // Очищаем форму
                     document.getElementById('withdrawForm').reset();
-                    // Обновляем статистику
                     await loadReferralStats();
+                    updateWithdrawCurrencyUI();
                 } else {
                     alert(result.message || 'Ошибка при отправке заявки');
                 }
@@ -1121,6 +1285,9 @@
                 loadReferralLink(),
                 loadReferralStats()
             ]);
+
+            // Инициализируем UI валюты
+            updateWithdrawCurrencyUI();
 
             // Привязываем обработчик кнопки
             document.getElementById('inviteFriendsBtn').addEventListener('click', handleInviteFriends);

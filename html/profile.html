@@ -1814,93 +1814,86 @@
             left: 0;
             right: 0;
             width: 100%;
-            background: rgba(10, 14, 39, 0.25);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             display: flex;
-            justify-content: space-around;
-            padding: 10px 0 max(20px, env(safe-area-inset-bottom, 20px)) 0;
-            border-top: 1px solid rgba(0, 212, 255, 0.15);
+            justify-content: center;
+            align-items: flex-end;
+            padding: 10px 0;
             z-index: 9999;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
-            /* Исправление для клавиатуры - не поднимается при открытии */
-            transform: none !important;
-            will-change: auto;
+            pointer-events: none;
         }
-        
-        /* Предотвращение изменения позиции при открытии клавиатуры */
+
+        .profile-nav-inner {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px;
+            border-radius: 999px;
+            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.35), rgba(0, 0, 0, 0.9));
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+        }
+
         @supports (padding: max(0px)) {
             .profile-nav {
-                padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+                padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
             }
         }
-        
-        /* Дополнительная защита от изменения позиции */
+
         body:has(input:focus) .profile-nav,
         body:has(textarea:focus) .profile-nav {
             position: fixed !important;
             bottom: 0 !important;
             transform: none !important;
         }
-        
+
         .profile-nav-btn {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
-            background: none;
+            gap: 4px;
+            background: transparent;
             border: none;
-            padding: 8px 16px;
-            color: rgba(255, 255, 255, 0.4);
+            padding: 6px 14px;
+            color: rgba(255, 255, 255, 0.55);
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.7rem;
-            flex: 1;
+            transition: all 0.25s ease;
+            font-size: 0.72rem;
             font-weight: 500;
             letter-spacing: 0.3px;
         }
-        
+
         .profile-nav-btn:hover:not(.active) {
-            color: rgba(255, 255, 255, 0.7);
-            animation: navButtonFloat 1.5s ease-in-out infinite;
+            color: rgba(255, 255, 255, 0.8);
         }
-        
-        @keyframes navButtonFloat {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-3px);
-            }
-        }
-        
+
         .profile-nav-btn i {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
         }
-        
+
         .profile-nav-btn.active {
-            color: #00d4ff;
+            color: #ffffff;
         }
-        
+
         .profile-nav-btn.active .nav-icon-wrapper {
-            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 50%, #20b2aa 100%);
-            border-radius: 12px;
-            padding: 8px;
-            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
+            background: linear-gradient(135deg, #00d4ff 0%, #1464ff 50%, #0a2cff 100%);
+            border-radius: 999px;
+            padding: 7px 14px;
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.6);
         }
-        
+
         .profile-nav-btn.active .nav-icon-wrapper i {
             color: #ffffff;
         }
-        
+
         .nav-icon-wrapper {
-            width: 40px;
-            height: 40px;
+            min-width: 38px;
+            min-height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
-            transition: all 0.3s ease;
+            border-radius: 999px;
+            transition: all 0.25s ease;
         }
         
         /* Мобильная оптимизация */
@@ -2282,30 +2275,32 @@
         
     <!-- Нижняя навигация (вне profile-container, чтобы position:fixed работал) -->
     <nav class="profile-nav">
-        <button class="profile-nav-btn" onclick="window.location.href='index.html'">
-            <div class="nav-icon-wrapper">
-                <i class="fas fa-home"></i>
-            </div>
-            <span>Главная</span>
-        </button>
-        <button class="profile-nav-btn" onclick="goToReferralFromProfile()">
-            <div class="nav-icon-wrapper">
-                <i class="fas fa-coins"></i>
-            </div>
-            <span>Заработать</span>
-        </button>
-        <button class="profile-nav-btn" onclick="window.location.href='assets.html'">
-            <div class="nav-icon-wrapper">
-                <i class="fab fa-telegram-plane"></i>
-            </div>
-            <span>Активы</span>
-        </button>
-        <button class="profile-nav-btn active">
-            <div class="nav-icon-wrapper">
-                <i class="fas fa-user"></i>
-            </div>
-            <span>Профиль</span>
-        </button>
+        <div class="profile-nav-inner">
+            <button class="profile-nav-btn" onclick="window.location.href='index.html'">
+                <div class="nav-icon-wrapper">
+                    <i class="fas fa-home"></i>
+                </div>
+                <span>Главная</span>
+            </button>
+            <button class="profile-nav-btn" onclick="goToReferralFromProfile()">
+                <div class="nav-icon-wrapper">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <span>Рефералы</span>
+            </button>
+            <button class="profile-nav-btn" onclick="window.location.href='assets.html'">
+                <div class="nav-icon-wrapper">
+                    <i class="fab a-telegram-plane"></i>
+                </div>
+                <span>Активы</span>
+            </button>
+            <button class="profile-nav-btn active">
+                <div class="nav-icon-wrapper">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span>Профиль</span>
+            </button>
+        </div>
     </nav>
     
     <!-- Попап детального просмотра покупки -->
