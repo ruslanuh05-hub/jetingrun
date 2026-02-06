@@ -79,9 +79,16 @@ setInterval(function() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Инициализация профиля...');
     
-    // Инициализируем базу данных
-    if (typeof Database !== 'undefined') {
-        Database.init();
+    // Инициализируем базу данных (через ГЛОБАЛЬНЫЙ экземпляр window.Database)
+    try {
+        const db = window.Database || (typeof Database !== 'undefined' ? new Database() : null);
+        if (db && typeof db.init === 'function') {
+            db.init();
+        } else {
+            console.warn('Database.init недоступен, пропускаем инициализацию БД');
+        }
+    } catch (e) {
+        console.warn('Ошибка инициализации Database в профиле:', e);
     }
     
     // Загружаем данные пользователя

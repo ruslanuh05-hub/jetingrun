@@ -1533,6 +1533,11 @@
             pointer-events: none;
         }
 
+        /* В окнах магазина/покупок (звёзды, премиум, Steam) подвал скрываем */
+        body.store-open .profile-nav {
+            display: none;
+        }
+
         .profile-nav-inner {
             pointer-events: auto;
             display: flex;
@@ -1553,7 +1558,7 @@
             left: 0;
             transform: translateY(-50%);
             width: 0;
-            height: 0; /* реальную высоту задаём из JS */
+            height: 0; /* реальную ширину/высоту задаём из JS */
             border-radius: 999px;
             z-index: 0;
             pointer-events: none;
@@ -1564,13 +1569,10 @@
                 0 8px 32px rgba(120, 80, 255, 0.35);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-        }
-
-        /* Плавное изменение размеров пузыря (без скольжения слева) после первой инициализации */
-        .nav-active-indicator.ready {
-            transition:
-                        width 0.30s cubic-bezier(0.4, 0, 0.2, 1),
-                        height 0.30s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Плавное скольжение пузыря между кнопками */
+            transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                        width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                        height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @supports (padding: max(0px)) {
@@ -4221,7 +4223,7 @@
     </div>
     
     <!-- Контейнер для подгружаемых страниц (без перезагрузки) -->
-    <div id="injectedPageWrap" class="main-menu-container" style="display: none; background: linear-gradient(180deg, #000000 0%, #031e1c 25%, #053832 50%, #07524a 75%, #0a655a 100%); padding-bottom: 80px;">
+    <div id="injectedPageWrap" class="main-menu-container" style="display: none; background: linear-gradient(180deg, #0d0a14 0%, #1a1525 25%, #251d35 50%, #1e1830 75%, #16122a 100%); padding-bottom: 80px;">
         <div id="injectedPageContent"></div>
     </div>
     
@@ -5672,6 +5674,17 @@
         function showMainMenuView() {
             var mainMenu = document.getElementById('mainMenu');
             var wrap = document.getElementById('injectedPageWrap');
+            var mainMenuView = document.getElementById('mainMenuView');
+            var storeView = document.getElementById('storeView');
+            var marketView = document.getElementById('marketView');
+            
+            // Выходим из режима магазина (если были в окне покупки звёзд/продажи/Steam)
+            if (document && document.body) {
+                document.body.classList.remove('store-open');
+            }
+            if (mainMenuView) mainMenuView.classList.remove('hidden');
+            if (storeView) storeView.classList.remove('active');
+            if (marketView) marketView.style.display = 'none';
             if (mainMenu) {
                 mainMenu.style.display = 'block';
                 mainMenu.classList.add('active');
@@ -5750,10 +5763,9 @@
                 
                 if (!indicator || !activeBtn || !navInner) return;
                 
+                
                 const btnRect = activeBtn.getBoundingClientRect();
                 const navRect = navInner.getBoundingClientRect();
-                
-                // Немного расширяем пузырь относительно кнопки
                 const extraWidth = 12;
                 const extraHeight = 6;
                 

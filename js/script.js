@@ -1872,6 +1872,11 @@ function showMainMenuView() {
     if (storeView) storeView.classList.remove('active');
     if (marketView) marketView.style.display = 'none';
     
+    // Выходим из режима магазина — возвращаем подвал
+    if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.remove('store-open');
+    }
+    
     // Обновляем активные кнопки в нижней навигации
     const mainNavButtons = document.querySelectorAll('.main-nav-btn');
     mainNavButtons.forEach(btn => btn.classList.remove('active'));
@@ -1887,6 +1892,11 @@ function showStoreView(section) {
     if (mainMenuView) mainMenuView.classList.add('hidden');
     if (storeView) storeView.classList.add('active');
     if (marketView) marketView.style.display = 'none';
+    
+    // Включаем режим магазина — прячем подвал
+    if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.add('store-open');
+    }
     
     // Обновляем активные кнопки в нижней навигации
     const navButtons = document.querySelectorAll('.main-nav-btn');
@@ -2600,8 +2610,19 @@ function openPaymentPage() {
                     } else {
                         if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment, затем нажмите «Подтвердить оплату».', 'info');
                     }
+                } else if (res.success && !res.order_id && res.mode === 'wallet') {
+                    // Режим кошелька (TON / внешний платёж): backend вернул текстовое сообщение,
+                    // показываем его как информационное, а не как ошибку.
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification(
+                            res.message || 'Мы открыли способ оплаты. После оплаты вернитесь и нажмите «Подтвердить оплату».',
+                            'info'
+                        );
+                    }
                 } else {
-                    if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа.', 'error');
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification(res.message || 'Ошибка создания заказа.', 'error');
+                    }
                 }
             })
             .catch(function() {
@@ -2718,7 +2739,9 @@ function openPaymentPage() {
                     } else {
                         window.open(payUrl, '_blank');
                     }
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Откройте оплату в CryptoBot, затем нажмите «Подтвердить оплату»', 'info');
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification('Мы открыли страницу оплаты. После оплаты вернитесь и нажмите «Подтвердить оплату».', 'info');
+                    }
                     if (statusEl) {
                         statusEl.innerHTML = 'Счёт создан. <a href="#" id="cryptobotOpenLink" style="color:#00d4ff;text-decoration:underline;">Открыть оплату</a>';
                         var linkEl = document.getElementById('cryptobotOpenLink');
@@ -2787,7 +2810,10 @@ window.showSteamTopup = showSteamTopup;
 window.closeSteamTopup = closeSteamTopup;
 window.clearSteamInput = clearSteamInput;
 window.setSteamAmount = setSteamAmount;
-window.processSteamPayment = processSteamPayment;
+// processSteamPayment устарела и больше не используется:
+// логика оплаты перенесена в showPaymentMethodSelection / selectPaymentMethod / showPaymentWaiting.
+// Чтобы не ронять скрипт на хостинге, экспорт этой несуществующей функции убираем.
+// window.processSteamPayment = processSteamPayment;
 window.openSteamLoginHelpModal = openSteamLoginHelpModal;
 window.closeSteamLoginHelpModal = closeSteamLoginHelpModal;
 window.showAssetsView = showAssetsView;
