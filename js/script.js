@@ -2559,12 +2559,66 @@ function confirmPayment() {
         });
 }
 
+// Сохранение покупки: история заказов + рейтинг + рефералы
+function recordPurchaseSuccess(data) {
+    if (!data || !data.purchase) return;
+    var p = data.purchase;
+    var amountRub = parseFloat(data.totalAmount || data.baseAmount || p.amount || 0);
+    if (!amountRub || amountRub <= 0) return;
+    var type = (p.type || 'stars').toLowerCase();
+    var productName = p.productName || p.name || '';
+    var starsAmount = parseInt(p.stars_amount || (type === 'stars' ? amountRub / 0.65 : 0), 10) || 0;
+    if (type === 'premium') {
+        var months = p.months || 3;
+        productName = productName || ('Premium ' + months + ' мес.');
+    } else if (type === 'stars') {
+        productName = productName || (starsAmount ? starsAmount + ' звёзд' : 'Звёзды Telegram');
+    } else if (type === 'steam') {
+        productName = productName || ('Steam ' + amountRub + ' ₽');
+    }
+    var purchaseObj = {
+        id: 'purchase_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        type: type,
+        productName: productName,
+        price: amountRub,
+        status: 'успешно',
+        date: new Date().toISOString()
+    };
+    try {
+        var list = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+        list.unshift(purchaseObj);
+        localStorage.setItem('jetstore_purchases', JSON.stringify(list));
+    } catch (e) { console.warn('recordPurchaseSuccess jetstore_purchases:', e); }
+    if (window.userData && Array.isArray(window.userData.purchases)) {
+        window.userData.purchases.unshift(purchaseObj);
+        if (typeof saveUserToDatabase === 'function') saveUserToDatabase();
+    }
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) return;
+    var userId = (window.userData && window.userData.id) ? String(window.userData.id) : '';
+    if (!userId || userId === 'test_user_default') return;
+    fetch(apiBase.replace(/\/$/, '') + '/api/purchases/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            user_id: userId,
+            amount_rub: amountRub,
+            stars_amount: starsAmount,
+            type: type,
+            productName: productName,
+            username: (window.userData && window.userData.username) || '',
+            first_name: (window.userData && window.userData.firstName) || ''
+        })
+    }).catch(function() {});
+}
+
 // Выдача товара после подтверждённой оплаты (Steam = DonateHub, звёзды/премиум = Fragment.com)
 function runDeliveryAfterPayment(data, checkResponse) {
     var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var statusEl = document.getElementById('paymentDetailStatus');
     // Оплата через Fragment (TonKeeper): товар уже выдан по вебхуку order.completed
     if (checkResponse && checkResponse.delivered_by_fragment === true) {
+        if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data);
         if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
         closePaymentWaiting();
         return;
@@ -2588,6 +2642,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
                     if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания заказа Steam', 'error');
                     return;
                 }
+                if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data);
                 if (typeof showStoreNotification === 'function') showStoreNotification('✅ Заказ Steam создан. Пополнение в процессе.', 'success');
                 closePaymentWaiting();
                 if (typeof closeSteamTopup === 'function') closeSteamTopup();
@@ -2600,6 +2655,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
 
     // Fragment: заказ уже создан и оплачен (order_id из вебхука) — выдача уже выполнена Fragment
     if (data.order_id && data.purchase && (data.purchase.type === 'stars' || data.purchase.type === 'premium')) {
+        if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data);
         if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
         closePaymentWaiting();
         return;
@@ -2623,6 +2679,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
             .then(function(r) { return r.json().catch(function() { return {}; }); })
             .then(function(res) {
                 if (res.success) {
+                    if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data);
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
                     closePaymentWaiting();
                 } else {
@@ -2658,6 +2715,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
             .then(function(r) { return r.json().catch(function() { return {}; }); })
             .then(function(res) {
                 if (res.success) {
+                    if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data);
                     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
                     closePaymentWaiting();
                 } else {
@@ -2674,6 +2732,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
         return;
     }
 
+    if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data);
     if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
     closePaymentWaiting();
 }
