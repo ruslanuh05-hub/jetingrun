@@ -478,6 +478,212 @@
             50% { transform: scale(1.1); opacity: 0.8; }
         }
         
+        /* Рейтинг (топ покупателей) */
+        .rating-title-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .rating-title-icon {
+            color: #00d4ff;
+            font-size: 1.4rem;
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5));
+        }
+        .rating-title {
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .rating-period-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .rating-period-btn {
+            padding: 12px 14px;
+            background: rgba(26, 30, 46, 0.9);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .rating-period-btn:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.4);
+            color: #fff;
+        }
+        .rating-period-btn.active {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.25) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-color: rgba(0, 212, 255, 0.5);
+            color: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+        .rating-anonymity-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: rgba(26, 32, 42, 0.95);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px;
+        }
+        .rating-anonymity-label {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+        }
+        .rating-toggle-wrap {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .rating-toggle-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .rating-toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 28px;
+            transition: 0.3s;
+        }
+        .rating-toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .rating-toggle-input:checked + .rating-toggle-slider {
+            background: linear-gradient(135deg, #00d4ff 0%, #00b8e6 100%);
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+        }
+        .rating-toggle-input:checked + .rating-toggle-slider::before {
+            transform: translateX(24px);
+        }
+        .rating-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 80px;
+        }
+        .rating-loading, .rating-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .rating-loading i, .rating-empty i {
+            font-size: 2.5rem;
+            color: rgba(0, 212, 255, 0.5);
+        }
+        .rating-entry {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, rgba(20, 24, 38, 0.95) 0%, rgba(26, 32, 46, 0.95) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 14px;
+            transition: all 0.25s ease;
+        }
+        .rating-entry:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+        .rating-entry-me {
+            border-color: rgba(0, 212, 255, 0.35);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.12) 0%, rgba(0, 212, 255, 0.06) 100%);
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.15);
+        }
+        .rating-rank {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+        .rating-rank-1 { color: #ffd700; }
+        .rating-rank-2 { color: #c0c0c0; }
+        .rating-rank-3 { color: #cd7f32; }
+        .rating-rank-n { color: rgba(255, 255, 255, 0.9); font-size: 0.95rem; }
+        .rating-medal {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+        .rating-medal i {
+            font-size: 1.8rem;
+        }
+        .rating-medal-num {
+            position: absolute;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #1a1a2e;
+        }
+        .rating-entry-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .rating-entry-name {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .rating-entry-name.hidden {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .rating-entry-name .rating-lock {
+            margin-right: 6px;
+            color: #e6a23c;
+        }
+        .rating-entry-orders {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+        .rating-entry-score {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        .rating-entry-score i {
+            font-size: 1rem;
+            color: #ffd700;
+        }
+        
         /* Карточки звёзд */
         .stars-grid {
             display: grid;
@@ -887,7 +1093,7 @@
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
         
-        /* Дополнительные цены Premium (RUB + USD) */
+        /* Дополнительные цены Premium — главная цена в $ */
         .premium-card-prices {
             display: flex;
             flex-direction: column;
@@ -895,14 +1101,14 @@
             gap: 4px;
         }
         
-        .premium-price-rub {
+        .premium-price-usd {
             color: #ffffff;
             font-size: 1.1rem;
             font-weight: 700;
         }
         
-        .premium-price-usd {
-            color: rgba(255, 255, 255, 0.7);
+        .premium-price-rub {
+            color: rgba(255, 255, 255, 0.6);
             font-size: 0.9rem;
             font-weight: 500;
         }
@@ -958,12 +1164,14 @@
             font-size: 0.85rem;
         }
         
-        .premium-card-compact .premium-price-rub {
-            font-size: 0.8rem;
+        .premium-card-compact .premium-price-usd {
+            font-size: 0.9rem;
+            font-weight: 700;
         }
         
-        .premium-card-compact .premium-price-usd {
-            font-size: 0.7rem;
+        .premium-card-compact .premium-price-rub {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
         }
         
         .premium-card-compact .premium-card-radio {
@@ -1447,12 +1655,14 @@
                 font-size: 0.85rem;
             }
             
-            #premiumPopup .premium-card-compact .premium-price-rub {
-                font-size: 0.8rem;
+            #premiumPopup .premium-card-compact .premium-price-usd {
+                font-size: 0.9rem;
+                font-weight: 700;
             }
             
-            #premiumPopup .premium-card-compact .premium-price-usd {
-                font-size: 0.7rem;
+            #premiumPopup .premium-card-compact .premium-price-rub {
+                font-size: 0.75rem;
+                color: rgba(255, 255, 255, 0.6);
             }
             
             #premiumPopup .premium-card-badge-compact {
@@ -3167,6 +3377,12 @@
             flex-direction: column;
         }
         
+        /* Окна оплаты — фон как везде (фиолетовый) */
+        #paymentMethodPopup .supercell-popup-content,
+        #paymentWaitingPopup .supercell-popup-content {
+            background: linear-gradient(180deg, #0d0a14 0%, #1a1525 25%, #251d35 50%, #1e1830 75%, #16122a 100%);
+        }
+        
         .supercell-games-list {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -4452,8 +4668,8 @@
                             <div class="premium-card-duration">3 мес.</div>
                         </div>
                         <div class="premium-card-prices">
-                            <span class="premium-price-rub">0 ₽</span>
                             <span class="premium-price-usd">0.00 $</span>
+                            <span class="premium-price-rub">0 ₽</span>
                         </div>
                         <div class="premium-card-radio"></div>
                     </div>
@@ -4463,8 +4679,8 @@
                             <div class="premium-card-duration">6 мес.</div>
                         </div>
                         <div class="premium-card-prices">
-                            <span class="premium-price-rub">0 ₽</span>
                             <span class="premium-price-usd">0.00 $</span>
+                            <span class="premium-price-rub">0 ₽</span>
                         </div>
                         <div class="premium-card-radio"></div>
                     </div>
@@ -4475,8 +4691,8 @@
                             <div class="premium-card-duration">12 мес.</div>
                         </div>
                         <div class="premium-card-prices">
-                            <span class="premium-price-rub">0 ₽</span>
                             <span class="premium-price-usd">0.00 $</span>
+                            <span class="premium-price-rub">0 ₽</span>
                         </div>
                         <div class="premium-card-radio"></div>
                     </div>
@@ -4489,14 +4705,35 @@
             
             <!-- Секция Рейтинг -->
             <div class="store-section" id="ratingSection">
-                <div class="section-title">
-                    <i class="fas fa-trophy"></i>
-                    <span>Рейтинг покупателей</span>
+                <div class="rating-title-wrap">
+                    <i class="fas fa-trophy rating-title-icon"></i>
+                    <h2 class="rating-title">Топ покупателей</h2>
                 </div>
                 
-                <div style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.5);">
-                    <i class="fas fa-trophy" style="font-size: 3rem; margin-bottom: 16px; color: #00d4ff;"></i>
-                    <p>Рейтинг скоро будет доступен</p>
+                <div class="rating-period-tabs">
+                    <button type="button" class="rating-period-btn active" data-period="all">За всё время</button>
+                    <button type="button" class="rating-period-btn" data-period="month">За месяц</button>
+                    <button type="button" class="rating-period-btn" data-period="week">За неделю</button>
+                    <button type="button" class="rating-period-btn" data-period="today">За сегодня</button>
+                </div>
+                
+                <div class="rating-anonymity-card">
+                    <span class="rating-anonymity-label">Показывать меня в рейтинге</span>
+                    <label class="rating-toggle-wrap">
+                        <input type="checkbox" class="rating-toggle-input" id="ratingShowMeToggle" checked>
+                        <span class="rating-toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="rating-list" id="ratingList">
+                    <div class="rating-loading" id="ratingLoading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Загрузка...</span>
+                    </div>
+                    <div class="rating-empty" id="ratingEmpty" style="display:none;">
+                        <i class="fas fa-trophy"></i>
+                        <p>Пока никого нет</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -5099,8 +5336,8 @@
                                 <div class="premium-card-duration">3 мес.</div>
                             </div>
                             <div class="premium-card-prices">
-                                <span class="premium-price-rub">0 ₽</span>
                                 <span class="premium-price-usd">0.00 $</span>
+                                <span class="premium-price-rub">0 ₽</span>
                             </div>
                             <div class="premium-card-radio"></div>
                         </div>
@@ -5110,8 +5347,8 @@
                                 <div class="premium-card-duration">6 мес.</div>
                             </div>
                             <div class="premium-card-prices">
-                                <span class="premium-price-rub">0 ₽</span>
                                 <span class="premium-price-usd">0.00 $</span>
+                                <span class="premium-price-rub">0 ₽</span>
                             </div>
                             <div class="premium-card-radio"></div>
                         </div>
@@ -5122,8 +5359,8 @@
                                 <div class="premium-card-duration">12 мес.</div>
                             </div>
                             <div class="premium-card-prices">
-                                <span class="premium-price-rub">0 ₽</span>
                                 <span class="premium-price-usd">0.00 $</span>
+                                <span class="premium-price-rub">0 ₽</span>
                             </div>
                             <div class="premium-card-radio"></div>
                         </div>

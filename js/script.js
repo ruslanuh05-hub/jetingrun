@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Слушаем изменения цен в localStorage (если админ изменил цены)
     window.addEventListener('storage', function(e) {
-        if (e.key === 'jetstore_stars_prices' || e.key === 'jetstore_premium_prices' || e.key === 'jetstore_star_rate') {
+        if (e.key === 'jetstore_stars_prices' || e.key === 'jetstore_premium_prices' || e.key === 'jetstore_star_rate' || e.key === 'jetstore_usd_rate') {
             updatePricesDisplay();
         }
     });
@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPurchase = {
                 type: 'premium',
                 amount: parseFloat(amount),
+                months: parseInt(months, 10) || 3,
                 login: recipient || null,
                 productId: null,
                 productName: 'Premium ' + months + ' мес.'
@@ -401,12 +402,13 @@ function getStarBuyRate() {
 // Загрузка курса USD из админки / настроек
 function getUsdRate() {
     try {
+        const r = localStorage.getItem('jetstore_usd_rate');
+        if (r && parseFloat(r) > 0) return parseFloat(r);
         const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
         if (db && typeof db.getCurrencyRates === 'function') {
             const rates = db.getCurrencyRates();
             if (rates && rates.USD) return rates.USD;
         }
-        // Пытаемся загрузить из локальных настроек
         const settingsStr = localStorage.getItem('jetStoreAdminSettings');
         if (settingsStr) {
             const settings = JSON.parse(settingsStr);
@@ -416,8 +418,7 @@ function getUsdRate() {
     } catch (error) {
         console.error('Ошибка загрузки курса USD:', error);
     }
-    // Значение по умолчанию
-    return 90;
+    return 100;  // fallback для отображения цены в $
 }
 
 // Загрузка цен на звёзды из localStorage
@@ -482,7 +483,7 @@ function updatePricesDisplay() {
         }
     });
     
-    // Обновляем цены на Premium (обычные карточки)
+    // Обновляем цены на Premium (обычные карточки) — главная цена в $
     const premiumCards = document.querySelectorAll('.premium-card');
     premiumCards.forEach(card => {
         const months = parseInt(card.getAttribute('data-months'));
@@ -490,13 +491,9 @@ function updatePricesDisplay() {
             const priceRubEl = card.querySelector('.premium-price-rub');
             const priceUsdEl = card.querySelector('.premium-price-usd');
             const price = premiumPrices[months];
-            if (priceRubEl) {
-                priceRubEl.textContent = price.toLocaleString('ru-RU') + ' ₽';
-            }
-            if (priceUsdEl && usdRate) {
-                const usdValue = (price / usdRate).toFixed(2);
-                priceUsdEl.textContent = `${usdValue} $`;
-            }
+            const usdValue = (price / usdRate).toFixed(2);
+            if (priceRubEl) priceRubEl.textContent = price.toLocaleString('ru-RU') + ' ₽';
+            if (priceUsdEl) priceUsdEl.textContent = usdValue + ' $';
         }
     });
     
@@ -508,13 +505,9 @@ function updatePricesDisplay() {
             const priceRubEl = card.querySelector('.premium-price-rub');
             const priceUsdEl = card.querySelector('.premium-price-usd');
             const price = premiumPrices[months];
-            if (priceRubEl) {
-                priceRubEl.textContent = price.toLocaleString('ru-RU') + ' ₽';
-            }
-            if (priceUsdEl && usdRate) {
-                const usdValue = (price / usdRate).toFixed(2);
-                priceUsdEl.textContent = `${usdValue} $`;
-            }
+            const usdValue = (price / usdRate).toFixed(2);
+            if (priceRubEl) priceRubEl.textContent = price.toLocaleString('ru-RU') + ' ₽';
+            if (priceUsdEl) priceUsdEl.textContent = usdValue + ' $';
         }
     });
 }
@@ -552,6 +545,125 @@ function switchStoreTab(tab) {
     
     // Обновляем цены при переключении
     updatePricesDisplay();
+    
+    if (tab === 'rating') {
+        initRatingSection();
+    }
+}
+
+// ====== Рейтинг (топ покупателей) ======
+let currentRatingPeriod = 'all';
+let ratingInitialized = false;
+
+function initRatingSection() {
+    if (ratingInitialized) {
+        loadRatingLeaderboard(currentRatingPeriod);
+        return;
+    }
+    ratingInitialized = true;
+    
+    document.querySelectorAll('.rating-period-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.rating-period-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentRatingPeriod = this.getAttribute('data-period') || 'all';
+            loadRatingLeaderboard(currentRatingPeriod);
+        });
+    });
+    
+    const toggle = document.getElementById('ratingShowMeToggle');
+    if (toggle) {
+        const saved = localStorage.getItem('jetstore_rating_show_me');
+        if (saved !== null) toggle.checked = saved === 'true';
+        toggle.addEventListener('change', function() {
+            localStorage.setItem('jetstore_rating_show_me', String(this.checked));
+            saveRatingAnonymity(this.checked);
+            loadRatingLeaderboard(currentRatingPeriod);
+        });
+    }
+    
+    loadRatingLeaderboard(currentRatingPeriod);
+}
+
+function saveRatingAnonymity(show) {
+    const apiBase = (typeof getJetApiBase === 'function' ? getJetApiBase() : '') || window.JET_API_BASE || '';
+    if (!apiBase) return;
+    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user || window.userData;
+    const userId = tgUser?.id || window.userData?.id;
+    if (!userId) return;
+    fetch(apiBase.replace(/\/$/, '') + '/api/rating/anonymity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ show: !!show, userId: userId })
+    }).catch(function() {});
+}
+
+function loadRatingLeaderboard(period) {
+    const listEl = document.getElementById('ratingList');
+    const loadingEl = document.getElementById('ratingLoading');
+    const emptyEl = document.getElementById('ratingEmpty');
+    if (!listEl) return;
+    
+    if (loadingEl) loadingEl.style.display = 'flex';
+    if (emptyEl) emptyEl.style.display = 'none';
+    listEl.querySelectorAll('.rating-entry').forEach(el => el.remove());
+    
+    const apiBase = (typeof getJetApiBase === 'function' ? getJetApiBase() : '') || window.JET_API_BASE || '';
+    const url = apiBase ? (apiBase.replace(/\/$/, '') + '/api/rating/leaderboard?period=' + encodeURIComponent(period)) : '';
+    
+    function renderEntries(entries) {
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (!entries || entries.length === 0) {
+            if (emptyEl) emptyEl.style.display = 'flex';
+            return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
+        
+        const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user || window.userData;
+        const myId = (tgUser?.id || window.userData?.id) ? String(tgUser?.id || window.userData?.id) : null;
+        
+        entries.forEach(function(item, index) {
+            const rank = index + 1;
+            const isMe = myId && String(item.userId) === myId;
+            const isHidden = !!item.hidden;
+            const rankClass = rank === 1 ? 'rating-rank-1' : rank === 2 ? 'rating-rank-2' : rank === 3 ? 'rating-rank-3' : 'rating-rank-n';
+            const rankHtml = rank <= 3
+                ? '<span class="rating-medal ' + rankClass + '"><i class="fas fa-medal"></i><span class="rating-medal-num">' + rank + '</span></span>'
+                : '<span class="' + rankClass + '">#' + rank + '</span>';
+            
+            let nameHtml = isHidden
+                ? '<i class="fas fa-lock rating-lock"></i>Скрыто'
+                : (item.username ? '@' + item.username : (item.firstName || 'Пользователь'));
+            
+            const orders = item.ordersCount || 0;
+            const ordersText = orders === 1 ? '1 заказ' : orders >= 2 && orders <= 4 ? orders + ' заказа' : orders + ' заказов';
+            
+            const div = document.createElement('div');
+            div.className = 'rating-entry' + (isMe ? ' rating-entry-me' : '');
+            div.innerHTML =
+                '<div class="rating-rank ' + rankClass + '">' + rankHtml + '</div>' +
+                '<div class="rating-entry-info">' +
+                    '<div class="rating-entry-name' + (isHidden ? ' hidden' : '') + '">' + nameHtml + '</div>' +
+                    '<div class="rating-entry-orders">' + ordersText + '</div>' +
+                '</div>' +
+                '<div class="rating-entry-score">' + (item.score || 0).toLocaleString('ru-RU') + ' <i class="fas fa-star"></i></div>';
+            listEl.appendChild(div);
+        });
+    }
+    
+    if (url) {
+        fetch(url)
+            .then(function(r) { return r.json().catch(function() { return null; }); })
+            .then(function(data) {
+                const entries = (data && data.entries) ? data.entries : [];
+                renderEntries(entries);
+            })
+            .catch(function() {
+                renderEntries([]);
+            });
+    } else {
+        renderEntries([]);
+    }
 }
 
 // Выбор количества звёзд (новая версия с загрузкой цены)
@@ -678,7 +790,9 @@ function updatePremiumButton() {
     if (!btn) return;
     
     if (selectedPremium.months > 0) {
-        btn.textContent = `Оплатить Premium ${selectedPremium.months} мес. за ${selectedPremium.price.toLocaleString('ru-RU')} ₽`;
+        const usdRate = getUsdRate();
+        const priceUsd = (selectedPremium.price / usdRate).toFixed(2);
+        btn.textContent = `Оплатить Premium ${selectedPremium.months} мес. за ${priceUsd} $`;
         btn.classList.remove('deposit');
         btn.classList.remove('disabled');
         btn.onclick = () => proceedPremiumPurchase();
@@ -791,6 +905,10 @@ function fillOwnUsername(inputId) {
         input.value = username;
     } else if (firstName) {
         input.value = firstName;
+    }
+    // Сбрасываем превью получателя (чип), чтобы показать введённый username
+    if (inputId === 'premiumRecipient' && typeof setPremiumRecipientState === 'function') {
+        setPremiumRecipientState('empty');
     }
 }
 
@@ -1505,7 +1623,9 @@ function updatePremiumPopupButton() {
     if (!btn) return;
     
     if (selectedPremium.months > 0) {
-        btn.textContent = `Оплатить Premium ${selectedPremium.months} мес. за ${selectedPremium.price.toLocaleString('ru-RU')} ₽`;
+        const usdRate = getUsdRate();
+        const priceUsd = (selectedPremium.price / usdRate).toFixed(2);
+        btn.textContent = `Оплатить Premium ${selectedPremium.months} мес. за ${priceUsd} $`;
         btn.classList.remove('disabled');
         btn.style.opacity = '1';
     } else {
@@ -2236,12 +2356,15 @@ function showPaymentMethodSelection(purchaseType) {
     }
 }
 
-// Закрыть окно выбора способа оплаты и вернуться в предыдущее окно
-function closePaymentMethodPopup() {
+// Закрыть окно выбора способа оплаты и (опционально) вернуться в предыдущее окно
+// skipReturnToPrevious = true: только закрыть попап, не возвращаться (при выборе способа оплаты)
+function closePaymentMethodPopup(skipReturnToPrevious) {
     const popup = document.getElementById('paymentMethodPopup');
     if (popup) {
         popup.classList.remove('active');
     }
+    
+    if (skipReturnToPrevious) return;
     
     // Возвращаем пользователя в предыдущее окно
     if (previousView.type === 'steam') {
@@ -2281,7 +2404,7 @@ function closePaymentMethodPopup() {
 
 // Выбрать способ оплаты
 function selectPaymentMethod(method, bonusPercent) {
-    closePaymentMethodPopup();
+    closePaymentMethodPopup(true);  // Не возвращаться назад — идём к оплате
     
     // Рассчитываем сумму с учетом комиссии
     const baseAmount = currentPurchase.amount;

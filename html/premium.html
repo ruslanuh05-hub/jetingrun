@@ -138,8 +138,8 @@
         .premium-card-left { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         .premium-card-duration { color: #fff; font-size: 0.85rem; font-weight: 700; }
         .premium-card-prices { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 0; text-align: right; }
-        .premium-price-rub { color: #fff; font-size: 0.8rem; font-weight: 700; }
-        .premium-price-usd { color: rgba(255,255,255,0.7); font-size: 0.7rem; }
+        .premium-price-usd { color: #fff; font-size: 0.9rem; font-weight: 700; }
+        .premium-price-rub { color: rgba(255,255,255,0.6); font-size: 0.75rem; }
         .premium-card-radio {
             width: 16px;
             height: 16px;
@@ -258,8 +258,8 @@
                         <div class="premium-card-duration">3 мес.</div>
                     </div>
                     <div class="premium-card-prices">
-                        <span class="premium-price-rub">0 ₽</span>
                         <span class="premium-price-usd">0.00 $</span>
+                        <span class="premium-price-rub">0 ₽</span>
                     </div>
                     <div class="premium-card-radio"></div>
                 </div>
@@ -268,8 +268,8 @@
                         <div class="premium-card-duration">6 мес.</div>
                     </div>
                     <div class="premium-card-prices">
-                        <span class="premium-price-rub">0 ₽</span>
                         <span class="premium-price-usd">0.00 $</span>
+                        <span class="premium-price-rub">0 ₽</span>
                     </div>
                     <div class="premium-card-radio"></div>
                 </div>
@@ -279,8 +279,8 @@
                         <div class="premium-card-duration">12 мес.</div>
                     </div>
                     <div class="premium-card-prices">
-                        <span class="premium-price-rub">0 ₽</span>
                         <span class="premium-price-usd">0.00 $</span>
+                        <span class="premium-price-rub">0 ₽</span>
                     </div>
                     <div class="premium-card-radio"></div>
                 </div>
@@ -305,8 +305,9 @@
             function getUsdRate() {
                 try {
                     var r = localStorage.getItem('jetstore_usd_rate');
-                    return r ? parseFloat(r) : 0;
-                } catch (e) { return 0; }
+                    if (r && parseFloat(r) > 0) return parseFloat(r);
+                    return 100;  // fallback для отображения цены в $
+                } catch (e) { return 100; }
             }
             function updatePricesDisplay() {
                 var premiumPrices = getPremiumPrices();
@@ -318,7 +319,7 @@
                     var rubEl = card.querySelector('.premium-price-rub');
                     var usdEl = card.querySelector('.premium-price-usd');
                     if (rubEl) rubEl.textContent = price.toLocaleString('ru-RU') + ' ₽';
-                    if (usdEl && usdRate) usdEl.textContent = (price / usdRate).toFixed(2) + ' $';
+                    if (usdEl) usdEl.textContent = (price / usdRate).toFixed(2) + ' $';
                 });
             }
             var selectedPremium = { months: 0, price: 0 };
@@ -326,7 +327,9 @@
                 var btn = document.getElementById('payBtn');
                 if (!btn) return;
                 if (selectedPremium.months > 0) {
-                    btn.textContent = 'Оплатить Premium ' + selectedPremium.months + ' мес. за ' + selectedPremium.price.toLocaleString('ru-RU') + ' ₽';
+                    var usdRate = getUsdRate();
+                    var priceUsd = (selectedPremium.price / usdRate).toFixed(2);
+                    btn.textContent = 'Оплатить Premium ' + selectedPremium.months + ' мес. за ' + priceUsd + ' $';
                     btn.classList.remove('disabled');
                 } else {
                     btn.textContent = 'Выберите период';
@@ -345,9 +348,18 @@
             window.fillOwnUsername = function() {
                 var input = document.getElementById('premiumRecipient');
                 if (!input) return;
-                var username = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.username) || '';
-                if (username && !username.startsWith('@')) username = '@' + username;
-                input.value = username || '';
+                var user = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) || null;
+                var username = (window.userData && window.userData.username) || (user && user.username) || '';
+                var firstName = (window.userData && window.userData.firstName) || (user && user.first_name) || '';
+                if (username) {
+                    if (!username.startsWith('@')) username = '@' + username;
+                    input.value = username;
+                } else if (firstName) {
+                    input.value = firstName;
+                } else {
+                    input.value = '';
+                }
+                setPremiumRecipientStatePage('empty');
             };
             function setPremiumRecipientStatePage(state, userData) {
                 var w = document.getElementById('premiumRecipientWrapper');
