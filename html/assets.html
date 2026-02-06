@@ -2665,7 +2665,13 @@
         window.toggleUsernameSortDropdown = window.toggleUsernameSortDropdown || function(){};
         window.setUsernameCurrency = window.setUsernameCurrency || function(){};
         (function(){ if (typeof window.fetchTonToRubRateFromApi === 'function') window.fetchTonToRubRateFromApi(); })();
-        document.addEventListener('DOMContentLoaded', function() {
+
+        // Инициализация страницы "Активы" (работает и при обычной загрузке, и при SPA-подгрузке)
+        let assetsPageInitialized = false;
+        function initAssetsPage() {
+            if (assetsPageInitialized) return;
+            assetsPageInitialized = true;
+
             if (sessionStorage.getItem('assetsOpenDrawer') === '1') {
                 sessionStorage.removeItem('assetsOpenDrawer');
                 setTimeout(function() {
@@ -2676,7 +2682,13 @@
                 }, 100);
             }
             loadUserDataForAssets();
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAssetsPage);
+        } else {
+            initAssetsPage();
+        }
         
         // Загрузка данных пользователя для активов
         function loadUserDataForAssets() {

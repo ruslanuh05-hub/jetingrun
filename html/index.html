@@ -5598,6 +5598,12 @@
             var content = document.getElementById('injectedPageContent');
             if (!wrap || !content) return;
 
+            // При переходе в другие разделы всегда выходим из режима магазина,
+            // чтобы подвал не оставался скрытым (класс body.store-open)
+            if (typeof document !== 'undefined' && document.body) {
+                document.body.classList.remove('store-open');
+            }
+
             fetch(url)
                 .then(function(r) { return r.text(); })
                 .then(function(html) {
