@@ -135,7 +135,7 @@
             object-fit: contain;
             filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
         }
-
+        
         .referral-intro-title {
             font-size: 1.15rem;
             font-weight: 700;
@@ -668,7 +668,7 @@
         }
         
         .withdraw-balance-info {
-            padding: 16px;
+                padding: 16px;
             background: rgba(0, 212, 255, 0.1);
             border-radius: 8px;
             margin-bottom: 16px;
@@ -858,8 +858,8 @@
             <div class="referral-intro-subtitle">Получите больше преимуществ</div>
             <div class="referral-intro-banner" style="margin-bottom: 0;">
                 <div class="referral-intro-icon">
-                    <i class="fas fa-star"></i>
-                </div>
+                        <i class="fas fa-star"></i>
+                    </div>
                 <div>
                     <div class="referral-intro-text-sub">
                         Зарабатывайте до 25% JetRefs с покупок друзей. Больше объём&nbsp;— выше уровень и доход.
@@ -894,8 +894,8 @@
                     <div class="referral-earnings-row" style="padding-top: 4px; border-top: none;">
                         <span class="referral-earnings-label" style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.5);">≈</span>
                         <span class="referral-earnings-value" id="refEarnRubInTon" style="font-size: 0.9rem; color: rgba(0, 212, 255, 0.8); font-weight: 500;">0 ₽</span>
-                </div>
-                </div>
+            </div>
+        </div>
         
                 <!-- Metrics: Рефералы — цифра в один ряд с иконкой -->
                 <div class="referral-metrics">
@@ -904,19 +904,19 @@
                         <div class="referral-metric-row">
                             <div class="referral-metric-icon referrals">
                                 <img src="../assets/ref-icon.png" alt="Рефералы" style="width: 52px; height: 52px; object-fit: contain;">
-                            </div>
-                            <div class="referral-metric-value" id="refTotalRefs">0</div>
-                        </div>
-                    </div>
                 </div>
-        
+                            <div class="referral-metric-value" id="refTotalRefs">0</div>
+            </div>
+                </div>
+            </div>
+            
                 <!-- Progress Bar -->
                 <div class="referral-volume-section">
                     <div class="referral-progress-bar">
                         <div class="referral-progress-fill" id="refProgressBar" style="width: 0%;"></div>
                         <div class="referral-progress-tick l2"></div>
                         <div class="referral-progress-tick l3"></div>
-        </div>
+                </div>
         
                     <!-- Progress Text -->
                     <div class="referral-progress-text" id="refProgressText">
@@ -930,11 +930,11 @@
                 <button class="referral-invite-btn" id="inviteFriendsBtn">
                     Пригласить друзей
                 </button>
-            </div>
+        </div>
+                </div>
             </div>
         </div>
-    </div>
-    
+        
     <!-- Нижняя навигация -->
     <!-- Модальное окно уровней JetRefs -->
     <div class="jetrefs-levels-overlay" id="jetRefsLevelsOverlay" onclick="closeJetRefsLevelsModal(event)">
@@ -1197,7 +1197,7 @@
             try {
                 const tg = window.Telegram?.WebApp;
                 if (tg?.openTelegramLink) {
-                    tg.openTelegramLink(shareUrl);
+                tg.openTelegramLink(shareUrl);
                     return;
                 }
                 if (tg?.openLink) {
