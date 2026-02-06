@@ -3066,33 +3066,33 @@
                 referralEarningsElement.textContent = `${referralEarnings} ₽`;
             }
             
-            // Генерация реферальной ссылки на основе ID пользователя
-            const userId = userData.id || document.getElementById('profileUserId')?.textContent || '000000';
-            const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
-            const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
+            // Загрузка реферальной ссылки (с зашифрованным ID) из API
+            const userId = userData.id || document.getElementById('profileUserId')?.textContent || '';
             const referralLinkElement = document.getElementById('referralLinkText');
-            
-            if (referralLinkElement) {
-                referralLinkElement.textContent = referralLink;
+            if (referralLinkElement && userId) {
+                (async function() {
+                    let link = '';
+                    try {
+                        const apiBase = (window.getJetApiBase && window.getJetApiBase())
+                            || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+                        const url = apiBase ? apiBase.replace(/\/$/, '') + `/api/referral/link?user_id=${userId}` : `/api/referral/link?user_id=${userId}`;
+                        const r = await fetch(url);
+                        if (r.ok) { const d = await r.json(); link = d.url || ''; }
+                    } catch (e) {}
+                    if (!link) {
+                        const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
+                        link = `https://t.me/${botUsername}?start=ref_${userId}`;
+                    }
+                    referralLinkElement.textContent = link;
+                })();
             }
         }
         
         function copyReferralLink() {
-            const referralLink = document.getElementById('referralLinkText').textContent;
-            
-            // Используем Clipboard API, если доступен
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(referralLink)
-                    .then(() => {
-                        showMobileNotification('Реферальная ссылка скопирована!', 'success');
-                    })
-                    .catch(err => {
-                        console.error('Ошибка копирования: ', err);
-                        copyToClipboardFallback(referralLink);
-                    });
-            } else {
-                copyToClipboardFallback(referralLink);
-            }
+            const el = document.getElementById('referralLinkText');
+            if (!el) return;
+            const link = el.textContent.trim();
+            shareReferralLink(link);
         }
         
         function copyToClipboardFallback(text) {
@@ -3160,12 +3160,27 @@
         window.closePurchaseDetails = closePurchaseDetails;
         
         // Показать информацию о реферальной программе
-        function showReferralInfo() {
-            // Получаем userData из глобального объекта
+        async function showReferralInfo() {
             const currentUserData = window.userData || {};
-            const userId = currentUserData.id || '000000';
-            const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
-            const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
+            const userId = currentUserData.id || '';
+            if (!userId) return;
+            let referralLink = '';
+            try {
+                const apiBase = (window.getJetApiBase && window.getJetApiBase())
+                    || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+                const url = apiBase
+                    ? apiBase.replace(/\/$/, '') + `/api/referral/link?user_id=${userId}`
+                    : `/api/referral/link?user_id=${userId}`;
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    referralLink = data.url || '';
+                }
+            } catch (e) { console.warn('Referral link API:', e); }
+            if (!referralLink) {
+                const botUsername = window.JET_BOT_USERNAME || 'JetSold_bot';
+                referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
+            }
             const referralsCount = currentUserData.referrals?.count || 0;
             const referralEarnings = currentUserData.referrals?.earnings || 0;
             
@@ -3195,8 +3210,8 @@
                             <div class="referral-link" id="referralLinkText" style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.9rem; word-break: break-all; margin-bottom: 10px; color: #ffffff;">
                                 ${referralLink}
                             </div>
-                            <button class="copy-referral-btn" onclick="copyReferralLinkFromPopup();" style="width: 100%; padding: 12px; background: white; color: #f5576c; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-                                <i class="fas fa-copy"></i> Копировать ссылку
+                            <button class="copy-referral-btn" onclick="shareReferralLinkFromPopup();" style="width: 100%; padding: 12px; background: white; color: #f5576c; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                                <i class="fas fa-paper-plane"></i> Отправить другу
                             </button>
                         </div>
                         
@@ -3224,17 +3239,31 @@
             document.body.appendChild(modal);
         }
         
-        // Копирование реферальной ссылки из попапа
-        function copyReferralLinkFromPopup() {
+        // Пересылка реферальной ссылки (tg://msg) вместо копирования
+        function shareReferralLinkFromPopup() {
             const referralLinkElement = document.getElementById('referralLinkText');
             if (referralLinkElement) {
                 const referralLink = referralLinkElement.textContent.trim();
-                copyReferralLinkToClipboard(referralLink);
+                shareReferralLink(referralLink);
                 document.getElementById('referralPopup').remove();
             }
         }
         
-        // Универсальная функция копирования в буфер обмена
+        function shareReferralLink(link) {
+            const msg = 'Присоединяйтесь к JET\n\n' + link;
+            const shareUrl = 'tg://msg?text=' + encodeURIComponent(msg);
+            try {
+                const tg = window.Telegram?.WebApp;
+                if (tg?.openTelegramLink) { tg.openTelegramLink(shareUrl); return; }
+                if (tg?.openLink) { tg.openLink(shareUrl); return; }
+                window.open(shareUrl, '_blank');
+            } catch (e) {
+                if (navigator.clipboard) navigator.clipboard.writeText(link).then(() => showMobileNotification('Ссылка скопирована', 'success'));
+                else showMobileNotification('Ссылка: ' + link, 'info');
+            }
+        }
+        
+        // Универсальная функция копирования в буфер обмена (fallback)
         function copyReferralLinkToClipboard(text) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text)

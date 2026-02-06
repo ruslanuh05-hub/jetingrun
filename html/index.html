@@ -391,6 +391,7 @@
         
         /* Вкладки навигации */
         .store-tabs {
+            flex-shrink: 0;
             display: flex;
             padding: 0 max(20px, env(safe-area-inset-left));
             margin: 16px 0;
@@ -438,6 +439,7 @@
         
         /* Индикатор страницы */
         .page-indicator {
+            flex-shrink: 0;
             display: flex;
             justify-content: center;
             gap: 8px;
@@ -459,13 +461,16 @@
         
         /* Контент магазина */
         .store-content {
+            flex: 1;
+            min-height: 200px;
             padding: 0 max(20px, env(safe-area-inset-left));
             position: relative;
-            min-height: 300px;
             width: 100%;
             max-width: 100%;
             overflow-x: hidden;
+            overflow-y: auto;
             box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
         }
         
         .store-section {
@@ -475,6 +480,7 @@
             top: 0;
             left: 0;
             right: 0;
+            width: 100%;
             transition: opacity 0.35s ease;
         }
         
@@ -1985,6 +1991,10 @@
             opacity: 0;
             pointer-events: none;
             z-index: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            align-self: stretch;
         }
         
         .store-view.active {
@@ -1995,6 +2005,7 @@
         
         /* Шапка магазина: кнопка «Назад» в левом верхнем углу */
         .store-view-header {
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             gap: 14px;
@@ -2580,10 +2591,15 @@
         }
         
         .steam-topup-conversion {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.8rem;
-            line-height: 1.45;
             margin-top: 14px;
+            padding: 10px 14px;
+            background: rgba(0, 212, 255, 0.12);
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            border-radius: 10px;
+            color: #00d4ff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.45;
         }
         
         .steam-topup-input-group { margin-bottom: 20px; }
@@ -3822,7 +3838,7 @@
         .main-menu-card-stars.banner-card .banner-image-wrapper,
         .main-menu-card-premium.banner-card .banner-image-wrapper {
             height: auto;
-            max-height: 100px;
+            max-height: 130px;
             overflow: hidden;
             display: flex;
             justify-content: center;
@@ -4380,8 +4396,9 @@
             }
             
             .steam-topup-conversion {
-                font-size: 0.75rem;
+                font-size: 0.9rem;
                 margin-top: 12px;
+                padding: 10px 12px;
             }
             
             .steam-topup-actions {
@@ -4546,8 +4563,9 @@
             }
             
             .steam-topup-conversion {
-                font-size: 0.7rem;
+                font-size: 0.85rem;
                 margin-top: 10px;
+                padding: 8px 10px;
             }
             
             .steam-topup-actions {
@@ -4607,7 +4625,7 @@
             .main-menu-cards { padding: 10px max(10px, env(safe-area-inset-left)); gap: 8px; }
             .main-menu-card { padding: 9px 11px; min-height: 77px; }
             .main-menu-card-stars.banner-card .banner-image-wrapper,
-            .main-menu-card-premium.banner-card .banner-image-wrapper { max-height: 85px; }
+            .main-menu-card-premium.banner-card .banner-image-wrapper { max-height: 110px; }
             .profile-nav-inner { gap: 10px; padding: 14px 12px; }
             .profile-nav-btn { padding: 12px 20px; font-size: 0.9rem; min-width: 64px; min-height: 64px; }
             .profile-nav-btn i { font-size: 1.65rem; }
@@ -4624,7 +4642,7 @@
             .main-menu-card-title { font-size: 0.62rem; }
             .main-menu-card-subtitle { font-size: 0.46rem; }
             .main-menu-card-stars.banner-card .banner-image-wrapper,
-            .main-menu-card-premium.banner-card .banner-image-wrapper { max-height: 73px; }
+            .main-menu-card-premium.banner-card .banner-image-wrapper { max-height: 95px; }
             .main-menu-card-ton .main-menu-card-icons img,
             .main-menu-card-stars .main-menu-card-icons img,
             .main-menu-card-sell-stars .main-menu-card-icons img { width: 42px; height: 42px; }
@@ -5003,8 +5021,8 @@
                                 <button type="button" class="steam-topup-preset" onclick="setSteamAmount(2000)">2 000</button>
                                 <button type="button" class="steam-topup-preset" onclick="setSteamAmount(5000)">5 000</button>
                             </div>
-                            <div class="steam-topup-conversion">
-                                Конвертация в валюту вашей страны производится автоматически по текущему курсу.
+                            <div class="steam-topup-conversion" id="steamRateDisplay">
+                                1 рубль на стим = 1,06 ₽
                             </div>
                         </div>
                     </div>
@@ -5089,22 +5107,13 @@
                     <div class="payment-category">
                         <h3 class="payment-category-title">Криптовалюта</h3>
                         <div class="payment-methods-list payment-methods-compact">
-                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('ton', 0)">
-                                <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
-                                    <i class="fas fa-gem" style="color: #fff;"></i>
-                                </div>
-                                <div class="payment-method-info">
-                                    <span class="payment-method-name">TON</span>
-                                    <span class="payment-method-bonus">0%</span>
-                                </div>
-                            </button>
-                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('cryptobot', 2)">
+                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('cryptobot', 4)">
                                 <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
                                     <i class="fas fa-robot" style="color: #fff;"></i>
                                 </div>
                                 <div class="payment-method-info">
                                     <span class="payment-method-name">CryptoBot</span>
-                                    <span class="payment-method-bonus">+2%</span>
+                                    <span class="payment-method-bonus">+4%</span>
                                 </div>
                             </button>
                         </div>

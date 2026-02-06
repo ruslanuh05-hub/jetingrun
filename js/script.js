@@ -721,7 +721,7 @@ function calculateCustomStars() {
         } else if (amount >= 8000) {
             price = Math.round(price * 0.97); // -3%
         } else if (amount >= 4000) {
-            price = Math.round(price * 0.98); // -2%
+            price = Math.round(price * 0.96); // -4%
         }
         
         selectedStars = { amount, price };
@@ -2105,10 +2105,22 @@ function updateMarketBalance() {
     if (el) el.textContent = currentBalance.toLocaleString('ru-RU') + ' ₽';
 }
 
+// Курс Steam: 1 Steam R = X ₽ (из админки или 1.06 по умолчанию)
+function getSteamRate() {
+    try {
+        var v = parseFloat(localStorage.getItem('jetstore_steam_rate') || '1.06');
+        return v > 0 ? v : 1.06;
+    } catch (e) { return 1.06; }
+}
+
 // Функции для окна пополнения Steam
 function showSteamTopup() {
     const popup = document.getElementById('steamTopupPopup');
     if (!popup) return;
+    
+    var rate = getSteamRate();
+    var rateEl = document.getElementById('steamRateDisplay');
+    if (rateEl) rateEl.textContent = '1 рубль на стим = ' + rate.toFixed(2).replace('.', ',') + ' ₽';
     
     popup.classList.add('active');
     
@@ -2425,7 +2437,6 @@ function showPaymentWaiting() {
     const methodNames = {
         'sbp': 'СБП',
         'card': 'Карта',
-        'ton': 'TON Wallet',
         'cryptobot': 'CryptoBot'
     };
     
@@ -2550,7 +2561,36 @@ function confirmPayment() {
         });
 }
 
-// Сохранение покупки: история заказов + рейтинг + рефералы
+// Записать намерение оплаты для рейтинга (при отправке денег, до успешной оплаты)
+function recordPurchaseIntent(data) {
+    if (!data || !data.purchase) return;
+    var p = data.purchase;
+    var amountRub = parseFloat(data.totalAmount || data.baseAmount || p.amount || 0);
+    if (!amountRub || amountRub <= 0) return;
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) return;
+    var userId = (window.userData && window.userData.id) ? String(window.userData.id) : '';
+    if (!userId || userId === 'test_user_default') return;
+    var type = (p.type || 'stars').toLowerCase();
+    var starsAmount = parseInt(p.stars_amount || (type === 'stars' ? amountRub / 0.65 : 0), 10) || 0;
+    var productName = p.productName || p.name || (type === 'stars' ? (starsAmount + ' звёзд') : '');
+    fetch(apiBase.replace(/\/$/, '') + '/api/purchases/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            user_id: userId,
+            amount_rub: amountRub,
+            stars_amount: starsAmount,
+            type: type,
+            productName: productName,
+            username: (window.userData && window.userData.username) || '',
+            first_name: (window.userData && window.userData.firstName) || '',
+            rating_only: true
+        })
+    }).catch(function() {});
+}
+
+// Сохранение покупки: история заказов + рефералы (рейтинг засчитывается при отправке — recordPurchaseIntent)
 function recordPurchaseSuccess(data) {
     if (!data || !data.purchase) return;
     var p = data.purchase;
@@ -2598,7 +2638,8 @@ function recordPurchaseSuccess(data) {
             type: type,
             productName: productName,
             username: (window.userData && window.userData.username) || '',
-            first_name: (window.userData && window.userData.firstName) || ''
+            first_name: (window.userData && window.userData.firstName) || '',
+            referral_only: true
         })
     }).catch(function() {});
 }
@@ -2733,6 +2774,7 @@ function openPaymentPage() {
     if (!window.paymentData) return;
     
     const data = window.paymentData;
+    if (typeof recordPurchaseIntent === 'function') recordPurchaseIntent(data);
     const statusEl = document.getElementById('paymentDetailStatus');
     const primaryBtn = document.getElementById('paymentWaitingPrimaryBtn');
 
@@ -2980,9 +3022,6 @@ function openPaymentPage() {
     } else if (data.method === 'card') {
         // Здесь будет логика для карты
         showStoreNotification('Открываем страницу оплаты картой...', 'info');
-    } else if (data.method === 'ton') {
-        // Здесь будет логика для TON Wallet
-        showStoreNotification('Открываем TON Wallet...', 'info');
     }
 }
 

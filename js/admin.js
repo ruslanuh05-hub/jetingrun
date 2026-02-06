@@ -599,6 +599,9 @@ function saveCurrencyRates() {
         console.log('Новые курсы валют:', rates);
         
         db.updateCurrencyRates(rates);
+        var steamRate = parseFloat(document.getElementById('steamRateInput')?.value) || 1.06;
+        if (steamRate < 0.01) steamRate = 1.06;
+        try { localStorage.setItem('jetstore_steam_rate', steamRate.toString()); } catch (e) {}
         var cryptobotUsdt = parseFloat(document.getElementById('cryptobotUsdtAmount')?.value) || 1;
         if (cryptobotUsdt < 0.1) cryptobotUsdt = 1;
         try { localStorage.setItem('jetstore_cryptobot_usdt_amount', cryptobotUsdt.toString()); } catch (e) {}
@@ -730,6 +733,11 @@ function loadSettings() {
         if (usdRateEl) usdRateEl.textContent = rates.USD || 90;
         if (eurRateEl) eurRateEl.textContent = rates.EUR || 100;
         if (tonRateEl) tonRateEl.textContent = rates.TON || 600;
+    }
+    var steamRateEl = document.getElementById('steamRateInput');
+    if (steamRateEl) {
+        var saved = localStorage.getItem('jetstore_steam_rate');
+        steamRateEl.value = saved ? parseFloat(saved) || 1.06 : 1.06;
     }
     var cryptobotEl = document.getElementById('cryptobotUsdtAmount');
     if (cryptobotEl) {
