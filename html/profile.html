@@ -2724,7 +2724,7 @@
     </script>
     <script>
         // Дополнительный скрипт для мобильной оптимизации и реферальной программы
-        document.addEventListener('DOMContentLoaded', function() {
+        function initProfileExtras() {
             if (sessionStorage.getItem('jet_open_tonkeeper_connect') === '1') {
                 sessionStorage.removeItem('jet_open_tonkeeper_connect');
                 setTimeout(function() {
@@ -2859,7 +2859,7 @@
                     }
                 }, 500);
             }
-        });
+        }
         
         // Функция для показа уведомлений (адаптированная для мобильных)
         function showMobileNotification(message, type = 'info') {
@@ -3039,8 +3039,8 @@
             if (popup) popup.classList.remove('active');
         }
         
-        // Загружаем покупки при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
+        // Загружаем покупки и конфиг бота (как при обычной загрузке, так и при SPA)
+        function initProfilePurchases() {
             // Загружаем username бота с сервера
             var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
             if (apiBase && /^https?:\/\//i.test(apiBase)) {
@@ -3055,7 +3055,7 @@
                     loadPurchases();
                 }
             }, 500);
-        });
+        }
         
         // Закрытие попапа детального просмотра при клике вне его
         document.addEventListener('click', function(e) {
@@ -3346,8 +3346,22 @@
             indicator.style.width = btnRect.width + 'px';
             indicator.style.height = btnRect.height + 'px';
         }
-        document.addEventListener('DOMContentLoaded', function() { setTimeout(updateNavIndicator, 100); });
+        function initProfileNavIndicator() {
+            setTimeout(updateNavIndicator, 100);
+        }
         window.addEventListener('resize', updateNavIndicator);
+
+        // Гарантируем инициализацию профиля при обычной загрузке и при SPA-подгрузке
+        function initProfileHtmlPage() {
+            initProfileExtras();
+            initProfilePurchases();
+            initProfileNavIndicator();
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initProfileHtmlPage);
+        } else {
+            initProfileHtmlPage();
+        }
         
         // Переход без перезагрузки
         function loadPageWithoutRefresh(url, navIndex) {

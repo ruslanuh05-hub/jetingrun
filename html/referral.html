@@ -1340,8 +1340,12 @@
             }
         }
 
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', async () => {
+        // Инициализация страницы "Заработать"
+        let referralPageInitialized = false;
+        async function initReferralPage() {
+            if (referralPageInitialized) return;
+            referralPageInitialized = true;
+
             // Инициализируем Telegram WebApp
             if (window.Telegram?.WebApp) {
                 window.Telegram.WebApp.ready();
@@ -1359,8 +1363,21 @@
             updateWithdrawCurrencyUI();
 
             // Привязываем обработчик кнопки
-            document.getElementById('inviteFriendsBtn').addEventListener('click', handleInviteFriends);
-        });
+            const inviteBtn = document.getElementById('inviteFriendsBtn');
+            if (inviteBtn) {
+                inviteBtn.addEventListener('click', handleInviteFriends);
+            }
+
+            // Обновляем индикатор навигации после инициализации
+            setTimeout(updateNavIndicator, 100);
+        }
+
+        // Гарантируем инициализацию как при обычной загрузке, так и при SPA-подгрузке
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initReferralPage);
+        } else {
+            initReferralPage();
+        }
         
         // Анимация активного индикатора в подвале
         function updateNavIndicator() {
@@ -1374,7 +1391,7 @@
             indicator.style.width = btnRect.width + 'px';
             indicator.style.height = btnRect.height + 'px';
         }
-        document.addEventListener('DOMContentLoaded', function() { setTimeout(updateNavIndicator, 100); });
+        // При изменении размера окна индикатор должен пересчитываться
         window.addEventListener('resize', updateNavIndicator);
         
         // Переход без перезагрузки: подгружаем страницу в контейнер

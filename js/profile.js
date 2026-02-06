@@ -75,8 +75,12 @@ setInterval(function() {
     }
 }, 5000); // Каждые 5 секунд
 
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
+// Инициализация профиля (работает и при обычной загрузке, и при SPA-подгрузке)
+let profilePageInitialized = false;
+function initProfilePage() {
+    if (profilePageInitialized) return;
+    profilePageInitialized = true;
+
     console.log('Инициализация профиля...');
     
     // Инициализируем базу данных (через ГЛОБАЛЬНЫЙ экземпляр window.Database)
@@ -112,7 +116,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
     
     console.log('Профиль инициализирован');
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProfilePage);
+} else {
+    initProfilePage();
+}
 
 // Загрузка данных пользователя
 function loadUserData() {
