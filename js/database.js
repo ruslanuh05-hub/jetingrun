@@ -1,4 +1,8 @@
 // database.js - База данных (анонимный класс, чтобы не конфликтовать с admin.js)
+// ВАЖНО: оборачиваем в guard, чтобы файл мог быть подключён повторно
+// (например, через SPA или сниппеты) без ошибки "Identifier 'Database' has already been declared".
+if (!(typeof window !== 'undefined' && window.Database)) {
+
 const Database = class {
     constructor() {
         this.storageKey = 'jetstore_db';
@@ -469,12 +473,14 @@ const Database = class {
     }
 }
 
-// Создаем глобальный экземпляр базы данных
-if (typeof window !== 'undefined') {
+// Создаем глобальный экземпляр базы данных (только если ещё не создан)
+if (typeof window !== 'undefined' && !window.Database) {
     window.Database = new Database();
     console.log('✅ Database создан и доступен глобально через window.Database');
     console.log('✅ Database.getUser:', typeof window.Database.getUser);
     console.log('✅ Database.saveBalanceFixed:', typeof window.Database.saveBalanceFixed);
-} else {
+} else if (typeof window === 'undefined') {
     console.error('❌ window не определен!');
 }
+
+} // end guard for window.Database

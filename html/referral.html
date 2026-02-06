@@ -1004,7 +1004,14 @@
             currentUserId = userId;
 
             try {
-                const response = await fetch(`/api/referral/stats?user_id=${userId}`);
+                const apiBase = (window.getJetApiBase && window.getJetApiBase())
+                    || window.JET_API_BASE
+                    || localStorage.getItem('jet_api_base')
+                    || '';
+                const url = apiBase
+                    ? apiBase.replace(/\/$/, '') + `/api/referral/stats?user_id=${userId}`
+                    : `/api/referral/stats?user_id=${userId}`;
+                const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
@@ -1027,7 +1034,14 @@
             }
 
             try {
-                const response = await fetch(`/api/referral/link?user_id=${userId}`);
+                const apiBase = (window.getJetApiBase && window.getJetApiBase())
+                    || window.JET_API_BASE
+                    || localStorage.getItem('jet_api_base')
+                    || '';
+                const url = apiBase
+                    ? apiBase.replace(/\/$/, '') + `/api/referral/link?user_id=${userId}`
+                    : `/api/referral/link?user_id=${userId}`;
+                const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
