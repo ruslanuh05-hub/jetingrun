@@ -7,13 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Активы - JET</title>
-    <script>
-        (function(){
-            var p = document.location.pathname || '';
-            var base = (p.indexOf('/html/') !== -1 || /\/html$/.test(p)) ? '../' : '';
-            document.write('<link rel="stylesheet" href="' + base + 'css/style.css">');
-        })();
-    </script>
+    <!-- Статическое подключение стилей без document.write (корректно работает и при SPA-подгрузке) -->
+    <link rel="stylesheet" href="../css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -2660,14 +2655,9 @@
         </div>
     </nav>
     
-    <script>
-        (function(){
-            var p = document.location.pathname || '';
-            var base = (p.indexOf('/html/') !== -1 || /\/html$/.test(p)) ? '../' : '';
-            document.write('<script src="' + base + 'js/config.js"><\/script>');
-            document.write('<script src="' + base + 'js/database.js"><\/script>');
-        })();
-    </script>
+    <!-- Без document.write: скрипты можно безопасно исполнять и при SPA-подгрузке -->
+    <script src="../js/config.js"></script>
+    <script src="../js/database.js"></script>
     <script>
         window.toggleAssetsDrawer = window.toggleAssetsDrawer || function(){};
         window.toggleUsernameCurrencyDropdown = window.toggleUsernameCurrencyDropdown || function(){};
