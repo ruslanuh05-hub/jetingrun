@@ -4722,10 +4722,10 @@
                     <div class="main-menu-card-subtitle">звёзды</div>
                 </div>
                 
-                <!-- Steam как был -->
-                <div class="main-menu-card steam-card" onclick="showStoreView('steam')">
+                <!-- Steam — временно недоступно -->
+                <div class="main-menu-card steam-card main-menu-card-disabled" onclick="if(typeof showStoreNotification==='function')showStoreNotification('Пополнение Steam временно недоступно','info'); return false;" style="cursor: not-allowed; opacity: 0.65; pointer-events: auto;">
                     <div class="main-menu-card-title">STEAM</div>
-                    <div class="main-menu-card-subtitle">Пополнить рублями</div>
+                    <div class="main-menu-card-subtitle">Скоро</div>
                     <div class="steam-logo-bg">
                         <i class="fab fa-steam" style="font-size: 100px; color: rgba(0, 212, 255, 0.2);"></i>
                     </div>
@@ -5087,17 +5087,17 @@
                     <button class="payment-back-btn" onclick="closePaymentMethodPopup()" style="margin-bottom:12px;">
                         <i class="fas fa-chevron-left"></i> Назад
                     </button>
-                    <!-- СБП / Банковские карты — одна кнопка -->
-                    <div class="payment-category">
+                    <!-- СБП / Банковские карты — временно недоступно -->
+                    <div class="payment-category payment-category-disabled">
                         <h3 class="payment-category-title">СБП / Банковские карты</h3>
                         <div class="payment-methods-list payment-methods-compact">
-                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('sbp', 10)">
-                                <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);">
+                            <button class="payment-method-item payment-method-item-compact payment-method-disabled" onclick="if(typeof showStoreNotification==='function')showStoreNotification('СБП и карты временно недоступны','info');">
+                                <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%); opacity: 0.6;">
                                     <i class="fas fa-building" style="color: #fff;"></i>
                                 </div>
                                 <div class="payment-method-info">
                                     <span class="payment-method-name">СБП / Карты</span>
-                                    <span class="payment-method-bonus">+10%</span>
+                                    <span class="payment-method-bonus" style="background: rgba(255,255,255,0.3); color: rgba(255,255,255,0.9);">Скоро</span>
                                 </div>
                             </button>
                         </div>

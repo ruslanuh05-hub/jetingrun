@@ -2179,7 +2179,7 @@
             </div>
             <button class="topup-btn-header" onclick="showDepositPopup()">
                 <i class="fas fa-plus" style="color: #00d4ff;"></i>
-                <span id="headerBalance">0 ₽</span>
+                <span id="headerBalance">Скоро</span>
             </button>
         </header>
         
@@ -2201,7 +2201,7 @@
             <!-- Секция баланса -->
             <div class="balance-section">
                 <p class="balance-label">Доступный баланс</p>
-                <p class="balance-amount-main" id="profileBalance">0 ₽</p>
+                <p class="balance-amount-main" id="profileBalance">Скоро</p>
                 <div class="balance-actions-main">
                     <button class="btn-deposit-main" onclick="showDepositPopup()">
                         <i class="fas fa-plus-circle"></i>
@@ -2371,17 +2371,24 @@
             <div class="popup-body">
                 <p class="deposit-subtitle">Выберите способ оплаты</p>
                 <div class="payment-methods">
-                    <button class="payment-method-btn sbp" onclick="showSbpDeposit()">
+                    <button class="payment-method-btn sbp payment-method-disabled" onclick="showPaymentUnavailable('sbp'); return false;" style="opacity: 0.65; cursor: not-allowed;">
                         <div class="payment-icon sbp">
                             <img src="../assets/sbp-icon.png" alt="СБП">
                         </div>
                         <span class="payment-name">СБП / Банковские карты</span>
+                        <span class="payment-badge" style="background: rgba(255,255,255,0.3);">Скоро</span>
+                    </button>
+                    <button class="payment-method-btn usdt" onclick="showUsdtDeposit()" style="margin-top: 12px;">
+                        <div class="payment-icon usdt" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
+                            <i class="fab fa-telegram-plane" style="color: #fff; font-size: 1.2rem;"></i>
+                        </div>
+                        <span class="payment-name">USDT (CryptoBot)</span>
                         <span class="payment-badge active">Доступно</span>
                     </button>
                 </div>
                 <div class="usdt-rate-info">
                     <i class="fas fa-info-circle"></i>
-                    <span>Комиссия: <strong>10%</strong></span>
+                    <span>USDT: комиссия <strong>4%</strong></span>
                 </div>
             </div>
         </div>
@@ -3279,14 +3286,11 @@
             }
         }
         
-        // Обновление баланса в шапке
+        // Обновление баланса в шапке (скрыт, показываем «Скоро»)
         function updateHeaderBalance() {
-            if (window.userData && window.userData.currencies) {
-                const balance = window.userData.currencies[window.userData.activeCurrency || 'RUB'] || 0;
-                const headerBalanceEl = document.getElementById('headerBalance');
-                if (headerBalanceEl) {
-                    headerBalanceEl.textContent = `${balance.toFixed(0)} ₽`;
-                }
+            const headerBalanceEl = document.getElementById('headerBalance');
+            if (headerBalanceEl) {
+                headerBalanceEl.textContent = 'Скоро';
             }
         }
         

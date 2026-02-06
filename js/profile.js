@@ -411,18 +411,15 @@ function updateBalanceDisplay() {
         }
     }
     
-    // Обновляем баланс в основном месте
+    // Баланс скрыт — показываем «Скоро»
     const balanceElement = document.getElementById('profileBalance');
     if (balanceElement) {
-        const balance = userData.currencies[userData.activeCurrency || 'RUB'] || 0;
-        balanceElement.textContent = `${balance.toFixed(0)} ₽`;
+        balanceElement.textContent = 'Скоро';
     }
     
-    // Обновляем баланс в шапке
     const headerBalanceEl = document.getElementById('headerBalance');
     if (headerBalanceEl) {
-        const balance = userData.currencies[userData.activeCurrency || 'RUB'] || 0;
-        headerBalanceEl.textContent = `${balance.toFixed(0)} ₽`;
+        headerBalanceEl.textContent = 'Скоро';
     }
 }
 
@@ -842,18 +839,8 @@ function processSbpDeposit() {
         date: new Date().toISOString()
     });
     
-    // Обновляем отображение
+    // Обновляем отображение (баланс скрыт — «Скоро»)
     updateBalanceDisplay();
-    
-    // Обновляем баланс в шапке профиля
-    const headerBalance = document.getElementById('headerBalance');
-    const profileBalance = document.getElementById('profileBalance');
-    if (headerBalance) {
-        headerBalance.textContent = newBalance.toLocaleString('ru-RU') + ' ₽';
-    }
-    if (profileBalance) {
-        profileBalance.textContent = newBalance.toLocaleString('ru-RU') + ' ₽';
-    }
     
     // Закрываем попап
     closeSbpPopup();
@@ -1191,24 +1178,8 @@ function processDeposit(amount = null) {
     console.log('✅ Баланс после пополнения:', userData.currencies.RUB);
     console.log('✅ window.userData.currencies.RUB:', window.userData.currencies.RUB);
     
-    // Обновляем отображение
+    // Обновляем отображение (баланс скрыт — «Скоро»)
     updateBalanceDisplay();
-    
-    // Обновляем баланс в шапке напрямую
-    const headerBalanceEl = document.getElementById('headerBalance');
-    if (headerBalanceEl) {
-        const newBalance = userData.currencies.RUB || 0;
-        headerBalanceEl.textContent = `${newBalance.toFixed(0)} ₽`;
-        console.log('Обновлен баланс в шапке:', newBalance);
-    }
-    
-    // Обновляем основной баланс напрямую
-    const balanceElement = document.getElementById('profileBalance');
-    if (balanceElement) {
-        const newBalance = userData.currencies.RUB || 0;
-        balanceElement.textContent = `${newBalance.toFixed(0)} ₽`;
-        console.log('Обновлен основной баланс:', newBalance);
-    }
     
     // Показываем уведомление
     try {

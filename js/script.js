@@ -2042,7 +2042,8 @@ function showStoreView(section) {
         showStoreNotification('Подарки скоро будут доступны', 'info');
         showMainMenuView();
     } else if (section === 'steam') {
-        showSteamTopup();
+        showStoreNotification('Пополнение Steam временно недоступно', 'info');
+        showMainMenuView();
     }
 }
 
