@@ -16,52 +16,14 @@
         }
         *, *::before, *::after { box-sizing: inherit; }
         
-        /* Плавные переходы между страницами */
+        /* Плавные переходы между страницами отключены */
         body {
-            animation: pageFadeIn 0.4s ease-out;
             opacity: 1;
         }
         
-        @keyframes pageFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        body.page-transition-out {
-            animation: pageFadeOut 0.3s ease-in forwards;
-        }
-        
-        @keyframes pageFadeOut {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-        }
-        
-        /* Экран загрузки */
+        /* Экран загрузки — полностью отключён */
         #splashScreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(180deg, #000000 0%, #031e1c 25%, #053832 50%, #07524a 75%, #0a655a 100%);
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            animation: fadeOut 0.5s ease-out 3.5s forwards;
+            display: none !important;
         }
         
         .splash-background {
@@ -1591,9 +1553,8 @@
             left: 0;
             transform: translateY(-50%);
             width: 0;
-            height: 0;
+            height: 0; /* реальную высоту задаём из JS */
             border-radius: 999px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 0;
             pointer-events: none;
             background: linear-gradient(135deg, rgba(100, 120, 255, 0.35) 0%, rgba(180, 100, 255, 0.25) 50%, rgba(0, 200, 255, 0.2) 100%);
@@ -1603,6 +1564,13 @@
                 0 8px 32px rgba(120, 80, 255, 0.35);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Плавное изменение размеров пузыря (без скольжения слева) после первой инициализации */
+        .nav-active-indicator.ready {
+            transition:
+                        width 0.30s cubic-bezier(0.4, 0, 0.2, 1),
+                        height 0.30s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @supports (padding: max(0px)) {
@@ -3450,14 +3418,16 @@
         .main-menu-card-premium {
             grid-column: 1 / -1;
         }
-
-        /* Баннер «Купить звёзды» – нормальный размер, без обрезания текста */
-        .main-menu-card-stars.banner-card {
+        
+        /* Баннеры во всю ширину (Купить звёзды / Premium) */
+        .main-menu-card-stars.banner-card,
+        .main-menu-card-premium.banner-card {
             grid-column: 1 / -1;
             padding: 0;
         }
-
-        .main-menu-card-stars.banner-card .banner-image-wrapper {
+        
+        .main-menu-card-stars.banner-card .banner-image-wrapper,
+        .main-menu-card-premium.banner-card .banner-image-wrapper {
             height: auto;
             max-height: 130px;
             overflow: hidden;
@@ -3465,8 +3435,9 @@
             justify-content: center;
             align-items: center;
         }
-
-        .main-menu-card-stars.banner-card .banner-image {
+        
+        .main-menu-card-stars.banner-card .banner-image,
+        .main-menu-card-premium.banner-card .banner-image {
             width: 100%;
             height: auto;
         }
@@ -4283,12 +4254,10 @@
                     </div>
                 </div>
                 
-                <!-- Premium отдельной строкой -->
-                <a href="premium.html" class="main-menu-card main-menu-card-premium" style="text-decoration: none; color: inherit;">
-                    <div class="main-menu-card-title">Premium оформить</div>
-                    <div class="main-menu-card-subtitle">Premium</div>
-                    <div class="main-menu-card-icons">
-                        <img src="../assets/premium-icon.png" alt="Premium" style="width: 38px; height: 38px; object-fit: contain; border-radius: 10px; display: block;">
+                <!-- Premium отдельной строкой — как баннер во всю ширину -->
+                <a href="premium.html" class="main-menu-card main-menu-card-premium banner-card" style="text-decoration: none; color: inherit;">
+                    <div class="banner-image-wrapper">
+                        <img src="../assets/premium-icon.jpg" alt="Premium" class="banner-image">
                     </div>
                 </a>
                 
@@ -4987,25 +4956,25 @@
         <nav class="profile-nav">
             <div class="profile-nav-inner">
                 <div class="nav-active-indicator" id="navActiveIndicator"></div>
-                <button class="profile-nav-btn active" onclick="showMainMenuView()" data-nav-index="0">
+                <button class="profile-nav-btn active" data-nav-index="0" type="button">
                     <div class="nav-icon-wrapper">
                         <i class="fas fa-home"></i>
                     </div>
                     <span>Главная</span>
                 </button>
-                <button class="profile-nav-btn" onclick="goToReferral()" data-nav-index="1">
+                <button class="profile-nav-btn" data-nav-index="1" type="button">
                     <div class="nav-icon-wrapper">
                         <i class="fas fa-coins"></i>
                     </div>
                     <span>Заработать</span>
                 </button>
-                <button class="profile-nav-btn" onclick="window.location.href='assets.html'" data-nav-index="2">
+                <button class="profile-nav-btn" data-nav-index="2" type="button">
                     <div class="nav-icon-wrapper">
                         <i class="fab fa-telegram-plane"></i>
                     </div>
                     <span>Активы</span>
                 </button>
-                <button class="profile-nav-btn" onclick="window.location.href='profile.html'" data-nav-index="3">
+                <button class="profile-nav-btn" data-nav-index="3" type="button">
                     <div class="nav-icon-wrapper">
                         <i class="fas fa-user"></i>
                     </div>
@@ -5526,13 +5495,11 @@
             }
         })();
         
-        // Управление экраном загрузки и главным меню
+        // Главное меню сразу, без загрузочного экрана
         document.addEventListener('DOMContentLoaded', function() {
             const splashScreen = document.getElementById('splashScreen');
             const mainMenu = document.getElementById('mainMenu');
             const oldMenu = document.getElementById('oldMenu');
-            
-            const hasSeenSplash = localStorage.getItem('jet_has_seen_splash') === 'true';
             
             const activateMainMenu = () => {
                 if (splashScreen) splashScreen.style.display = 'none';
@@ -5555,16 +5522,9 @@
                 }
             };
             
-            if (hasSeenSplash) {
-                // Пользователь уже видел анимацию — сразу показываем главное меню
-                activateMainMenu();
-            } else {
-                // Первый заход — показываем анимацию, затем главное меню
-                setTimeout(() => {
-                    activateMainMenu();
-                    localStorage.setItem('jet_has_seen_splash', 'true');
-                }, 3500);
-            }
+            // Всегда сразу показываем главное меню, без ожидания и анимации
+            activateMainMenu();
+            localStorage.setItem('jet_has_seen_splash', 'true');
         });
         
         // Показать главное меню
@@ -5635,10 +5595,7 @@
             var wrap = document.getElementById('injectedPageWrap');
             var content = document.getElementById('injectedPageContent');
             if (!wrap || !content) return;
-            
-            wrap.style.display = 'none';
-            content.innerHTML = '';
-            
+
             fetch(url)
                 .then(function(r) { return r.text(); })
                 .then(function(html) {
@@ -5784,6 +5741,8 @@
         
         // Анимация активного индикатора в подвале
         (function() {
+            let navBubbleInitialized = false;
+            
             function updateNavIndicator() {
                 const indicator = document.getElementById('navActiveIndicator');
                 const activeBtn = document.querySelector('.profile-nav-btn.active');
@@ -5794,13 +5753,23 @@
                 const btnRect = activeBtn.getBoundingClientRect();
                 const navRect = navInner.getBoundingClientRect();
                 
-                const left = btnRect.left - navRect.left;
-                const width = btnRect.width;
-                const height = btnRect.height;
+                // Немного расширяем пузырь относительно кнопки
+                const extraWidth = 12;
+                const extraHeight = 6;
+                
+                const width = btnRect.width + extraWidth;
+                const height = btnRect.height + extraHeight;
+                const left = btnRect.left - navRect.left - extraWidth / 2;
                 
                 indicator.style.left = left + 'px';
                 indicator.style.width = width + 'px';
                 indicator.style.height = height + 'px';
+                
+                // Первый рендер: без анимации, просто включаем плавный transition
+                if (!navBubbleInitialized) {
+                    indicator.classList.add('ready');
+                    navBubbleInitialized = true;
+                }
             }
             
             // Обновляем при загрузке
@@ -5839,23 +5808,18 @@
             }
         })();
         
-        // Плавные переходы между страницами
+        // Переходы между страницами БЕЗ анимации
         (function() {
             function smoothNavigate(url) {
                 if (!url || url === '#' || url.startsWith('javascript:')) return;
-                
-                document.body.classList.add('page-transition-out');
-                
-                setTimeout(function() {
-                    window.location.href = url;
-                }, 300);
+                // Мгновенный переход без классов анимации и задержек
+                window.location.href = url;
             }
             
-            // Перехватываем все клики по ссылкам
+            // Перехватываем клики по обычным ссылкам (не по нижнему меню)
             document.addEventListener('click', function(e) {
                 let target = e.target;
                 
-                // Ищем ближайший элемент с href или onclick
                 while (target && target !== document.body) {
                     if (target.tagName === 'A' && target.href && !target.href.startsWith('javascript:')) {
                         const href = target.getAttribute('href');
@@ -5868,8 +5832,7 @@
                     
                     if (target.onclick || target.getAttribute('onclick')) {
                         const onclick = target.getAttribute('onclick');
-                        if (onclick && onclick.includes('location.href') || onclick.includes('window.location')) {
-                            // Перехватываем onclick с location.href
+                        if (onclick && (onclick.includes('location.href') || onclick.includes('window.location'))) {
                             const match = onclick.match(/location\.href\s*=\s*['"]([^'"]+)['"]/);
                             if (match) {
                                 e.preventDefault();
@@ -5884,7 +5847,7 @@
                 }
             }, true);
             
-            // С главной — переход без перезагрузки; с других страниц — обычный переход
+            // С главной — переход без перезагрузки; с других страниц — обычный переход без анимации
             window.goToReferral = function() {
                 if (typeof loadPageWithoutRefresh === 'function') {
                     document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });

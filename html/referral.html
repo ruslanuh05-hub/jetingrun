@@ -22,35 +22,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             padding-bottom: 80px;
             min-height: 100vh;
-            animation: pageFadeIn 0.4s ease-out;
             opacity: 1;
-        }
-        
-        /* Плавные переходы между страницами */
-        @keyframes pageFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        body.page-transition-out {
-            animation: pageFadeOut 0.3s ease-in forwards;
-        }
-        
-        @keyframes pageFadeOut {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
         }
         
         .referral-page-header {
@@ -640,7 +612,7 @@
 
         .profile-nav-btn {
             display: flex;
-            flex-direction: column;
+                flex-direction: column;
             align-items: center;
             gap: 5px;
             background: transparent;
@@ -790,8 +762,8 @@
                             <span id="refVolumeTon">0</span>
                             <i class="fas fa-coins" style="color: #00d4ff; font-size: 1.2rem;"></i>
                         </div>
-                    </div>
-                </div>
+            </div>
+        </div>
         
                 <!-- Progress Bar -->
                 <div class="referral-volume-section">
@@ -799,7 +771,7 @@
                         <div class="referral-progress-fill" id="refProgressBar" style="width: 0%;"></div>
                         <div class="referral-progress-tick l2"></div>
                         <div class="referral-progress-tick l3"></div>
-                </div>
+        </div>
         
                     <!-- Progress Text -->
                     <div class="referral-progress-text" id="refProgressText">
@@ -944,8 +916,8 @@
                     </form>
                 </div>
             </div>
+            </div>
         </div>
-    </div>
     </div>
     
     <!-- Нижняя навигация -->
@@ -953,29 +925,29 @@
         <div class="profile-nav-inner">
             <div class="nav-active-indicator" id="navActiveIndicator"></div>
             <button class="profile-nav-btn" data-nav-index="0" type="button">
-                <div class="nav-icon-wrapper">
-                    <i class="fas fa-home"></i>
-                </div>
-                <span>Главная</span>
-            </button>
+            <div class="nav-icon-wrapper">
+                <i class="fas fa-home"></i>
+            </div>
+            <span>Главная</span>
+        </button>
             <button class="profile-nav-btn active" data-nav-index="1" type="button">
-                <div class="nav-icon-wrapper">
-                    <i class="fas fa-coins"></i>
-                </div>
-                <span>Заработать</span>
-            </button>
+            <div class="nav-icon-wrapper">
+                <i class="fas fa-coins"></i>
+            </div>
+            <span>Заработать</span>
+        </button>
             <button class="profile-nav-btn" data-nav-index="2" type="button">
-                <div class="nav-icon-wrapper">
-                    <i class="fab fa-telegram-plane"></i>
-                </div>
-                <span>Активы</span>
-            </button>
+            <div class="nav-icon-wrapper">
+                <i class="fab fa-telegram-plane"></i>
+            </div>
+            <span>Активы</span>
+        </button>
             <button class="profile-nav-btn" data-nav-index="3" type="button">
-                <div class="nav-icon-wrapper">
-                    <i class="fas fa-user"></i>
-                </div>
-                <span>Профиль</span>
-            </button>
+            <div class="nav-icon-wrapper">
+                <i class="fas fa-user"></i>
+            </div>
+            <span>Профиль</span>
+        </button>
         </div>
     </nav>
     
@@ -1189,7 +1161,7 @@
             
             // Открываем выбор контакта через Telegram
             try {
-                const tg = window.Telegram?.WebApp;
+            const tg = window.Telegram?.WebApp;
                 if (tg?.openTelegramLink) {
                     // Используем tg://msg для открытия выбора контакта
                     const telegramLink = `tg://msg?text=${encodeURIComponent(message)}`;
@@ -1342,7 +1314,7 @@
                     document.getElementById('withdrawForm').reset();
                     await loadReferralStats();
                     updateWithdrawCurrencyUI();
-                } else {
+            } else {
                     alert(result.message || 'Ошибка при отправке заявки');
                 }
             } catch (error) {
@@ -1485,19 +1457,14 @@
             }
         });
         
-        // Плавные переходы между страницами
+        // Переходы между страницами без анимации
         (function() {
             function smoothNavigate(url) {
                 if (!url || url === '#' || url.startsWith('javascript:')) return;
-                
-                document.body.classList.add('page-transition-out');
-                
-                setTimeout(function() {
-                    window.location.href = url;
-                }, 300);
+                window.location.href = url;
             }
             
-            // Перехватываем все клики по ссылкам и кнопкам навигации
+            // Перехватываем клики по обычным ссылкам
             document.addEventListener('click', function(e) {
                 let target = e.target;
                 

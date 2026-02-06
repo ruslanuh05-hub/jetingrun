@@ -30,35 +30,7 @@
             min-height: 100vh;
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            animation: pageFadeIn 0.4s ease-out;
             opacity: 1;
-        }
-        
-        /* Плавные переходы между страницами */
-        @keyframes pageFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        body.page-transition-out {
-            animation: pageFadeOut 0.3s ease-in forwards;
-        }
-        
-        @keyframes pageFadeOut {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
         }
         
         .assets-container {
@@ -3968,19 +3940,14 @@
             }
         });
         
-        // Плавные переходы между страницами
+        // Переходы между страницами без анимации
         (function() {
             function smoothNavigate(url) {
                 if (!url || url === '#' || url.startsWith('javascript:')) return;
-                
-                document.body.classList.add('page-transition-out');
-                
-                setTimeout(function() {
-                    window.location.href = url;
-                }, 300);
+                window.location.href = url;
             }
             
-            // Перехватываем все клики по ссылкам и кнопкам навигации
+            // Перехватываем клики по обычным ссылкам
             document.addEventListener('click', function(e) {
                 let target = e.target;
                 
