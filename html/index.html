@@ -5717,27 +5717,21 @@
         
         window.showMainMenuView = showMainMenuView;
         
-        // Обработка кнопок подвала: без перезагрузки с главной
+        // Обработка кнопок подвала на главной
         (function() {
             document.querySelectorAll('.profile-nav-btn[data-nav-index="1"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
-                    this.classList.add('active');
-                    loadPageWithoutRefresh('referral.html', 1);
+                    window.location.href = 'referral.html';
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="2"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
-                    this.classList.add('active');
-                    loadPageWithoutRefresh('assets.html', 2);
+                    window.location.href = 'assets.html';
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="3"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
-                    this.classList.add('active');
-                    loadPageWithoutRefresh('profile.html', 3);
+                    window.location.href = 'profile.html';
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="0"]').forEach(function(btn) {
