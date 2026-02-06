@@ -2584,7 +2584,16 @@ function openPaymentPage() {
             return;
         }
         var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
-        fetch(createUrl, {
+        console.log('[CryptoBot] Отправка запроса на:', createUrl, 'amount:', amountRub);
+        
+        // Таймаут для fetch (30 секунд)
+        var timeoutPromise = new Promise(function(resolve, reject) {
+            setTimeout(function() {
+                reject(new Error('Таймаут запроса (30 сек). Проверьте, что бот запущен на Railway.'));
+            }, 30000);
+        });
+        
+        var fetchPromise = fetch(createUrl, {
             method: 'POST',
             mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
@@ -2597,13 +2606,28 @@ function openPaymentPage() {
                     timestamp: Date.now()
                 })
             })
-        })
+        });
+        
+        Promise.race([fetchPromise, timeoutPromise])
             .then(function(r) {
-                return r.json().catch(function() { return { error: 'parse_error', message: 'Ответ сервера не JSON. Status: ' + r.status }; }).then(function(json) {
+                console.log('[CryptoBot] Получен ответ, status:', r.status, 'ok:', r.ok);
+                if (!r.ok) {
+                    return r.text().then(function(text) {
+                        console.error('[CryptoBot] Ошибка HTTP:', r.status, 'body:', text);
+                        return { ok: false, status: r.status, json: { error: 'http_error', message: 'HTTP ' + r.status + ': ' + (text || 'пустой ответ') } };
+                    });
+                }
+                return r.json().catch(function(e) {
+                    console.error('[CryptoBot] Ошибка парсинга JSON:', e);
+                    return r.text().then(function(text) {
+                        return { ok: r.ok, status: r.status, json: { error: 'parse_error', message: 'Ответ сервера не JSON. Status: ' + r.status + ', body: ' + (text || 'пусто') } };
+                    });
+                }).then(function(json) {
                     return { ok: r.ok, status: r.status, json: json };
                 });
             })
             .then(function(result) {
+                console.log('[CryptoBot] Результат обработки:', result);
                 var res = result.json || {};
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
@@ -2648,15 +2672,18 @@ function openPaymentPage() {
                         if (res.details.name) errMsg += ' (' + res.details.name + ')';
                         else if (typeof res.details === 'string') errMsg += ': ' + res.details;
                     }
-                    console.error('CryptoBot create-invoice error:', res, 'URL:', createUrl);
-                    if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
+                    console.error('[CryptoBot] Ошибка от сервера. Полный ответ:', JSON.stringify(res, null, 2), 'URL:', createUrl, 'Status:', result.status);
+                    if (typeof showStoreNotification === 'function') {
+                        showStoreNotification(errMsg + ' (откройте консоль F12 для деталей)', 'error');
+                    }
                 }
             })
             .catch(function(err) {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
-                var msg = 'Нет связи с API. Проверьте: 1) URL бота в config.js 2) Бот запущен на Railway. ' + (apiBase || '(URL пуст)');
-                console.error('CryptoBot fetch error:', err, 'apiBase:', apiBase);
+                var errMsg = err && err.message ? err.message : String(err || 'Неизвестная ошибка');
+                console.error('[CryptoBot] Критическая ошибка:', err, 'apiBase:', apiBase, 'URL:', createUrl);
+                var msg = 'Ошибка создания счёта: ' + errMsg + '. Проверьте: 1) URL бота в config.js (' + (apiBase || 'не задан') + ') 2) Бот запущен на Railway 3) Откройте консоль браузера (F12) для деталей.';
                 if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
             });
         return;
