@@ -5,33 +5,43 @@
 html, body { -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-text-size-adjust: 100%; overflow-x: hidden; max-width: 100vw; }
 button, a, [role="button"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
-/* Контейнеры с нижней навигацией — отступ под подвал */
+/* Контейнеры с нижней навигацией — отступ под подвал (подвал уменьшен в 2 раза) */
 .profile-container,
 #injectedPageWrap {
-    padding-bottom: max(100px, calc(85px + env(safe-area-inset-bottom, 0))) !important;
+    padding-bottom: max(55px, calc(48px + env(safe-area-inset-bottom, 0))) !important;
 }
 
-/* Нижняя навигация (подвал) — оптимизация для мобильных */
+/* Нижняя навигация (подвал) — уменьшена в 2 раза */
 .profile-nav {
     max-width: 100vw !important;
-    padding: 10px max(10px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-bottom, 14px)) max(10px, env(safe-area-inset-right)) !important;
+    padding: 7px max(7px, env(safe-area-inset-left)) max(9px, env(safe-area-inset-bottom, 9px)) max(7px, env(safe-area-inset-right)) !important;
     box-sizing: border-box !important;
 }
 
 .profile-nav-inner {
     max-width: 100% !important;
-    gap: 4px !important;
-    padding: 6px 4px !important;
+    gap: 5px !important;
+    padding: 7px 6px !important;
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
 }
 
 .profile-nav-btn {
-    min-width: 44px !important;
-    min-height: 44px !important;
-    padding: 8px 12px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 6px 10px !important;
+    font-size: 0.7rem !important;
     -webkit-tap-highlight-color: transparent !important;
     touch-action: manipulation !important;
+}
+
+.profile-nav-btn i {
+    font-size: 0.9rem !important;
+}
+
+.nav-icon-wrapper {
+    min-width: 28px !important;
+    min-height: 28px !important;
 }
 
 .profile-nav-btn:active {
@@ -39,17 +49,18 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; touch-act
 }
 
 @media (max-width: 480px) {
-    .profile-nav-inner { gap: 2px !important; padding: 6px 2px !important; }
-    .profile-nav-btn { padding: 6px 10px !important; font-size: 0.65rem !important; min-width: 48px !important; }
-    .profile-nav-btn i { font-size: 1.15rem !important; }
-    .nav-icon-wrapper { min-width: 36px !important; min-height: 36px !important; }
+    .profile-nav-inner { gap: 5px !important; padding: 7px 6px !important; }
+    .profile-nav-btn { padding: 6px 10px !important; font-size: 0.7rem !important; min-width: 32px !important; min-height: 32px !important; }
+    .profile-nav-btn i { font-size: 0.9rem !important; }
+    .nav-icon-wrapper { min-width: 28px !important; min-height: 28px !important; }
     .profile-nav-btn.active .nav-icon-wrapper { padding: 6px 10px !important; }
 }
 
 @media (max-width: 360px) {
-    .profile-nav-inner { padding: 5px 2px !important; }
-    .profile-nav-btn { padding: 5px 8px !important; font-size: 0.6rem !important; min-width: 44px !important; min-height: 44px !important; }
-    .profile-nav-btn i { font-size: 1.05rem !important; }
+    .profile-nav-inner { gap: 4px !important; padding: 6px 5px !important; }
+    .profile-nav-btn { padding: 5px 8px !important; font-size: 0.65rem !important; min-width: 30px !important; min-height: 30px !important; }
+    .profile-nav-btn i { font-size: 0.85rem !important; }
+    .nav-icon-wrapper { min-width: 26px !important; min-height: 26px !important; }
 }
 
 /* Шапки страниц — мобильная оптимизация */
@@ -79,10 +90,10 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; touch-act
     .store-content { padding-left: max(12px, env(safe-area-inset-left)) !important; padding-right: max(12px, env(safe-area-inset-right)) !important; }
 }
 
-/* Маркет, store-view — отступ под подвал на мобильных */
+/* Маркет, store-view — отступ под подвал на мобильных (подвал уменьшен в 2 раза) */
 @media (max-width: 480px) {
     .market-view,
-    .store-view { padding-bottom: max(95px, calc(80px + env(safe-area-inset-bottom, 0))) !important; }
+    .store-view { padding-bottom: max(48px, calc(40px + env(safe-area-inset-bottom, 0))) !important; }
     .market-cards-scroll { padding: 16px max(12px, env(safe-area-inset-left)); gap: 12px; }
     .market-section { padding: 16px max(12px, env(safe-area-inset-left)) !important; }
     .market-section-title { font-size: 1.3rem !important; margin-bottom: 16px !important; }
@@ -106,6 +117,58 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; touch-act
     .tab-content { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
     .btn-deposit-main,
     .btn-promo-main { min-height: 44px; min-width: 44px; padding: 12px 16px; }
+}
+
+/* Блок TonKeeper и info-section — мобильная оптимизация, выровнены */
+@media (max-width: 480px) {
+    .tonkeeper-section,
+    .info-section {
+        margin: 0 max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left)) !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        max-width: 100% !important;
+    }
+    .info-section { margin-bottom: 20px !important; }
+    .btn-tonkeeper,
+    .info-item {
+        overflow: hidden !important;
+        padding: 14px 16px !important;
+        gap: 12px !important;
+        box-sizing: border-box !important;
+    }
+    .tonkeeper-icon {
+        width: 48px !important;
+        height: 48px !important;
+        flex-shrink: 0 !important;
+    }
+    .tonkeeper-icon img {
+        width: 38px !important;
+        height: 38px !important;
+    }
+    .tonkeeper-text {
+        min-width: 0 !important;
+        overflow: hidden !important;
+        flex-grow: 1 !important;
+    }
+    .tonkeeper-title {
+        font-size: 0.95rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .tonkeeper-subtitle {
+        font-size: 0.8rem !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        word-wrap: break-word !important;
+        line-height: 1.3 !important;
+    }
+    .info-icon {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 1.2rem !important;
+    }
 }
 
 @media (max-width: 360px) {

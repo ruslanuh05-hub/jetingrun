@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Заработать - JET</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/mobile.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -87,62 +86,74 @@
             box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
         }
 
-        /* Intro section (top banner) */
+        /* Intro section (top banner) — компактнее, логотип больше */
+        .referral-bubble:first-of-type {
+            padding: 12px 16px 14px;
+            margin-bottom: 12px;
+        }
+
         .referral-jet-logo {
             display: flex;
             justify-content: center;
-            margin: 6px 0 12px;
+            margin: 4px 0 8px;
         }
 
         .referral-jet-logo img {
-            width: 92px;
-            height: 92px;
+            width: 145px;
+            height: 145px;
             object-fit: contain;
             filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
         }
 
         .referral-intro-title {
-            font-size: 0.8rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 12px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        
+        .referral-intro-subtitle {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.75);
+            text-align: center;
+            margin-bottom: 10px;
         }
 
         .referral-intro-banner {
             background: rgba(0, 0, 0, 0.7);
-            border-radius: 16px;
-            padding: 14px 16px;
-            margin-bottom: 18px;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 0;
             border: 1px solid rgba(0, 212, 255, 0.2);
             display: flex;
             align-items: flex-start;
-            gap: 12px;
+            gap: 10px;
         }
 
         .referral-intro-icon {
-            width: 32px;
-            height: 32px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 50%, #20b2aa 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            font-size: 1rem;
+            font-size: 0.85rem;
             flex-shrink: 0;
         }
 
         .referral-intro-text-main {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: #ffffff;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .referral-intro-text-sub {
-            font-size: 0.8rem;
-            line-height: 1.4;
+            font-size: 0.75rem;
+            line-height: 1.35;
             color: rgba(255, 255, 255, 0.7);
         }
         
@@ -192,35 +203,36 @@
         
         .referral-metrics {
             display: flex;
-            gap: 16px;
-            margin-bottom: 24px;
-            position: relative;
-        }
-        
-        .referral-metrics::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 1px;
-            background: rgba(0, 212, 255, 0.2);
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0 28px;
+            padding: 24px 20px;
+            min-height: 100px;
         }
         
         .referral-metric {
-            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .referral-metric-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
         }
         
         .referral-metric-icon {
-            width: 32px;
-            height: 32px;
+            width: 52px;
+            height: 52px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
+            flex-shrink: 0;
         }
         
         .referral-metric-icon.earnings {
@@ -232,20 +244,25 @@
         }
         
         .referral-metric-icon.referrals img {
-            width: 100%;
-            height: 100%;
+            width: 52px;
+            height: 52px;
             object-fit: contain;
         }
         
         .referral-metric-label {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
         }
         
         .referral-metric-value {
-            font-size: 1.8rem;
-            font-weight: 600;
+            font-size: 2.8rem;
+            font-weight: 700;
             color: #ffffff;
+            line-height: 1;
+            min-height: 1.2em;
+            display: flex;
+            align-items: center;
         }
         
         .referral-earnings-section {
@@ -442,6 +459,119 @@
         
         .referral-tab-content.active {
             display: block;
+        }
+        
+        /* Модальное окно уровней JetRefs */
+        .jetrefs-levels-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.28s ease;
+        }
+        .jetrefs-levels-overlay.active {
+            display: flex;
+            opacity: 1;
+            animation: jetrefsOverlayFadeIn 0.3s ease forwards;
+        }
+        .jetrefs-levels-overlay.active .jetrefs-levels-modal {
+            animation: jetrefsModalAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes jetrefsOverlayFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes jetrefsModalAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.88) translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .jetrefs-levels-modal {
+            background: linear-gradient(135deg, rgba(13, 10, 20, 0.98) 0%, rgba(26, 21, 37, 0.98) 100%);
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 320px;
+            width: 100%;
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+        }
+        .jetrefs-levels-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 16px;
+            text-align: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .jetrefs-level-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .jetrefs-level-item:last-child {
+            border-bottom: none;
+        }
+        .jetrefs-level-badge {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .jetrefs-level-badge.l1 { background: rgba(0, 212, 255, 0.2); color: #00d4ff; }
+        .jetrefs-level-badge.l2 { background: rgba(100, 200, 255, 0.25); color: #64c8ff; }
+        .jetrefs-level-badge.l3 { background: rgba(0, 212, 255, 0.35); color: #00d4ff; }
+        .jetrefs-level-info {
+            flex: 1;
+        }
+        .jetrefs-level-info strong {
+            color: #ffffff;
+            font-size: 0.95rem;
+        }
+        .jetrefs-level-info span {
+            display: block;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.65);
+            margin-top: 2px;
+        }
+        .jetrefs-levels-close {
+            margin-top: 16px;
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            border-radius: 10px;
+            color: #00d4ff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .jetrefs-levels-close:hover {
+            background: rgba(0, 212, 255, 0.3);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+        .jetrefs-levels-close:active {
+            transform: scale(0.98);
         }
         
         /* Withdraw Form */
@@ -671,6 +801,7 @@
             transition: all 0.25s ease;
         }
     </style>
+    <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>
 <body>
     <!-- Контейнер для подгружаемых страниц (без перезагрузки) -->
@@ -688,24 +819,20 @@
     
     <div class="referral-page-content">
         <!-- Bubble 1: Intro -->
-        <div class="referral-bubble" style="margin-bottom: 16px;">
+        <div class="referral-bubble">
             <div class="referral-jet-logo">
                 <img src="../assets/jet-logo.png" alt="JET">
             </div>
-            <div class="referral-intro-title">
-                ПРИГЛАШАЙТЕ ДРУЗЕЙ И ЗАРАБАТЫВАЙТЕ TON
-        </div>
+            <div class="referral-intro-title">Приглашай друзей</div>
+            <div class="referral-intro-subtitle">Получите больше преимуществ</div>
             <div class="referral-intro-banner" style="margin-bottom: 0;">
                 <div class="referral-intro-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
+                    <i class="fas fa-star"></i>
+                </div>
                 <div>
-                    <div class="referral-intro-text-main">
-                        Получите больше преимуществ
-                    </div>
                     <div class="referral-intro-text-sub">
                         Зарабатывайте до 25% JetRefs с покупок друзей. Больше объём&nbsp;— выше уровень и доход.
-                </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -719,14 +846,8 @@
                     <span>Уровень JetRefs</span>
                     <span class="referral-level-badge" id="refLevelPercent">15%</span>
             </div>
-                <a href="#" class="referral-more-link" onclick="return false;">Больше &gt;</a>
+                <a href="#" class="referral-more-link" onclick="showJetRefsLevelsModal(); return false;">Больше &gt;</a>
         </div>
-        
-            <!-- Tabs -->
-            <div class="referral-tabs">
-                <button class="referral-tab active" onclick="switchReferralTab('stats')">Статистика</button>
-                <button class="referral-tab" onclick="switchReferralTab('withdraw')">Вывести средства</button>
-                    </div>
         
             <!-- Stats Tab -->
             <div id="statsTab" class="referral-tab-content active">
@@ -745,26 +866,18 @@
                 </div>
                 </div>
         
-                <!-- Metrics: Referrals + Volume в один ряд -->
+                <!-- Metrics: Рефералы — цифра в один ряд с иконкой -->
                 <div class="referral-metrics">
                     <div class="referral-metric">
-                        <div class="referral-metric-icon referrals">
-                            <img src="../assets/ref-icon.png" alt="Рефералы" style="width: 32px; height: 32px; object-fit: contain;">
-                        </div>
                         <div class="referral-metric-label">Рефералы</div>
-                        <div class="referral-metric-value" id="refTotalRefs">0</div>
+                        <div class="referral-metric-row">
+                            <div class="referral-metric-icon referrals">
+                                <img src="../assets/ref-icon.png" alt="Рефералы" style="width: 52px; height: 52px; object-fit: contain;">
+                            </div>
+                            <div class="referral-metric-value" id="refTotalRefs">0</div>
+                        </div>
                     </div>
-                    <div class="referral-metric">
-                        <div class="referral-volume-header">
-                            <i class="fas fa-chart-line referral-volume-icon"></i>
-                            <span class="referral-volume-label">Объем рефералов</span>
-                        </div>
-                        <div class="referral-volume-value">
-                            <span id="refVolumeTon">0</span>
-                            <i class="fas fa-coins" style="color: #00d4ff; font-size: 1.2rem;"></i>
-                        </div>
-            </div>
-        </div>
+                </div>
         
                 <!-- Progress Bar -->
                 <div class="referral-volume-section">
@@ -787,141 +900,40 @@
                     Пригласить друзей
                 </button>
             </div>
-        
-            <!-- Withdraw Tab -->
-            <div id="withdrawTab" class="referral-tab-content">
-                <div class="withdraw-card">
-                    <div class="withdraw-balance-info">
-                        <div class="withdraw-balance-label">Доступно к выводу</div>
-                        <div class="withdraw-balance-value" id="withdrawBalance">0 ₽</div>
-        </div>
-        
-                    <form class="withdraw-form" id="withdrawForm" onsubmit="submitWithdraw(event)">
-                        <!-- Выбор валюты -->
-                        <div class="withdraw-form-group">
-                            <label class="withdraw-form-label">Валюта вывода</label>
-                            <select class="withdraw-form-select" id="withdrawCurrency" onchange="updateWithdrawCurrencyUI()" required>
-                                <option value="RUB">Рубли (₽)</option>
-                                <option value="TON">TON</option>
-                            </select>
-                        </div>
-
-                        <!-- Блок вывода в рублях -->
-                        <div id="withdrawRubFields">
-                            <div class="withdraw-form-group">
-                                <label class="withdraw-form-label">Сумма вывода (₽)</label>
-                                <input 
-                                    type="number" 
-                                    class="withdraw-form-input" 
-                                    id="withdrawAmountRub" 
-                                    placeholder="Введите сумму в рублях"
-                                    min="1"
-                                    step="0.01"
-                                    required
-                                >
-                </div>
-
-                            <div class="withdraw-form-group">
-                                <label class="withdraw-form-label">Способ вывода</label>
-                                <select class="withdraw-form-select" id="withdrawMethodRub" required>
-                                    <option value="">Выберите способ</option>
-                                    <option value="sbp">СБП</option>
-                                    <option value="card">Карта</option>
-                                </select>
-            </div>
-            
-                            <div class="withdraw-form-group">
-                                <label class="withdraw-form-label">Банк</label>
-                                <input 
-                                    type="text" 
-                                    class="withdraw-form-input" 
-                                    id="withdrawBankName" 
-                                    placeholder="Название банка"
-                                    required
-                                >
-                </div>
-
-                            <div class="withdraw-form-group">
-                                <label class="withdraw-form-label">Номер карты / счёта</label>
-                                <input 
-                                    type="text" 
-                                    class="withdraw-form-input" 
-                                    id="withdrawCardNumber" 
-                                    placeholder="Номер карты или счёта"
-                                    maxlength="32"
-                                    required
-                                >
-            </div>
-            
-                            <div class="withdraw-form-group">
-                                <label class="withdraw-form-label">Имя и первая буква фамилии</label>
-                                <input 
-                                    type="text" 
-                                    class="withdraw-form-input" 
-                                    id="withdrawCardHolder" 
-                                    placeholder="Иван И."
-                                    required
-                                >
-                </div>
-            </div>
-
-                        <!-- Блок вывода в TON -->
-                        <div id="withdrawTonFields" style="display: none;">
-                            <div class="withdraw-warning">
-                                Внимание: TON переводы выполняются <b>только</b> в сети TON. Убедитесь, что ваш кошелёк поддерживает выбранную сеть.
-        </div>
-        
-                            <div class="withdraw-form-group">
-                                <label class="withdraw-form-label">Сеть</label>
-                                <select class="withdraw-form-select" id="withdrawTonNetwork">
-                                    <option value="TON">TON</option>
-                                    <option value="TRC20">TRC20</option>
-                                </select>
-        </div>
-        
-                            <div class="withdraw-form-group">
-                                <label class="withdraw-form-label">Криптовалюта</label>
-                                <select class="withdraw-form-select" id="withdrawTonAsset">
-                                    <option value="TON">TON</option>
-                                    <option value="USDT">USDT (TON)</option>
-                                    <option value="USDC">USDC (TON)</option>
-                                </select>
-                </div>
-
-                            <div class="withdraw-form-group">
-                                <label class="withdraw-form-label">Сумма вывода (TON)</label>
-                                <input 
-                                    type="number" 
-                                    class="withdraw-form-input" 
-                                    id="withdrawAmountTon" 
-                                    placeholder="Введите сумму в TON"
-                                    min="0.01"
-                                    step="0.01"
-                                >
-                            </div>
-
-                            <div class="withdraw-form-group">
-                                <label class="withdraw-form-label">Адрес кошелька</label>
-                                <input 
-                                    type="text" 
-                                    class="withdraw-form-input" 
-                                    id="withdrawTonAddress" 
-                                    placeholder="TON-адрес получателя"
-                                >
-            </div>
-        </div>
-        
-                        <button type="submit" class="withdraw-submit-btn" id="withdrawSubmitBtn">
-                            Вывести средства
-                        </button>
-                    </form>
-                </div>
-            </div>
             </div>
         </div>
     </div>
     
     <!-- Нижняя навигация -->
+    <!-- Модальное окно уровней JetRefs -->
+    <div class="jetrefs-levels-overlay" id="jetRefsLevelsOverlay" onclick="closeJetRefsLevelsModal(event)">
+        <div class="jetrefs-levels-modal" onclick="event.stopPropagation()">
+            <div class="jetrefs-levels-title">Уровни JetRefs</div>
+            <div class="jetrefs-level-item">
+                <div class="jetrefs-level-badge l1">1</div>
+                <div class="jetrefs-level-info">
+                    <strong>15% JetRefs</strong>
+                    <span>Объём рефералов: 0 – 999 TON</span>
+                </div>
+            </div>
+            <div class="jetrefs-level-item">
+                <div class="jetrefs-level-badge l2">2</div>
+                <div class="jetrefs-level-info">
+                    <strong>20% JetRefs</strong>
+                    <span>Объём рефералов: 1 000 – 4 999 TON</span>
+                </div>
+            </div>
+            <div class="jetrefs-level-item">
+                <div class="jetrefs-level-badge l3">3</div>
+                <div class="jetrefs-level-info">
+                    <strong>25% JetRefs</strong>
+                    <span>Объём рефералов: 5 000+ TON (максимум)</span>
+                </div>
+            </div>
+            <button class="jetrefs-levels-close" onclick="closeJetRefsLevelsModal()">Закрыть</button>
+        </div>
+    </div>
+    
     <nav class="profile-nav">
         <div class="profile-nav-inner">
             <div class="nav-active-indicator" id="navActiveIndicator"></div>
@@ -937,7 +949,7 @@
             </div>
             <span>Заработать</span>
         </button>
-            <button class="profile-nav-btn" data-nav-index="2" type="button">
+            <button class="profile-nav-btn profile-nav-btn-disabled" data-nav-index="2" type="button" title="Скоро" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
             <div class="nav-icon-wrapper">
                 <i class="fab fa-telegram-plane"></i>
             </div>
@@ -957,6 +969,16 @@
         let referralLink = '';
         let referralStats = null;
         let tonRate = 600;
+
+        function showJetRefsLevelsModal() {
+            const el = document.getElementById('jetRefsLevelsOverlay');
+            if (el) el.classList.add('active');
+        }
+        function closeJetRefsLevelsModal(e) {
+            if (e && e.target !== e.currentTarget) return;
+            const el = document.getElementById('jetRefsLevelsOverlay');
+            if (el) el.classList.remove('active');
+        }
 
         // Получаем user_id из Telegram WebApp
         function getUserId() {
@@ -1074,13 +1096,10 @@
             const totalRefs = stats.total_referrals || 0;
             document.getElementById('refTotalRefs').textContent = totalRefs.toLocaleString('ru-RU');
 
-            // Объем рефералов в TON
-            const volumeTon = (stats.volume_ton || 0).toFixed(0);
-            document.getElementById('refVolumeTon').textContent = volumeTon.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            // Объем рефералов (элемент убран, данные используются для прогресс-бара)
 
-            // Прогресс-бар с анимацией (0–5000 TON => 0–100%)
-            const volumeTonRaw = stats.volume_ton || 0;
-            const globalPercent = Math.max(0, Math.min(100, (volumeTonRaw / 5000) * 100));
+            // Прогресс-бар — используем progress_percent из API (уровни 1: 0–5k TON, 2: 5k–15k TON, 3: 15k+ TON)
+            const globalPercent = Math.max(0, Math.min(100, stats.progress_percent ?? 0));
             const progressBar = document.getElementById('refProgressBar');
             progressBar.style.width = '0%';
             // Запускаем анимацию прогресс-бара
@@ -1106,23 +1125,7 @@
                 `;
             }
 
-            // Обновляем баланс для вывода (в рублях) и максимумы для RUB/TON
-            const withdrawBalanceEl = document.getElementById('withdrawBalance');
-            const withdrawAmountRubEl = document.getElementById('withdrawAmountRub');
-            const withdrawAmountTonEl = document.getElementById('withdrawAmountTon');
-            withdrawBalanceEl.textContent = `${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
-            const earnedRubNum = parseFloat(stats.earned_rub || 0);
-            if (withdrawAmountRubEl) {
-                withdrawAmountRubEl.max = earnedRubNum > 0 ? earnedRubNum.toFixed(2) : '';
-            }
-            if (withdrawAmountTonEl) {
-                if (tonRate && tonRate > 0 && earnedRubNum > 0) {
-                    const maxTon = earnedRubNum / tonRate;
-                    withdrawAmountTonEl.max = maxTon.toFixed(4);
-                } else {
-                    withdrawAmountTonEl.removeAttribute('max');
-                }
-            }
+            // Обновляем баланс для вывода (вкладка «Вывести средства» удалена — логика оставлена для совместимости)
         }
 
         // Переключение UI для валюты вывода
@@ -1141,27 +1144,13 @@
             }
         }
 
-        // Переключение вкладок
+        // Переключение вкладок (вкладка «Вывести средства» удалена — оставлена только Статистика)
         function switchReferralTab(tab) {
-            // Обновляем кнопки вкладок
-            document.querySelectorAll('.referral-tab').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            // Находим активную кнопку по tab
-            const activeBtn = Array.from(document.querySelectorAll('.referral-tab')).find(btn => {
-                return (tab === 'stats' && btn.textContent.includes('Статистика')) ||
-                       (tab === 'withdraw' && btn.textContent.includes('Вывести'));
-            });
-            if (activeBtn) {
-                activeBtn.classList.add('active');
-            }
-
-            // Обновляем контент вкладок с анимацией
-            document.querySelectorAll('.referral-tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
             const activeContent = document.getElementById(tab + 'Tab');
-            activeContent.classList.add('active');
+            if (activeContent) {
+                document.querySelectorAll('.referral-tab-content').forEach(c => c.classList.remove('active'));
+                activeContent.classList.add('active');
+            }
         }
 
         // Обработчик кнопки "Пригласить друзей"
@@ -1171,21 +1160,17 @@
                 return;
             }
 
-            // Формируем сообщение с реферальной ссылкой
-            const message = `Присоединяйся к JET и получай бонусы! 🚀\n\n${referralLink}`;
+            // Пересылание сообщения «Присоединяйтесь к JET» (не копирование в буфер)
+            const message = `Присоединяйтесь к JET\n\n${referralLink}`;
             
-            // Открываем выбор контакта через Telegram
             try {
-            const tg = window.Telegram?.WebApp;
+                const tg = window.Telegram?.WebApp;
                 if (tg?.openTelegramLink) {
-                    // Используем tg://msg для открытия выбора контакта
                     const telegramLink = `tg://msg?text=${encodeURIComponent(message)}`;
                     tg.openTelegramLink(telegramLink);
                 } else if (tg?.openLink) {
-                    // Fallback: открываем ссылку напрямую
-                    tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Присоединяйся к JET и получай бонусы! 🚀')}`);
+                    tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Присоединяйтесь к JET')}`);
                 } else {
-                    // Последний fallback: копируем в буфер обмена
                     if (navigator.clipboard) {
                         navigator.clipboard.writeText(referralLink).then(() => {
                             alert('Реферальная ссылка скопирована в буфер обмена!');
@@ -1195,8 +1180,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Failed to open contact picker:', error);
-                // Fallback: копируем ссылку
+                console.error('Failed to share:', error);
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(referralLink);
                     alert('Реферальная ссылка скопирована в буфер обмена!');
@@ -1380,7 +1364,8 @@
             initReferralPage();
         }
         
-        // Анимация активного индикатора в подвале
+        // Анимация активного индикатора — двигается от текущей вкладки к новой (без скачка слева)
+        var navIndicatorInitialized = false;
         function updateNavIndicator() {
             const indicator = document.getElementById('navActiveIndicator');
             const activeBtn = document.querySelector('.profile-nav-btn.active');
@@ -1388,9 +1373,11 @@
             if (!indicator || !activeBtn || !navInner) return;
             const btnRect = activeBtn.getBoundingClientRect();
             const navRect = navInner.getBoundingClientRect();
+            if (!navIndicatorInitialized) indicator.style.transition = 'none';
             indicator.style.left = (btnRect.left - navRect.left) + 'px';
             indicator.style.width = btnRect.width + 'px';
             indicator.style.height = btnRect.height + 'px';
+            if (!navIndicatorInitialized) { indicator.offsetHeight; indicator.style.transition = ''; navIndicatorInitialized = true; }
         }
         // При изменении размера окна индикатор должен пересчитываться
         window.addEventListener('resize', updateNavIndicator);

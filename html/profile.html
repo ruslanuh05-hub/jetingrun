@@ -8,7 +8,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>JET - официальный бот</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/mobile.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -418,15 +417,16 @@
         
         /* TonKeeper Button */
         .tonkeeper-section {
-            margin: 0 20px 20px 20px;
+            margin: 0 20px 12px 20px;
         }
         
         .btn-tonkeeper {
             width: 100%;
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 18px 20px;
+            gap: 14px;
+            padding: 16px 20px;
+            box-sizing: border-box;
             background: #0a0a0a;
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
@@ -462,8 +462,8 @@
         }
         
         .tonkeeper-icon {
-            width: 44px;
-            height: 44px;
+            width: 56px;
+            height: 56px;
             background: #0a0a0a;
             border-radius: 50%;
             display: flex;
@@ -474,8 +474,8 @@
         }
         
         .tonkeeper-icon img {
-            width: 28px;
-            height: 28px;
+            width: 44px;
+            height: 44px;
             object-fit: contain;
         }
         
@@ -483,6 +483,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
+            justify-content: center;
             flex-grow: 1;
             min-width: 0;
         }
@@ -508,6 +509,8 @@
         
         .btn-tonkeeper .tonkeeper-arrow {
             color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            flex-shrink: 0;
         }
         
         /* Блок «подключено»: адрес, баланс, отвязать */
@@ -1640,7 +1643,7 @@
             }
         }
         
-        /* Секция информации - улучшенная */
+        /* Секция информации - выровнена с TonKeeper */
         .info-section {
             margin: 0 20px 20px 20px;
         }
@@ -1648,7 +1651,7 @@
         .info-item {
             background: linear-gradient(135deg, #000000 0%, #0a0a0a 100%);
             border-radius: 16px;
-            padding: 18px;
+            padding: 16px 20px;
             display: flex;
             align-items: center;
             gap: 14px;
@@ -2153,6 +2156,7 @@
             transform: translateZ(0);
         }
     </style>
+    <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>
 <body>
     <!-- Контейнер для подгружаемых страниц (без перезагрузки) -->
@@ -2301,7 +2305,7 @@
                 </div>
                 <span>Заработать</span>
             </button>
-            <button class="profile-nav-btn" data-nav-index="2" type="button">
+            <button class="profile-nav-btn profile-nav-btn-disabled" data-nav-index="2" type="button" title="Скоро" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
                 <div class="nav-icon-wrapper">
                     <i class="fab fa-telegram-plane"></i>
                 </div>
@@ -3303,7 +3307,8 @@
             };
         }
         
-        // Анимация активного индикатора в подвале
+        // Анимация активного индикатора — двигается от текущей вкладки к новой (без скачка слева)
+        var navIndicatorInitialized = false;
         function updateNavIndicator() {
             var indicator = document.getElementById('navActiveIndicator');
             var activeBtn = document.querySelector('.profile-nav-btn.active');
@@ -3311,9 +3316,11 @@
             if (!indicator || !activeBtn || !navInner) return;
             var btnRect = activeBtn.getBoundingClientRect();
             var navRect = navInner.getBoundingClientRect();
+            if (!navIndicatorInitialized) indicator.style.transition = 'none';
             indicator.style.left = (btnRect.left - navRect.left) + 'px';
             indicator.style.width = btnRect.width + 'px';
             indicator.style.height = btnRect.height + 'px';
+            if (!navIndicatorInitialized) { indicator.offsetHeight; indicator.style.transition = ''; navIndicatorInitialized = true; }
         }
         function initProfileNavIndicator() {
             setTimeout(updateNavIndicator, 100);

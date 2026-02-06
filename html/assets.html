@@ -9,7 +9,6 @@
     <title>Активы - JET</title>
     <!-- Статическое подключение стилей без document.write (корректно работает и при SPA-подгрузке) -->
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/mobile.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -2362,6 +2361,7 @@
             to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
         }
     </style>
+    <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>
 <body>
     <!-- Контейнер для подгружаемых страниц (без перезагрузки) -->
@@ -2641,7 +2641,7 @@
                 </div>
                 <span>Заработать</span>
             </button>
-            <button class="profile-nav-btn active" data-nav-index="2" type="button">
+            <button class="profile-nav-btn active profile-nav-btn-disabled" data-nav-index="2" type="button" title="Скоро" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
                 <div class="nav-icon-wrapper">
                     <i class="fab fa-telegram-plane"></i>
                 </div>
@@ -3835,7 +3835,8 @@
         window.validateTonTopup = validateTonTopup;
         window.submitTonTopup = submitTonTopup;
         
-        // Анимация активного индикатора в подвале
+        // Анимация активного индикатора — двигается от текущей вкладки к новой (без скачка слева)
+        var navIndicatorInitialized = false;
         function updateNavIndicator() {
             var indicator = document.getElementById('navActiveIndicator');
             var activeBtn = document.querySelector('.profile-nav-btn.active');
@@ -3843,9 +3844,11 @@
             if (!indicator || !activeBtn || !navInner) return;
             var btnRect = activeBtn.getBoundingClientRect();
             var navRect = navInner.getBoundingClientRect();
+            if (!navIndicatorInitialized) indicator.style.transition = 'none';
             indicator.style.left = (btnRect.left - navRect.left) + 'px';
             indicator.style.width = btnRect.width + 'px';
             indicator.style.height = btnRect.height + 'px';
+            if (!navIndicatorInitialized) { indicator.offsetHeight; indicator.style.transition = ''; navIndicatorInitialized = true; }
         }
         document.addEventListener('DOMContentLoaded', function() { setTimeout(updateNavIndicator, 100); });
         window.addEventListener('resize', updateNavIndicator);

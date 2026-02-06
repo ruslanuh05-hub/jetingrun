@@ -1435,7 +1435,10 @@ function showInfo(type) {
             }
             
             .info-page-content {
-                padding: 20px;
+                padding: 20px max(20px, env(safe-area-inset-right)) 20px max(20px, env(safe-area-inset-left));
+                overflow-x: hidden;
+                box-sizing: border-box;
+                max-width: 100vw;
             }
             
             .info-menu-item {
@@ -1450,6 +1453,9 @@ function showInfo(type) {
                 transition: all 0.3s ease;
                 border: 1px solid rgba(255, 255, 255, 0.05);
                 text-decoration: none;
+                overflow: hidden;
+                box-sizing: border-box;
+                max-width: 100%;
             }
             
             .info-menu-item:hover {
@@ -1500,6 +1506,8 @@ function showInfo(type) {
             
             .info-menu-text {
                 flex: 1;
+                min-width: 0;
+                overflow: hidden;
             }
             
             .info-menu-title {
@@ -1507,6 +1515,9 @@ function showInfo(type) {
                 font-size: 1.05rem;
                 font-weight: 600;
                 margin: 0 0 4px 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             .info-menu-subtitle {
@@ -1518,11 +1529,13 @@ function showInfo(type) {
             .info-menu-arrow {
                 color: rgba(255, 255, 255, 0.3);
                 font-size: 1rem;
+                flex-shrink: 0;
             }
             
             .info-menu-external {
                 color: rgba(255, 255, 255, 0.3);
                 font-size: 0.9rem;
+                flex-shrink: 0;
             }
             
             .info-section-title {

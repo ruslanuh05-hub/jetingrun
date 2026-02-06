@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>JET - официальный бот</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/mobile.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Предотвращение горизонтального скролла на мобильных */
+        /* Предотвращение горизонтального скролла; фон — тёмный (без фиолетового при переходе в главное меню) */
         html, body {
             overflow-x: hidden;
             max-width: 100vw;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
+            background: #0a0a0a !important;
         }
         html {
             scroll-behavior: smooth;
@@ -173,7 +173,7 @@
             }
         }
         
-        /* Главное меню – фиолетовый фон */
+        /* Главное меню – тёмный фон (без фиолетового) */
         .main-menu-container {
             display: none;
             min-height: 100vh;
@@ -181,29 +181,23 @@
             max-width: 100vw;
             overflow-x: hidden;
             box-sizing: border-box;
-            background: linear-gradient(180deg, #0d0a14 0%, #1a1525 25%, #251d35 50%, #1e1830 75%, #16122a 100%);
+            background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
             color: #ffffff;
         }
         
         .main-menu-container.active {
             display: grid;
             grid-template-rows: auto 1fr;
-            padding-bottom: max(80px, calc(70px + env(safe-area-inset-bottom, 0)));
-            animation: fadeIn 0.4s ease-out;
+            padding-bottom: max(105px, calc(95px + env(safe-area-inset-bottom, 0)));
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        /* Шапка магазина */
+        /* Шапка магазина — уменьшена в 1.3 раза */
         .store-header {
             grid-row: 1;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px max(16px, env(safe-area-inset-left)) 12px max(16px, env(safe-area-inset-right));
+            padding: 9px max(12px, env(safe-area-inset-left)) 9px max(12px, env(safe-area-inset-right));
             min-width: 0;
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(10px);
@@ -228,14 +222,14 @@
         }
         
         .header-jet-logo {
-            width: 56px;
-            height: 56px;
+            width: 43px;
+            height: 43px;
             object-fit: contain;
         }
         
         .roulette-btn {
-            width: 48px;
-            height: 48px;
+            width: 37px;
+            height: 37px;
             border: none;
             background: transparent;
             cursor: pointer;
@@ -327,7 +321,7 @@
         
         .store-title h1 {
             color: #ffffff;
-            font-size: 1.1rem;
+            font-size: 0.85rem;
             font-weight: 700;
             margin: 0;
             white-space: nowrap;
@@ -337,7 +331,7 @@
         
         .store-title span {
             color: #00d4ff;
-            font-size: 0.7rem;
+            font-size: 0.54rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -1797,7 +1791,7 @@
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            padding: 10px max(10px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-bottom, 12px)) max(10px, env(safe-area-inset-right));
+            padding: 14px max(14px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-bottom, 16px)) max(14px, env(safe-area-inset-right));
             z-index: 9999;
             pointer-events: none;
             box-sizing: border-box;
@@ -1815,8 +1809,8 @@
             pointer-events: auto;
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 6px 4px;
+            gap: 10px;
+            padding: 14px 12px;
             border-radius: 999px;
             background: rgba(30, 28, 40, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1854,7 +1848,7 @@
 
         @supports (padding: max(0px)) {
             .profile-nav {
-                padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
+                padding-bottom: max(18px, env(safe-area-inset-bottom, 18px));
             }
         }
 
@@ -1870,16 +1864,16 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 3px;
+            gap: 5px;
             background: transparent;
             border: none;
-            padding: 8px 12px;
-            min-width: 44px;
-            min-height: 44px;
+            padding: 12px 20px;
+            min-width: 64px;
+            min-height: 64px;
             color: rgba(255, 255, 255, 0.55);
             cursor: pointer;
             transition: all 0.25s ease;
-            font-size: 0.7rem;
+            font-size: 0.9rem;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
         }
@@ -1893,7 +1887,7 @@
         }
 
         .profile-nav-btn i {
-            font-size: 1.25rem;
+            font-size: 1.65rem;
         }
 
         .profile-nav-btn.active {
@@ -1908,7 +1902,7 @@
         .profile-nav-btn.active .nav-icon-wrapper {
             background: transparent;
             border-radius: 999px;
-            padding: 8px 14px;
+            padding: 12px 20px;
             box-shadow: none;
         }
         
@@ -1927,8 +1921,8 @@
         }
 
         .nav-icon-wrapper {
-            min-width: 40px;
-            min-height: 40px;
+            min-width: 54px;
+            min-height: 54px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1975,7 +1969,6 @@
             max-width: 100%;
             overflow-x: hidden;
             opacity: 1;
-            transition: opacity 0.4s ease;
             z-index: 1;
         }
         
@@ -1992,7 +1985,6 @@
             opacity: 0;
             pointer-events: none;
             z-index: 0;
-            transition: opacity 0.4s ease;
         }
         
         .store-view.active {
@@ -2674,11 +2666,27 @@
         }
         
         /* Модальное окно «Как узнать свой логин Steam?» */
+        .steam-login-help-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.28s ease, visibility 0.28s ease;
+        }
+        .steam-login-help-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
         .steam-login-help-modal {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(0.92);
             width: 92%;
             max-width: 420px;
             background: linear-gradient(180deg, #1b2838 0%, #171a21 100%);
@@ -2687,6 +2695,27 @@
             z-index: 10001;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+        }
+        .steam-login-help-modal.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+            animation: steamLoginModalAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes steamLoginModalAppear {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.88);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
         }
         
         .steam-login-help-header {
@@ -3519,10 +3548,10 @@
             flex-direction: column;
         }
         
-        /* Окна оплаты — фон как везде (фиолетовый) */
+        /* Окна оплаты — тёмный фон (без фиолетового) */
         #paymentMethodPopup .supercell-popup-content,
         #paymentWaitingPopup .supercell-popup-content {
-            background: linear-gradient(180deg, #0d0a14 0%, #1a1525 25%, #251d35 50%, #1e1830 75%, #16122a 100%);
+            background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
         }
         
         .supercell-games-list {
@@ -3731,12 +3760,12 @@
             opacity: 1;
         }
         
-        /* Карточки главного меню */
+        /* Карточки главного меню — уменьшены в 1.3 раза */
         .main-menu-cards {
-            padding: 16px;
+            padding: 12px;
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
+            gap: 9px;
             position: relative;
             width: 100%;
             max-width: 100%;
@@ -3750,9 +3779,9 @@
         
         .main-menu-card {
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(10, 10, 10, 0.9) 100%);
-            border-radius: 14px;
-            padding: 14px 16px 16px 16px;
-            min-height: 110px;
+            border-radius: 11px;
+            padding: 11px 12px 12px 12px;
+            min-height: 85px;
             min-width: 0;
             position: relative;
             overflow: hidden;
@@ -3793,7 +3822,7 @@
         .main-menu-card-stars.banner-card .banner-image-wrapper,
         .main-menu-card-premium.banner-card .banner-image-wrapper {
             height: auto;
-            max-height: 130px;
+            max-height: 100px;
             overflow: hidden;
             display: flex;
             justify-content: center;
@@ -3831,7 +3860,7 @@
         }
         
         .main-menu-card-title {
-            font-size: 0.95rem;
+            font-size: 0.73rem;
             font-weight: 600;
             color: #ffffff;
             margin-bottom: 4px;
@@ -3845,7 +3874,7 @@
         }
         
         .main-menu-card-subtitle {
-            font-size: 0.75rem;
+            font-size: 0.58rem;
             color: rgba(255, 255, 255, 0.6);
             margin-bottom: 0;
             line-height: 1.2;
@@ -3857,10 +3886,10 @@
         
         .main-menu-card-icons {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             position: absolute;
-            bottom: 14px;
-            right: 14px;
+            bottom: 11px;
+            right: 11px;
             z-index: 1;
             align-items: flex-end;
             justify-content: flex-end;
@@ -3873,8 +3902,8 @@
         }
         
         .main-menu-card-ton .main-menu-card-icons img {
-            width: 80px;
-            height: 80px;
+            width: 62px;
+            height: 62px;
         }
         
         .main-menu-card-stars .main-menu-card-icons,
@@ -3890,8 +3919,8 @@
         
         .main-menu-card-stars .main-menu-card-icons img,
         .main-menu-card-sell-stars .main-menu-card-icons img {
-            width: 60px;
-            height: 60px;
+            width: 46px;
+            height: 46px;
         }
         
         .main-menu-card-icons img {
@@ -4567,44 +4596,46 @@
             }
         }
         
-        /* ===== МОБИЛЬНАЯ ОПТИМИЗАЦИЯ ===== */
+        /* ===== МОБИЛЬНАЯ ОПТИМИЗАЦИЯ (всё в 1.3 раза меньше) ===== */
         @media (max-width: 480px) {
-            .store-header { padding: 10px max(12px, env(safe-area-inset-left)) 10px max(12px, env(safe-area-inset-right)); }
-            .header-jet-logo { width: 48px; height: 48px; }
-            .store-title h1 { font-size: 1rem; }
-            .store-title span { font-size: 0.65rem; }
-            .roulette-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
-            .main-menu-container.active { padding-bottom: max(90px, calc(75px + env(safe-area-inset-bottom, 0))); }
-            .main-menu-cards { padding: 12px max(12px, env(safe-area-inset-left)); gap: 10px; }
-            .main-menu-card { padding: 12px 14px; min-height: 100px; }
+            .store-header { padding: 8px max(10px, env(safe-area-inset-left)) 8px max(10px, env(safe-area-inset-right)); }
+            .header-jet-logo { width: 37px; height: 37px; }
+            .store-title h1 { font-size: 0.77rem; }
+            .store-title span { font-size: 0.5rem; }
+            .roulette-btn { width: 37px; height: 37px; min-width: 37px; min-height: 37px; }
+            .main-menu-container.active { padding-bottom: max(90px, calc(80px + env(safe-area-inset-bottom, 0))); }
+            .main-menu-cards { padding: 10px max(10px, env(safe-area-inset-left)); gap: 8px; }
+            .main-menu-card { padding: 9px 11px; min-height: 77px; }
             .main-menu-card-stars.banner-card .banner-image-wrapper,
-            .main-menu-card-premium.banner-card .banner-image-wrapper { max-height: 110px; }
-            .profile-nav-inner { gap: 2px; padding: 6px 2px; }
-            .profile-nav-btn { padding: 6px 10px; font-size: 0.65rem; min-width: 48px; }
-            .profile-nav-btn i { font-size: 1.15rem; }
-            .nav-icon-wrapper { min-width: 36px; min-height: 36px; }
-            .profile-nav-btn.active .nav-icon-wrapper { padding: 6px 10px; }
+            .main-menu-card-premium.banner-card .banner-image-wrapper { max-height: 85px; }
+            .profile-nav-inner { gap: 10px; padding: 14px 12px; }
+            .profile-nav-btn { padding: 12px 20px; font-size: 0.9rem; min-width: 64px; min-height: 64px; }
+            .profile-nav-btn i { font-size: 1.65rem; }
+            .nav-icon-wrapper { min-width: 54px; min-height: 54px; }
+            .profile-nav-btn.active .nav-icon-wrapper { padding: 12px 20px; }
             .store-view-header { padding: 12px max(16px, env(safe-area-inset-left)); }
         }
         
         @media (max-width: 360px) {
-            .store-header { padding: 8px max(10px, env(safe-area-inset-left)) 8px max(10px, env(safe-area-inset-right)); }
-            .header-jet-logo { width: 42px; height: 42px; }
-            .main-menu-cards { padding: 10px max(10px, env(safe-area-inset-left)); gap: 8px; }
-            .main-menu-card { padding: 10px 12px; min-height: 90px; }
-            .main-menu-card-title { font-size: 0.8rem; }
-            .main-menu-card-subtitle { font-size: 0.6rem; }
+            .store-header { padding: 6px max(8px, env(safe-area-inset-left)) 6px max(8px, env(safe-area-inset-right)); }
+            .header-jet-logo { width: 32px; height: 32px; }
+            .main-menu-cards { padding: 8px max(8px, env(safe-area-inset-left)); gap: 6px; }
+            .main-menu-card { padding: 8px 10px; min-height: 70px; }
+            .main-menu-card-title { font-size: 0.62rem; }
+            .main-menu-card-subtitle { font-size: 0.46rem; }
             .main-menu-card-stars.banner-card .banner-image-wrapper,
-            .main-menu-card-premium.banner-card .banner-image-wrapper { max-height: 95px; }
+            .main-menu-card-premium.banner-card .banner-image-wrapper { max-height: 73px; }
             .main-menu-card-ton .main-menu-card-icons img,
             .main-menu-card-stars .main-menu-card-icons img,
-            .main-menu-card-sell-stars .main-menu-card-icons img { width: 55px; height: 55px; }
-            .profile-nav-inner { padding: 5px 2px; }
-            .profile-nav-btn { padding: 5px 8px; font-size: 0.6rem; min-width: 44px; min-height: 44px; }
-            .profile-nav-btn i { font-size: 1.05rem; }
+            .main-menu-card-sell-stars .main-menu-card-icons img { width: 42px; height: 42px; }
+            .profile-nav-inner { padding: 12px 10px; gap: 8px; }
+            .profile-nav-btn { padding: 10px 18px; font-size: 0.85rem; min-width: 60px; min-height: 60px; }
+            .profile-nav-btn i { font-size: 1.5rem; }
+            .nav-icon-wrapper { min-width: 50px; min-height: 50px; }
         }
         
     </style>
+    <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>
 <body>
     <!-- Экран загрузки -->
@@ -4622,7 +4653,7 @@
     </div>
     
     <!-- Контейнер для подгружаемых страниц (без перезагрузки) -->
-    <div id="injectedPageWrap" class="main-menu-container" style="display: none; background: linear-gradient(180deg, #0d0a14 0%, #1a1525 25%, #251d35 50%, #1e1830 75%, #16122a 100%); padding-bottom: 80px;">
+    <div id="injectedPageWrap" class="main-menu-container" style="display: none; background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%); padding-bottom: 80px;">
         <div id="injectedPageContent"></div>
     </div>
     
@@ -4662,21 +4693,15 @@
                     </div>
                 </a>
                 
-                <!-- Ряд: Купить TON | Продать звёзды -->
-                <div class="main-menu-card main-menu-card-ton" onclick="window.location.href='Tonnel.html'">
+                <!-- Ряд: Купить TON | Продать звёзды (временно отключены) -->
+                <div class="main-menu-card main-menu-card-ton main-menu-card-disabled" onclick="return false;" style="cursor: not-allowed; opacity: 0.6; pointer-events: none;">
                     <div class="main-menu-card-title">Купить TON</div>
                     <div class="main-menu-card-subtitle">криптовалюта</div>
-                    <div class="main-menu-card-icons">
-                        <img src="../assets/tonkeeper-icon.png" alt="TON" class="card-icon-img">
-                    </div>
                 </div>
                 
-                <div class="main-menu-card main-menu-card-sell-stars" onclick="showStoreView('sellStars')">
+                <div class="main-menu-card main-menu-card-sell-stars main-menu-card-disabled" onclick="return false;" style="cursor: not-allowed; opacity: 0.6; pointer-events: none;">
                     <div class="main-menu-card-title">Продать звёзды</div>
                     <div class="main-menu-card-subtitle">звёзды</div>
-                    <div class="main-menu-card-icons">
-                        <img src="../assets/sell-stars-icon.png" alt="Продать звёзды" class="card-icon-img">
-                    </div>
                 </div>
                 
                 <!-- Steam как был -->
@@ -4963,8 +4988,6 @@
                             </div>
                             <div class="steam-currency-switcher">
                                 <button type="button" id="steamCurRub" class="steam-currency-btn active" onclick="setSteamCurrency('RUB')">₽ RUB</button>
-                                <button type="button" id="steamCurKzt" class="steam-currency-btn" onclick="setSteamCurrency('KZT')">₸ KZT</button>
-                                <button type="button" id="steamCurUah" class="steam-currency-btn" onclick="setSteamCurrency('UAH')">₴ UAH</button>
                             </div>
                             <div class="steam-topup-input-wrap">
                                 <span class="steam-currency-icon" id="steamCurrencyIcon">₽</span>
@@ -5001,8 +5024,8 @@
         </div>
         
         <!-- Модальное окно «Как узнать свой логин Steam?» -->
-        <div id="steamLoginHelpOverlay" class="popup-overlay" onclick="closeSteamLoginHelpModal()" style="display: none;"></div>
-        <div id="steamLoginHelpModal" class="steam-login-help-modal" style="display: none;">
+        <div id="steamLoginHelpOverlay" class="steam-login-help-overlay" onclick="closeSteamLoginHelpModal()"></div>
+        <div id="steamLoginHelpModal" class="steam-login-help-modal">
             <div class="steam-login-help-header">
                 <h2 class="steam-login-help-title">Как узнать свой логин?</h2>
                 <button class="steam-login-help-close" onclick="closeSteamLoginHelpModal()">
@@ -5392,7 +5415,7 @@
                     </div>
                     <span>Заработать</span>
                 </button>
-                <button class="profile-nav-btn" data-nav-index="2" type="button">
+                <button class="profile-nav-btn profile-nav-btn-disabled" data-nav-index="2" type="button" title="Скоро" onclick="return false;" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
                     <div class="nav-icon-wrapper">
                         <i class="fab fa-telegram-plane"></i>
                     </div>
@@ -6152,7 +6175,8 @@
             }
         });
         
-        // Анимация активного индикатора в подвале — экспортируем глобально
+        // Анимация активного индикатора в подвале — двигается от текущей вкладки к новой
+        var navIndicatorInitialized = false;
         function updateNavIndicator() {
             const indicator = document.getElementById('navActiveIndicator');
             const activeBtn = document.querySelector('.profile-nav-btn.active');
@@ -6174,10 +6198,18 @@
                 width = btnRect.width + extraWidth;
                 height = btnRect.height + extraHeight;
             }
+            if (!navIndicatorInitialized) {
+                indicator.style.transition = 'none';
+            }
             indicator.style.left = Math.max(0, left) + 'px';
             indicator.style.width = width + 'px';
             indicator.style.height = height + 'px';
             indicator.classList.add('ready');
+            if (!navIndicatorInitialized) {
+                indicator.offsetHeight;
+                indicator.style.transition = '';
+                navIndicatorInitialized = true;
+            }
         }
         window.updateNavIndicator = updateNavIndicator;
         

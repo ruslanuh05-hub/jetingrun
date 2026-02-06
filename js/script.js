@@ -2208,15 +2208,15 @@ function clearSteamInput(inputId) {
 function openSteamLoginHelpModal() {
     const overlay = document.getElementById('steamLoginHelpOverlay');
     const modal = document.getElementById('steamLoginHelpModal');
-    if (overlay) overlay.style.display = 'block';
-    if (modal) modal.style.display = 'block';
+    if (overlay) overlay.classList.add('active');
+    if (modal) modal.classList.add('active');
 }
 
 function closeSteamLoginHelpModal() {
     const overlay = document.getElementById('steamLoginHelpOverlay');
     const modal = document.getElementById('steamLoginHelpModal');
-    if (overlay) overlay.style.display = 'none';
-    if (modal) modal.style.display = 'none';
+    if (overlay) overlay.classList.remove('active');
+    if (modal) modal.classList.remove('active');
 }
 
 // Глобальные переменные для текущей покупки
@@ -2236,9 +2236,7 @@ function setSteamCurrency(code) {
     currentSteamCurrency = code;
 
     const map = {
-        RUB: { icon: '₽', hint: '₽' },
-        KZT: { icon: '₸', hint: '₸' },
-        UAH: { icon: '₴', hint: '₴' }
+        RUB: { icon: '₽', hint: '₽' }
     };
     const cfg = map[code] || map.RUB;
 
@@ -2247,15 +2245,8 @@ function setSteamCurrency(code) {
     if (iconEl) iconEl.textContent = cfg.icon;
     if (hintEl) hintEl.textContent = cfg.hint;
 
-    ['steamCurRub', 'steamCurKzt', 'steamCurUah'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (!btn) return;
-        const isActive =
-            (id === 'steamCurRub' && code === 'RUB') ||
-            (id === 'steamCurKzt' && code === 'KZT') ||
-            (id === 'steamCurUah' && code === 'UAH');
-        btn.classList.toggle('active', isActive);
-    });
+    const btn = document.getElementById('steamCurRub');
+    if (btn) btn.classList.add('active');
 }
 
 // Сохраняем информацию о предыдущем окне для возврата
@@ -2449,7 +2440,7 @@ function showPaymentWaiting() {
 
     // Обновляем данные на экране
     const steamCur = data.purchase?.currency || 'RUB';
-    const steamSymbols = { RUB: '₽', KZT: '₸', UAH: '₴' };
+    const steamSymbols = { RUB: '₽' };
     const curSym = steamSymbols[steamCur] || '₽';
 
     if (data.purchase?.type === 'steam') {
