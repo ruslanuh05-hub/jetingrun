@@ -3913,9 +3913,7 @@
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="1"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
-                    this.classList.add('active');
-                    loadPageWithoutRefresh('referral.html', 1);
+                    window.location.href = 'referral.html';
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="2"]').forEach(function(btn) {
@@ -3927,9 +3925,7 @@
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="3"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
-                    this.classList.add('active');
-                    loadPageWithoutRefresh('profile.html', 3);
+                    window.location.href = 'profile.html';
                 };
             });
         })();
