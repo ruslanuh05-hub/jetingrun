@@ -2445,7 +2445,7 @@ function showPaymentWaiting() {
     };
     
     const statusEl = document.getElementById('paymentDetailStatus');
-    if (statusEl) statusEl.textContent = 'Ожидание...';
+    if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
 
     const primaryBtn = document.getElementById('paymentWaitingPrimaryBtn');
     if (primaryBtn) {
@@ -2473,12 +2473,22 @@ function showPaymentWaiting() {
     document.getElementById('paymentDetailMethod').textContent = `${methodNames[data.method]} (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)`;
     
     popup.classList.add('active');
+    
+    // Запускаем автоматический polling для проверки оплаты
+    if (typeof window.startPaymentPolling === 'function') {
+        window.startPaymentPolling();
+    }
 }
 
 // savePendingPayment и restorePendingPayment вынесены в js/payment.js
 
 // Закрыть экран ожидания оплаты
 function closePaymentWaiting() {
+    // Останавливаем polling при закрытии попапа
+    if (typeof window.stopPaymentPolling === 'function') {
+        window.stopPaymentPolling();
+    }
+    
     const popup = document.getElementById('paymentWaitingPopup');
     if (popup) {
         popup.classList.remove('active');
@@ -2584,7 +2594,7 @@ function openPaymentPage() {
                         window.open(payUrl, '_blank');
                     }
                     if (typeof showStoreNotification === 'function') {
-                        showStoreNotification('Мы открыли страницу оплаты. После оплаты вернитесь и нажмите «Подтвердить оплату».', 'info');
+                        showStoreNotification('Мы открыли страницу оплаты. После оплаты статус обновится автоматически.', 'info');
                     }
                     if (statusEl) {
                         statusEl.innerHTML = 'Счёт создан. <a href="#" id="cryptobotOpenLink" style="color:#00d4ff;text-decoration:underline;">Открыть оплату</a>';
@@ -2666,14 +2676,14 @@ function openPaymentPage() {
                         if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
                         else window.open(payUrl, '_blank');
                     } else {
-                        if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment, затем нажмите «Подтвердить оплату».', 'info');
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment. Статус обновится автоматически после оплаты.', 'info');
                     }
                 } else if (res.success && !res.order_id && res.mode === 'wallet') {
                     // Режим кошелька (TON / внешний платёж): backend вернул текстовое сообщение,
                     // показываем его как информационное, а не как ошибку.
                     if (typeof showStoreNotification === 'function') {
                         showStoreNotification(
-                            res.message || 'Мы открыли способ оплаты. После оплаты вернитесь и нажмите «Подтвердить оплату».',
+                            res.message || 'Мы открыли способ оплаты. После оплаты статус обновится автоматически.',
                             'info'
                         );
                     }
@@ -2721,7 +2731,7 @@ function openPaymentPage() {
                         if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(payUrl);
                         else window.open(payUrl, '_blank');
                     } else {
-                        if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment, затем нажмите «Подтвердить оплату».', 'info');
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Оплатите в TonKeeper по заказу Fragment. Статус обновится автоматически после оплаты.', 'info');
                     }
                 } else {
                     if (typeof showStoreNotification === 'function') showStoreNotification(res.message || 'Ошибка создания заказа.', 'error');

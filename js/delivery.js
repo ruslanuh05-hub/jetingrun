@@ -4,6 +4,11 @@
 
 // Выдача товара после подтверждённой оплаты
 function runDeliveryAfterPayment(data, checkResponse) {
+    // Останавливаем polling, так как оплата подтверждена
+    if (typeof window.stopPaymentPolling === 'function') {
+        window.stopPaymentPolling();
+    }
+    
     var statusEl = document.getElementById('paymentDetailStatus');
     
     // Оплата через Fragment (TonKeeper): товар уже выдан по вебхуку order.completed
