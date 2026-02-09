@@ -31,11 +31,9 @@ function confirmPayment() {
     // Для CryptoBot отправляем ТОЛЬКО invoice_id - вся критичная информация хранится на бэке
     if (data.method === 'cryptobot') {
         if (!data.invoice_id) {
-            if (statusEl) statusEl.textContent = 'Ожидание...';
-            if (typeof showStoreNotification === 'function') {
-                showStoreNotification('Ошибка: invoice_id не найден. Создайте счёт заново.', 'error');
-            }
-            stopPaymentPolling();
+            // Если invoice_id отсутствует, просто не проверяем оплату (возможно, инвойс ещё не создан)
+            if (statusEl) statusEl.textContent = 'Ожидание создания счёта...';
+            console.log('[Payment Check] invoice_id not found yet, skipping check');
             return;
         }
         checkPayload.invoice_id = data.invoice_id;
@@ -97,6 +95,20 @@ function startPaymentPolling() {
     // Останавливаем предыдущий polling, если он был
     stopPaymentPolling();
     
+    // Проверяем, есть ли данные для проверки
+    if (!window.paymentData) {
+        console.log('[Payment Polling] No paymentData, skipping');
+        return;
+    }
+    
+    // Для CryptoBot проверяем наличие invoice_id перед запуском polling
+    if (window.paymentData.method === 'cryptobot' && !window.paymentData.invoice_id) {
+        console.log('[Payment Polling] invoice_id not found for CryptoBot, will start after invoice creation');
+        // Не запускаем polling, если invoice_id ещё не создан
+        // Polling будет запущен после создания инвойса в openPaymentPage
+        return;
+    }
+    
     // Проверяем сразу при запуске
     confirmPayment();
     
@@ -104,6 +116,11 @@ function startPaymentPolling() {
     paymentPollingInterval = setInterval(function() {
         if (!window.paymentData) {
             stopPaymentPolling();
+            return;
+        }
+        // Для CryptoBot проверяем наличие invoice_id перед каждой проверкой
+        if (window.paymentData.method === 'cryptobot' && !window.paymentData.invoice_id) {
+            console.log('[Payment Polling] invoice_id not found, skipping check');
             return;
         }
         confirmPayment();
@@ -159,11 +176,12 @@ function restorePendingPayment() {
             }
         }
         window.paymentData = pending;
-        // Показываем экран ожидания и запускаем автоматический polling
+        // Показываем экран ожидания
         if (typeof showPaymentWaiting === 'function') {
             showPaymentWaiting();
         }
         // Запускаем polling для проверки оплаты восстановленного счёта
+        // (startPaymentPolling сам проверит наличие invoice_id)
         if (typeof window.startPaymentPolling === 'function') {
             window.startPaymentPolling();
         }

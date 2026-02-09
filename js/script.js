@@ -2579,7 +2579,13 @@ function openPaymentPage() {
                     window.paymentData.invoice_id = res.invoice_id;
                     window.paymentData.payment_url = res.payment_url || res.pay_url;
                     // Сохраняем незавершённый счёт CryptoBot, чтобы его можно было продолжить после перезахода
-                    savePendingPayment();
+                    if (typeof savePendingPayment === 'function') {
+                        savePendingPayment();
+                    }
+                    // Теперь, когда invoice_id создан, запускаем polling для проверки оплаты
+                    if (typeof window.startPaymentPolling === 'function') {
+                        window.startPaymentPolling();
+                    }
                     var payUrl = (res.payment_url || res.pay_url || '').trim();
                     if (!payUrl) {
                         if (typeof showStoreNotification === 'function') showStoreNotification('Ссылка на оплату не получена от CryptoBot', 'error');
