@@ -1,0 +1,57 @@
+// purchases.js - Модуль для записи покупок
+// ВАЖНО: запись покупок на бэкенд (включая рейтинг и рефералов) теперь выполняется ТОЛЬКО через вебхуки
+// после успешной выдачи товара на сервере. Клиент больше НЕ вызывает /api/purchases/record.
+
+// Записать намерение оплаты (только локально, без изменения рейтинга на бэке)
+function recordPurchaseIntent(data) {
+    if (!data || !data.purchase) return;
+    // Раньше здесь отправлялся запрос на /api/purchases/record с rating_only=true,
+    // из‑за чего пользователь попадал в рейтинг ещё до успешной выдачи товара.
+    // Теперь намерение можно логировать только локально (если нужно),
+    // а рейтинг и история формируются ТОЛЬКО после успешной выдачи (recordPurchaseSuccess).
+}
+
+// Сохранение покупки: только локальная история (для UI)
+function recordPurchaseSuccess(data) {
+    if (!data || !data.purchase) return;
+    var p = data.purchase;
+    var amountRub = parseFloat(data.totalAmount || data.baseAmount || p.amount || 0);
+    if (!amountRub || amountRub <= 0) return;
+    var type = (p.type || 'stars').toLowerCase();
+    var productName = p.productName || p.name || '';
+    var starsAmount = parseInt(p.stars_amount || (type === 'stars' ? amountRub / 0.65 : 0), 10) || 0;
+    if (type === 'premium') {
+        var months = p.months || 3;
+        productName = productName || ('Premium ' + months + ' мес.');
+    } else if (type === 'stars') {
+        productName = productName || (starsAmount ? starsAmount + ' звёзд' : 'Звёзды Telegram');
+    } else if (type === 'steam') {
+        productName = productName || ('Steam ' + amountRub + ' ₽');
+    }
+    var purchaseObj = {
+        id: 'purchase_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        type: type,
+        productName: productName,
+        price: amountRub,
+        status: 'успешно',
+        date: new Date().toISOString()
+    };
+    // Сохраняем только локально для истории в UI
+    try {
+        var list = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+        list.unshift(purchaseObj);
+        localStorage.setItem('jetstore_purchases', JSON.stringify(list));
+    } catch (e) { console.warn('recordPurchaseSuccess jetstore_purchases:', e); }
+    if (window.userData && Array.isArray(window.userData.purchases)) {
+        window.userData.purchases.unshift(purchaseObj);
+        if (typeof saveUserToDatabase === 'function') saveUserToDatabase();
+    }
+    // ВАЖНО: запись на бэкенд теперь выполняется ТОЛЬКО через вебхуки платёжных сервисов
+    // после успешной выдачи товара на сервере. Клиент больше НЕ вызывает /api/purchases/record.
+}
+
+// Экспорт функций в глобальную область видимости
+if (typeof window !== 'undefined') {
+    window.recordPurchaseIntent = recordPurchaseIntent;
+    window.recordPurchaseSuccess = recordPurchaseSuccess;
+}
