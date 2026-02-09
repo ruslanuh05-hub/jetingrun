@@ -123,6 +123,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Восстанавливаем незавершённый счёт CryptoBot (если пользователь вернулся после оплаты)
+    restorePendingPayment();
+    
     console.log('Магазин инициализирован. Баланс RUB:', window.userData?.currencies?.RUB);
 });
 
@@ -2472,11 +2475,61 @@ function showPaymentWaiting() {
     popup.classList.add('active');
 }
 
+// Сохранение незавершённого счёта (например, CryptoBot) в localStorage
+function savePendingPayment() {
+    try {
+        if (!window.paymentData || window.paymentData.method !== 'cryptobot') return;
+        if (!window.paymentData.invoice_id) return;
+        const userId = (window.userData && window.userData.id) ? String(window.userData.id) : null;
+        const payload = {
+            ...window.paymentData,
+            userId: userId,
+            createdAt: Date.now()
+        };
+        localStorage.setItem('jetstore_pending_payment_order', JSON.stringify(payload));
+    } catch (e) {
+        console.warn('Ошибка сохранения незавершённого счёта:', e);
+    }
+}
+
+// Восстановление незавершённого счёта при повторном открытии мини‑приложения
+function restorePendingPayment() {
+    try {
+        const raw = localStorage.getItem('jetstore_pending_payment_order');
+        if (!raw) return;
+        const pending = JSON.parse(raw);
+        if (!pending || pending.method !== 'cryptobot' || !pending.invoice_id) return;
+        const userId = (window.userData && window.userData.id) ? String(window.userData.id) : null;
+        if (pending.userId && userId && String(pending.userId) !== String(userId)) {
+            // Чужой счёт — не показываем
+            return;
+        }
+        // Опционально ограничиваем «жизнь» счёта, например, 24 часа
+        if (typeof pending.createdAt === 'number') {
+            const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+            if (Date.now() - pending.createdAt > ONE_DAY_MS) {
+                localStorage.removeItem('jetstore_pending_payment_order');
+                return;
+            }
+        }
+        window.paymentData = pending;
+        // Показываем экран ожидания с возможностью снова открыть оплату и подтвердить
+        showPaymentWaiting();
+    } catch (e) {
+        console.warn('Ошибка восстановления незавершённого счёта:', e);
+    }
+}
+
 // Закрыть экран ожидания оплаты
 function closePaymentWaiting() {
     const popup = document.getElementById('paymentWaitingPopup');
     if (popup) {
         popup.classList.remove('active');
+    }
+    try {
+        localStorage.removeItem('jetstore_pending_payment_order');
+    } catch (e) {
+        console.warn('Ошибка очистки незавершённого счёта:', e);
     }
     window.paymentData = null;
     currentPurchase = { type: null, amount: 0, login: null, productId: null, productName: null };
@@ -2508,14 +2561,19 @@ function confirmPayment() {
 
     var purchase = data.purchase || {};
     var checkPayload = {
-        method: data.method,
-        totalAmount: data.totalAmount,
-        baseAmount: data.baseAmount,
-        purchase: purchase
+        method: data.method
     };
-    if (data.order_id) checkPayload.order_id = data.order_id;
-    if (data.transaction_id) checkPayload.transaction_id = data.transaction_id;
-    if (data.invoice_id) checkPayload.invoice_id = data.invoice_id;
+    // Для CryptoBot достаточно только invoice_id — вся критичная информация хранится на бэке
+    if (data.method === 'cryptobot') {
+        if (data.invoice_id) checkPayload.invoice_id = data.invoice_id;
+    } else {
+        checkPayload.totalAmount = data.totalAmount;
+        checkPayload.baseAmount = data.baseAmount;
+        checkPayload.purchase = purchase;
+        if (data.order_id) checkPayload.order_id = data.order_id;
+        if (data.transaction_id) checkPayload.transaction_id = data.transaction_id;
+        if (data.invoice_id) checkPayload.invoice_id = data.invoice_id;
+    }
     var url = (apiBase.replace(/\/$/, '') + '/api/payment/check');
     fetch(url, {
         method: 'POST',
@@ -2562,36 +2620,17 @@ function confirmPayment() {
         });
 }
 
-// Записать намерение оплаты для рейтинга (при отправке денег, до успешной оплаты)
+// Записать намерение оплаты (только локально, без изменения рейтинга на бэке)
 function recordPurchaseIntent(data) {
     if (!data || !data.purchase) return;
-    var p = data.purchase;
-    var amountRub = parseFloat(data.totalAmount || data.baseAmount || p.amount || 0);
-    if (!amountRub || amountRub <= 0) return;
-    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-    if (!apiBase) return;
-    var userId = (window.userData && window.userData.id) ? String(window.userData.id) : '';
-    if (!userId || userId === 'test_user_default') return;
-    var type = (p.type || 'stars').toLowerCase();
-    var starsAmount = parseInt(p.stars_amount || (type === 'stars' ? amountRub / 0.65 : 0), 10) || 0;
-    var productName = p.productName || p.name || (type === 'stars' ? (starsAmount + ' звёзд') : '');
-    fetch(apiBase.replace(/\/$/, '') + '/api/purchases/record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            user_id: userId,
-            amount_rub: amountRub,
-            stars_amount: starsAmount,
-            type: type,
-            productName: productName,
-            username: (window.userData && window.userData.username) || '',
-            first_name: (window.userData && window.userData.firstName) || '',
-            rating_only: true
-        })
-    }).catch(function() {});
+    // Раньше здесь отправлялся запрос на /api/purchases/record с rating_only=true,
+    // из‑за чего пользователь попадал в рейтинг ещё до успешной выдачи товара.
+    // Теперь намерение можно логировать только локально (если нужно),
+    // а рейтинг и история формируются ТОЛЬКО после успешной выдачи (recordPurchaseSuccess).
 }
 
-// Сохранение покупки: история заказов + рефералы (рейтинг засчитывается при отправке — recordPurchaseIntent)
+// Сохранение покупки: история заказов + рейтинг + рефералы
+// ВАЖНО: вызывается ТОЛЬКО после успешной выдачи товара (звёзды/премиум/Steam и т.д.)
 function recordPurchaseSuccess(data) {
     if (!data || !data.purchase) return;
     var p = data.purchase;
@@ -2629,6 +2668,8 @@ function recordPurchaseSuccess(data) {
     if (!apiBase) return;
     var userId = (window.userData && window.userData.id) ? String(window.userData.id) : '';
     if (!userId || userId === 'test_user_default') return;
+    // Отправляем одну запись на бэкенд без специальных флагов:
+    // бэкенд сам сохраняет покупку, обновляет рейтинг и рефералов ТОЛЬКО после успешной выдачи.
     fetch(apiBase.replace(/\/$/, '') + '/api/purchases/record', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2639,8 +2680,7 @@ function recordPurchaseSuccess(data) {
             type: type,
             productName: productName,
             username: (window.userData && window.userData.username) || '',
-            first_name: (window.userData && window.userData.firstName) || '',
-            referral_only: true
+            first_name: (window.userData && window.userData.firstName) || ''
         })
     }).catch(function() {});
 }
@@ -2694,38 +2734,15 @@ function runDeliveryAfterPayment(data, checkResponse) {
         return;
     }
 
-    // Fragment.com: выдача звёзд через iStar API (оплата TonKeeper)
+    // Fragment.com: выдача звёзд теперь должна выполняться только на бэкенде
+    // (например, из webhook платёжного сервиса), а не из клиентского кода.
+    // Здесь мы просто фиксируем успешную оплату и оставляем дальнейшую обработку серверу.
     if (data.purchase && data.purchase.type === 'stars') {
-        var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
-        var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
-        if (!recipient || !starsAmount) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка: укажите получателя и количество звёзд.', 'error');
-            if (statusEl) statusEl.textContent = 'Ожидание...';
-            return;
+        if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data);
+        if (typeof showStoreNotification === 'function') {
+            showStoreNotification('Оплата подтверждена. Звёзды будут отправлены автоматически после обработки на сервере.', 'success');
         }
-        if (statusEl) statusEl.textContent = 'Выдача звёзд...';
-        fetch(apiBase + '/api/fragment/deliver-stars', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ stars_amount: starsAmount, recipient: recipient })
-        })
-            .then(function(r) { return r.json().catch(function() { return {}; }); })
-            .then(function(res) {
-                if (res.success) {
-                    if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data);
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
-                    closePaymentWaiting();
-                } else {
-                    if (typeof showStoreNotification === 'function') {
-                        showStoreNotification(res.message || 'Ошибка выдачи товара.', 'error');
-                    }
-                    if (statusEl) statusEl.textContent = 'Ожидание...';
-                }
-            })
-            .catch(function() {
-                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка выдачи товара.', 'error');
-                if (statusEl) statusEl.textContent = 'Ожидание...';
-            });
+        closePaymentWaiting();
         return;
     }
 
@@ -2788,19 +2805,10 @@ function openPaymentPage() {
         }
         if (statusEl) statusEl.textContent = 'Создаём счёт CryptoBot...';
         if (primaryBtn) primaryBtn.disabled = true;
-        var desc = 'Оплата в JET Store';
-        if (data.purchase) {
-            if (data.purchase.type === 'stars') desc = 'Звёзды Telegram — ' + (data.purchase.stars_amount || data.baseAmount || 0) + ' шт.';
-            else if (data.purchase.type === 'premium') desc = 'Premium Telegram — ' + (data.purchase.months || 3) + ' мес.';
-        }
-        var amountRub = data.totalAmount || data.baseAmount || (data.purchase && data.purchase.amount) || 0;
-        if (!amountRub || amountRub < 1) {
-            if (typeof showStoreNotification === 'function') showStoreNotification('Сумма должна быть не менее 1 ₽', 'error');
-            if (primaryBtn) primaryBtn.disabled = false;
-            return;
-        }
+        // Для безопасности фронт НЕ задаёт сумму и payload для CryptoBot.
+        // Он передаёт только описание покупки, а сервер сам считает цену.
         var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
-        console.log('[CryptoBot] Отправка запроса на:', createUrl, 'amount:', amountRub);
+        console.log('[CryptoBot] Отправка запроса на:', createUrl);
         
         // Таймаут для fetch (30 секунд)
         var timeoutPromise = new Promise(function(resolve, reject) {
@@ -2814,13 +2822,9 @@ function openPaymentPage() {
             mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                amount: amountRub,
-                description: desc,
-                payload: JSON.stringify({
-                    purchase: data.purchase,
-                    userId: (window.userData && window.userData.id) || 'unknown',
-                    timestamp: Date.now()
-                })
+                context: 'purchase',
+                user_id: (window.userData && window.userData.id) || (window.userData && window.userData.user?.id) || 'unknown',
+                purchase: data.purchase || {}
             })
         });
         
@@ -2854,6 +2858,8 @@ function openPaymentPage() {
                     window.paymentData = window.paymentData || {};
                     window.paymentData.invoice_id = res.invoice_id;
                     window.paymentData.payment_url = res.payment_url || res.pay_url;
+                    // Сохраняем незавершённый счёт CryptoBot, чтобы его можно было продолжить после перезахода
+                    savePendingPayment();
                     var payUrl = (res.payment_url || res.pay_url || '').trim();
                     if (!payUrl) {
                         if (typeof showStoreNotification === 'function') showStoreNotification('Ссылка на оплату не получена от CryptoBot', 'error');

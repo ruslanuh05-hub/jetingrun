@@ -685,15 +685,9 @@ async function processUsdtDeposit() {
             mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                context: 'deposit',
                 amount: rubAmount,
-                description: `Пополнение баланса JET Store на ${rubAmount} ₽`,
-                payload: {
-                    userId: window.userData?.id || 'unknown',
-                    rubAmount: rubAmount,
-                    usdtAmount: usdtAmount,
-                    type: 'deposit',
-                    timestamp: Date.now()
-                }
+                user_id: window.userData?.id || 'unknown'
             })
         });
         
