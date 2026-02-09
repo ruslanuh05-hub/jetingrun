@@ -61,10 +61,8 @@ function confirmPayment() {
             var res = result.json || {};
             if (!result.ok) {
                 if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
-                var errorMsg = res.error || res.message || ('HTTP ' + result.status);
                 console.error('[Payment Check] HTTP error:', result.status, 'response:', res);
-                // Не показываем ошибку пользователю при каждом запросе, только логируем
-                // Продолжаем polling
+                // Не показываем пользователю ошибку (в т.ч. про invoice_id) — только логируем, продолжаем polling
                 return;
             }
             // Проверяем явно на true, так как может быть undefined или false
