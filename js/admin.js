@@ -228,10 +228,12 @@ function refreshStatistics() {
         const statProducts = document.getElementById('statProducts');
         const statBalance = document.getElementById('statBalance');
         const statUpdated = document.getElementById('statUpdated');
+        const statTurnover = document.getElementById('statTurnover');
         if (statUsers) statUsers.textContent = stats.totalUsers || 0;
         if (statProducts) statProducts.textContent = stats.totalProducts || 0;
         if (statBalance) statBalance.textContent = (stats.totalBalance || 0) + ' ₽';
         if (statUpdated) statUpdated.textContent = stats.lastUpdated || '-';
+        if (statTurnover) statTurnover.textContent = (stats.totalTurnoverRub || 0).toLocaleString('ru-RU') + ' ₽';
     }
 }
 

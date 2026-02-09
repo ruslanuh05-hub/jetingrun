@@ -445,6 +445,61 @@ const Database = class {
         }
     }
     
+    // Сводная статистика для админ-панели
+    getStatistics() {
+        try {
+            // Пользователи и их балансы
+            const users = this.getAllUsers() || {};
+            const userList = Object.values(users);
+            const totalUsers = userList.length;
+            let totalBalance = 0;
+            userList.forEach(u => {
+                const rub = u?.currencies?.RUB;
+                if (typeof rub === 'number') totalBalance += rub;
+                else if (typeof rub === 'string') totalBalance += parseFloat(rub) || 0;
+            });
+
+            // Товары
+            const products = this.getProducts() || {};
+            let totalProducts = 0;
+            Object.values(products).forEach(arr => {
+                if (Array.isArray(arr)) totalProducts += arr.length;
+            });
+
+            // История заказов (локальная) — для оборота
+            const purchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+            let totalTurnoverRub = 0;
+            let lastUpdated = '-';
+            if (Array.isArray(purchases) && purchases.length > 0) {
+                purchases.forEach(p => {
+                    const price = typeof p.price === 'number'
+                        ? p.price
+                        : parseFloat(p.price) || 0;
+                    totalTurnoverRub += price;
+                });
+                // берём дату самого свежего заказа (у нас они добавляются через unshift)
+                lastUpdated = purchases[0].date || purchases[0].created_at || purchases[0].timestamp || '-';
+            }
+
+            return {
+                totalUsers,
+                totalProducts,
+                totalBalance: Math.round(totalBalance),
+                totalTurnoverRub: Math.round(totalTurnoverRub),
+                lastUpdated
+            };
+        } catch (error) {
+            console.error('Ошибка getStatistics:', error);
+            return {
+                totalUsers: 0,
+                totalProducts: 0,
+                totalBalance: 0,
+                totalTurnoverRub: 0,
+                lastUpdated: '-'
+            };
+        }
+    }
+    
     getAdminSettings() {
         try {
             const raw = localStorage.getItem('jetstore_admin_settings');

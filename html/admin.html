@@ -212,6 +212,60 @@
         
         .hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
         .full-width { grid-column: 1 / -1; }
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        /* Плавные вкладки и навигация */
+        .admin-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .admin-nav-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background: rgba(255,255,255,0.04);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition:
+                background 0.22s ease,
+                color 0.22s ease,
+                transform 0.22s ease,
+                box-shadow 0.22s ease;
+            white-space: nowrap;
+        }
+        .admin-nav-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+        .admin-nav-btn.active {
+            background: linear-gradient(135deg, var(--accent) 0%, #0099cc 100%);
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 212, 255, 0.35);
+        }
+        .admin-content {
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
+            transition:
+                opacity 0.22s ease,
+                transform 0.22s ease;
+        }
+        .admin-content.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body>
@@ -234,6 +288,37 @@
         <div class="admin-head">
             <h1><i class="fas fa-cog"></i> Настройки</h1>
             <button type="button" class="btn-outline" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+        </div>
+        
+        <div class="section">
+            <h3><i class="fas fa-chart-line"></i> 📈 Статистика сервиса</h3>
+            <div class="grid-2">
+                <div class="input-row">
+                    <label>👥 Пользователи</label>
+                    <div id="statUsers" class="stat-value">0</div>
+                    <div class="hint">Всего уникальных пользователей</div>
+                </div>
+                <div class="input-row">
+                    <label>🛍️ Продажи (оборот)</label>
+                    <div id="statTurnover" class="stat-value">0 ₽</div>
+                    <div class="hint">Сумма по всем заказам (звёзды, Premium, Steam)</div>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top: 12px">
+                <div class="input-row">
+                    <label>📦 Товары</label>
+                    <div id="statProducts" class="stat-value">0</div>
+                    <div class="hint">Количество активных позиций</div>
+                </div>
+                <div class="input-row">
+                    <label>💰 Баланс пользователей</label>
+                    <div id="statBalance" class="stat-value">0 ₽</div>
+                    <div class="hint">Суммарный баланс RUB по всем пользователям</div>
+                </div>
+            </div>
+            <div class="hint" style="margin-top: 8px">
+                Обновлено: <span id="statUpdated">-</span>
+            </div>
         </div>
         
         <div class="section">
