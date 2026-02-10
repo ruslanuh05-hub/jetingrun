@@ -2828,17 +2828,8 @@
                 loadUserPurchases();
             }
             
-            // Проверяем, нужно ли открыть реферальную программу
-            if (sessionStorage.getItem('openReferral') === 'true') {
-                sessionStorage.removeItem('openReferral');
-                setTimeout(() => {
-                    if (typeof showReferralInfo === 'function') {
-                        showReferralInfo();
-                    } else if (typeof window.showReferralInfo === 'function') {
-                        window.showReferralInfo();
-                    }
-                }, 500);
-            }
+            // Ранее здесь открывали реферальную программу через мини‑окно (popup) по флагу openReferral.
+            // Сейчас вкладка «Заработать» ведёт на полноценную страницу referral.html, поэтому popup больше не нужен.
         }
         
         // Функция для показа уведомлений (адаптированная для мобильных)
@@ -3436,6 +3427,7 @@
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="1"]').forEach(function(btn) {
                 btn.onclick = function() {
+                    // Вкладка «Заработать»: переходим на полноэкранную страницу referral.html
                     window.location.href = 'referral.html';
                 };
             });

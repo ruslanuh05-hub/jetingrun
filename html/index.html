@@ -5840,10 +5840,8 @@
             if (event && event.target) {
                 event.target.closest('.main-nav-btn')?.classList.add('active');
             }
-            // Переходим в профиль и открываем реферальную программу
-            window.location.href = 'profile.html';
-            // Сохраняем флаг для открытия реферальной программы
-            sessionStorage.setItem('openReferral', 'true');
+            // Переходим сразу на полноэкранную страницу «Заработать»
+            window.location.href = 'referral.html';
         }
         
         // Показать меню маркета
