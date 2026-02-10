@@ -36,6 +36,7 @@
         }
         
         /* Главное меню – тёмный фон (без фиолетового) */
+        /* Не используем transform на контейнере — иначе подвал .bottom-nav (position:fixed) привязывается к контейнеру и уезжает вниз при скролле */
         .main-menu-container {
             display: none;
             min-height: 100vh;
@@ -46,8 +47,7 @@
             background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
             color: #ffffff;
             opacity: 0;
-            transform: translateY(6px);
-            transition: opacity 0.25s ease, transform 0.25s ease;
+            transition: opacity 0.25s ease;
         }
         
         .main-menu-container.active {
@@ -55,7 +55,6 @@
             grid-template-rows: auto 1fr;
             padding-bottom: max(105px, calc(95px + env(safe-area-inset-bottom, 0)));
             opacity: 1;
-            transform: translateY(0);
         }
         
         /* Шапка магазина — уменьшена в 1.3 раза */
@@ -4566,10 +4565,10 @@
                     <div class="main-menu-card-subtitle">звёзды</div>
                 </div>
                 
-                <!-- Steam — временно недоступно -->
-                <div class="main-menu-card steam-card main-menu-card-disabled" onclick="if(typeof showStoreNotification==='function')showStoreNotification('Пополнение Steam временно недоступно','info'); return false;" style="cursor: not-allowed; opacity: 0.65; pointer-events: auto;">
+                <!-- Steam — пополнение через FunPay -->
+                <div class="main-menu-card steam-card" onclick="if (typeof showSteamTopup === 'function') showSteamTopup();">
                     <div class="main-menu-card-title">STEAM</div>
-                    <div class="main-menu-card-subtitle">Скоро</div>
+                    <div class="main-menu-card-subtitle">Пополнение</div>
                     <div class="steam-logo-bg">
                         <i class="fab fa-steam" style="font-size: 100px; color: rgba(0, 212, 255, 0.2);"></i>
                     </div>
