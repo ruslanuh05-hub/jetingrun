@@ -1145,6 +1145,9 @@
         </div>
     </nav>
     
+    <!-- Конфиг API (Railway) для getJetApiBase / JET_BOT_API_URL -->
+    <script src="../js/config.js"></script>
+
     <script>
         let currentUserId = null;
         let referralLink = '';
@@ -1376,8 +1379,9 @@
                 return;
             }
 
-            const message = `Присоединяйтесь к JET\n\n${referralLink}`;
-            const shareUrl = `tg://msg?text=${encodeURIComponent(message)}`;
+            // В Telegram WebApp нельзя открывать tg:// — используем официальный share URL
+            const shareText = `Присоединяйтесь к JET`;
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
             
             try {
                 const tg = window.Telegram?.WebApp;
