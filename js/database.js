@@ -18,7 +18,7 @@ const Database = class {
         try {
             const tg = window.Telegram?.WebApp;
             const initData = tg?.initDataUnsafe;
-            const tgId = initData?.user?.id ? String(initData.user.id) : 'test_user_default';
+            const tgId = initData?.user?.id ? String(initData.user.id) : null;
 
             let storedId = localStorage.getItem(this.userIdKey);
 
@@ -44,8 +44,10 @@ const Database = class {
 
             if (!storedId) {
                 // Первый запуск для пользователя
-                storedId = tgId || 'test_user_default';
-                localStorage.setItem(this.userIdKey, storedId);
+                storedId = tgId || '';
+                if (storedId) {
+                    localStorage.setItem(this.userIdKey, storedId);
+                }
 
                 // Первый запуск -> баланс 0 (явно фиксируем ключ)
                 if (!localStorage.getItem(this.balanceKey)) {
@@ -65,7 +67,7 @@ const Database = class {
             return storedId;
         } catch (error) {
             console.error('Ошибка получения фиксированного ID:', error);
-            return 'test_user_default';
+            return '';
         }
     }
     
@@ -77,13 +79,7 @@ const Database = class {
             balanceData.lastUpdate = new Date().getTime();
             localStorage.setItem(this.balanceKey, JSON.stringify(balanceData));
             
-            // Проверяем сохранение
-            const check = JSON.parse(localStorage.getItem(this.balanceKey) || '{}');
-            if (check[currency] === amount) {
-                console.log(`✅✅✅ БАЛАНС ${currency} СОХРАНЕН (фиксированный ключ):`, amount);
-                return true;
-            }
-            return false;
+            return true;
         } catch (error) {
             console.error('Ошибка сохранения баланса (фиксированный):', error);
             return false;

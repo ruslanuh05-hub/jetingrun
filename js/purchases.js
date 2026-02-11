@@ -28,13 +28,31 @@ function recordPurchaseSuccess(data) {
     } else if (type === 'steam') {
         productName = productName || ('Steam ' + amountRub + ' ₽');
     }
+    // Определяем текущего пользователя (для разделения истории по аккаунтам на одном устройстве)
+    var uid = null;
+    try {
+        var tg = window.Telegram && window.Telegram.WebApp;
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+            uid = tg.initDataUnsafe.user.id;
+        }
+    } catch (e) {}
+    if (!uid && window.userData && window.userData.id) {
+        uid = window.userData.id;
+    }
+    if (uid != null && uid !== undefined) {
+        uid = String(uid);
+    } else {
+        uid = null;
+    }
+
     var purchaseObj = {
         id: 'purchase_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
         type: type,
         productName: productName,
         price: amountRub,
         status: 'успешно',
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        userId: uid
     };
     // Сохраняем только локально для истории в UI
     try {

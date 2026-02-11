@@ -145,17 +145,10 @@ function initializeUserData() {
         window.userData.firstName = user.first_name || '';
         window.userData.lastName = user.last_name || '';
         window.userData.photoUrl = user.photo_url || null;
-        
-        console.log('Пользователь из Telegram:', userId);
     } else {
-        // Для тестирования вне Telegram - используем ФИКСИРОВАННЫЙ ID
-        userId = 'test_user_default';
-        window.userData.id = String(userId);
-        window.userData.username = 'test_user';
-        window.userData.firstName = 'Тестовый';
-        window.userData.lastName = 'Пользователь';
-        
-        console.log('✅ Тестовый пользователь с фиксированным ID:', userId);
+        // Если Telegram WebApp недоступен — не инициализируем тестового пользователя
+        userId = null;
+        window.userData.id = null;
     }
     
     // КРИТИЧЕСКИ ВАЖНО: Убеждаемся, что ID всегда строка
@@ -169,13 +162,11 @@ function initializeUserData() {
         const db = window.Database || Database;
         if (db && typeof db.getBalanceFixed === 'function') {
             savedBalance = db.getBalanceFixed('RUB');
-            console.log('✅ Баланс из фиксированного ключа (через Database):', savedBalance);
         } else {
             // Прямая проверка localStorage
             const balanceKey = 'jetstore_balance_fixed';
             const balanceData = JSON.parse(localStorage.getItem(balanceKey) || '{}');
             savedBalance = balanceData.RUB || 0;
-            console.log('✅ Баланс из localStorage (фиксированный ключ, прямое чтение):', savedBalance);
         }
     } catch (e) {
         console.warn('⚠️ Ошибка загрузки баланса из фиксированного ключа:', e);
@@ -3186,6 +3177,19 @@ function buySupercellProduct(game, productIndex) {
             window.userData.currencies.RUB = newBalance;
         }
         
+        // Определяем пользователя (для разделения истории по аккаунтам)
+        let uid = null;
+        try {
+            const tg = window.Telegram && window.Telegram.WebApp;
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                uid = tg.initDataUnsafe.user.id;
+            }
+        } catch (e) {}
+        if (!uid && window.userData && window.userData.id) {
+            uid = window.userData.id;
+        }
+        if (uid != null && uid !== undefined) uid = String(uid); else uid = null;
+
         // Сохраняем покупку
         const purchase = {
             id: 'supercell_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -3194,7 +3198,8 @@ function buySupercellProduct(game, productIndex) {
             productName: product.name,
             price: price,
             status: 'в процессе',
-            date: new Date().toISOString()
+            date: new Date().toISOString(),
+            userId: uid
         };
         
         let purchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');

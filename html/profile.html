@@ -810,6 +810,7 @@
             max-height: 300px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            margin: 0;
         }
         
         .order-item {
@@ -1612,25 +1613,56 @@
         
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
-            color: rgba(255, 255, 255, 0.6);
+            padding: 28px 20px;
+            margin: 10px 20px 26px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.75);
+            color: rgba(255, 255, 255, 0.7);
         }
         
         .empty-state i {
-            font-size: 3rem;
+            font-size: 2rem;
             color: #00d4ff;
-            margin-bottom: 15px;
-        }
-        
-        .empty-state p {
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 10px;
+            margin-bottom: 12px;
         }
         
         .empty-state h3 {
             color: #ffffff;
-            margin: 10px 0;
-            font-size: 1.2rem;
+            margin: 4px 0 6px;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+        
+        .empty-state p {
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+            font-size: 0.85rem;
+        }
+
+        /* Специальный стиль только для пустой истории покупок */
+        .empty-state.purchases-empty {
+            padding: 40px 24px;
+            margin: 10px 0 26px;
+            width: 100%;
+            border-radius: 20px;
+            background: radial-gradient(circle at top, rgba(0, 212, 255, 0.22), transparent 60%),
+                        rgba(5, 8, 18, 0.98);
+            border: none;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
+        }
+        
+        .empty-state.purchases-empty i {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            font-size: 2rem;
+            color: #00d4ff;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(64, 224, 208, 0.22) 100%);
+            box-shadow: 0 14px 30px rgba(0, 212, 255, 0.55);
         }
         
         .go-to-shop-btn {
@@ -1838,7 +1870,7 @@
         
         /* Контент вкладок */
         .tab-content {
-            margin: 0 20px 20px 20px;
+            margin: 0 0 20px 0;
         }
         
         .tab-pane {
@@ -1850,9 +1882,9 @@
         }
         
         .orders-list {
-            background: #1a1a1a;
-            border-radius: 12px;
-            padding: 16px;
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
             min-height: 200px;
         }
         
@@ -2281,8 +2313,8 @@
                     </div>
                 </div>
             
-            <!-- Секция баланса -->
-            <div class="balance-section page-block-enter">
+            <!-- Секция баланса (временно скрыта) -->
+            <div class="balance-section page-block-enter" style="display: none;">
                 <p class="balance-label">Доступный баланс</p>
                 <p class="balance-amount-main" id="profileBalance">Скоро</p>
                 <div class="balance-actions-main">
@@ -2307,8 +2339,8 @@
                 </div>
             </div>
             
-            <!-- TonKeeper: подключено (адрес, баланс, отвязать) или кнопка подключения -->
-            <div class="tonkeeper-section page-block-enter">
+            <!-- TonKeeper: подключено (адрес, баланс, отвязать) или кнопка подключения) — временно скрыто -->
+            <div class="tonkeeper-section page-block-enter" style="display: none;">
                 <div id="tonkeeperConnectedBlock" class="tonkeeper-connected-block" style="display: none;">
                     <div class="tonkeeper-connected-head">
                         <div class="tk-logo">
@@ -2372,13 +2404,12 @@
             <!-- Контент вкладок -->
             <div class="tab-content">
                 <div id="purchasesTab" class="tab-pane active">
-                    <div style="padding: 16px 20px; color: rgba(255,255,255,0.7); font-size: 0.9rem; text-align: center; margin-bottom: 10px;">
-                        ваши покупки в нашем магазине
-                    </div>
                     <div class="orders-list" id="purchasesList">
-                        <div class="empty-state">
+                        <div class="empty-state purchases-empty">
                             <i class="fas fa-shopping-bag"></i>
-                            <p>Пока нет покупок</p>
+                            <h3>Пока нет покупок</h3>
+                            <p>Как только вы что‑то приобретёте, заказ появится здесь.</p>
+                        </div>
                     </div>
                 </div>
                     </div>
@@ -2413,7 +2444,7 @@
                 <div class="nav-icon-wrapper">
                     <i class="fab fa-telegram-plane"></i>
                 </div>
-                <span>Активы</span>
+                <span>Маркет</span>
             </button>
             <button class="profile-nav-btn active" data-nav-index="3" type="button">
                 <div class="nav-icon-wrapper">
@@ -2948,19 +2979,35 @@
             }
         }
         
-        // Загрузка покупок
+            // Получение текущего пользователя (Telegram ID)
+            function getCurrentUserId() {
+                try {
+                    const tg = window.Telegram && window.Telegram.WebApp;
+                    const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+                    if (u && u.id) return String(u.id);
+                } catch (e) {}
+                if (window.userData && window.userData.id) return String(window.userData.id);
+                return null;
+            }
+            
+            // Загрузка покупок
         function loadPurchases() {
             const purchasesList = document.getElementById('purchasesList');
             if (!purchasesList) return;
             
             try {
-                const purchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+                const allPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+                const currentId = getCurrentUserId();
+                const purchases = currentId
+                    ? allPurchases.filter(function(p) { return !p.userId ? false : String(p.userId) === currentId; })
+                    : allPurchases;
                 
-                if (purchases.length === 0) {
+                if (!purchases || purchases.length === 0) {
                     purchasesList.innerHTML = `
-                        <div class="empty-state">
+                        <div class="empty-state purchases-empty">
                             <i class="fas fa-shopping-bag"></i>
-                            <p>Пока нет покупок</p>
+                            <h3>Пока нет покупок</h3>
+                            <p>Сделайте первую покупку в JET — она появится здесь.</p>
                         </div>
                     `;
                     return;
@@ -2970,15 +3017,15 @@
                 purchases.forEach((purchase, index) => {
                     const item = document.createElement('div');
                     item.className = 'purchase-item';
-                    item.style.cssText = 'padding: 16px; background: rgba(30,30,46,0.8); border: 1px solid rgba(0,212,255,0.2); border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: all 0.3s ease;';
+                    item.style.cssText = 'padding: 14px 16px; background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(5,10,20,0.9) 100%); border: 1px solid rgba(0,212,255,0.25); border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 22px rgba(0,0,0,0.45);';
                     item.onclick = () => showPurchaseDetails(purchase);
                     item.onmouseenter = function() { this.style.borderColor = 'rgba(0,212,255,0.4)'; };
                     item.onmouseleave = function() { this.style.borderColor = 'rgba(0,212,255,0.2)'; };
                     
                     const statusColors = {
-                        'успешно': '#4CAF50',
-                        'в процессе': '#FFC107',
-                        'отменен': '#f44336'
+                        'успешно': '#27ae60',
+                        'в процессе': '#f1c40f',
+                        'отменен': '#e74c3c'
                     };
                     const statusColor = statusColors[purchase.status] || '#888';
                     
@@ -2991,20 +3038,23 @@
                     }) : 'Дата не указана';
                     
                     item.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="flex: 1;">
-                                <div style="color: #ffffff; font-weight: 700; font-size: 1.1rem; margin-bottom: 6px;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:40px;height:40px;border-radius:12px;background:${statusColor}20;display:flex;align-items:center;justify-content:center;color:${statusColor};flex-shrink:0;">
+                                <i class="${purchase.type === 'steam' ? 'fab fa-steam' : purchase.type === 'stars' ? 'fas fa-star' : purchase.type === 'premium' ? 'fas fa-crown' : 'fas fa-shopping-bag'}"></i>
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="color:#ffffff;font-weight:700;font-size:1.02rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                     ${purchase.productName || purchase.name || 'Товар'}
                                 </div>
-                                <div style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 8px;">
+                                <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-bottom:4px;">
                                     ${date}
                                 </div>
-                                <div style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}40;">
+                                <div style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.75rem;font-weight:600;background:${statusColor}20;color:${statusColor};border:1px solid ${statusColor}33;">
                                     ${purchase.status || 'в процессе'}
                                 </div>
                             </div>
-                            <div style="text-align: right; margin-left: 15px;">
-                                <div style="color: #00d4ff; font-size: 1.3rem; font-weight: 700;">
+                            <div style="text-align:right;margin-left:8px;">
+                                <div style="color:#00d4ff;font-size:1.15rem;font-weight:700;white-space:nowrap;">
                                     ${purchase.price || 0} ₽
                                 </div>
                             </div>

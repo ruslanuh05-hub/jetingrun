@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Активы - JET</title>
+    <title>Маркет - JET</title>
     <!-- Статическое подключение стилей без document.write (корректно работает и при SPA-подгрузке) -->
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -2647,7 +2647,7 @@
                 <div class="nav-icon-wrapper">
                     <i class="fab fa-telegram-plane"></i>
                 </div>
-                <span>Активы</span>
+                <span>Маркет</span>
             </button>
             <button class="profile-nav-btn" data-nav-index="3" type="button">
                 <div class="nav-icon-wrapper">
@@ -2725,13 +2725,13 @@
             }
 
             // 2) Иначе: window.userData (если пришли с index) или из базы
-            if (!userData && window.userData && window.userData.id && window.userData.id !== 'test_user_default') {
+            if (!userData && window.userData && window.userData.id) {
                 userData = window.userData;
             }
             if (!userData && db && db.getUser) {
-                const userId = db.getFixedUserId ? db.getFixedUserId() : (localStorage.getItem('jetstore_user_id') || 'test_user_default');
+                const userId = db.getFixedUserId ? db.getFixedUserId() : (localStorage.getItem('jetstore_user_id') || '');
                 const stored = db.getUser(userId);
-                if (stored && stored.id !== 'test_user_default') userData = stored;
+                if (stored && stored.id) userData = stored;
             }
             if (!userData) {
                 try {
@@ -2940,7 +2940,7 @@
             const balanceTonEl = document.getElementById('assetsDrawerBalanceTon');
             if (!avatarEl || !nicknameEl || !usernameEl) return;
             let ud = window.userData || {};
-            if ((!ud.firstName && !ud.username) || ud.id === 'test_user_default') {
+            if (!ud.firstName && !ud.username) {
                 const tgUser = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) || null;
                 if (tgUser) ud = { firstName: tgUser.first_name, lastName: tgUser.last_name, username: tgUser.username, photoUrl: tgUser.photo_url };
             }

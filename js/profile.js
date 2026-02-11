@@ -134,16 +134,14 @@ function loadUserData() {
         userData.firstName = initData.user.first_name || '';
         userData.lastName = initData.user.last_name || '';
         userData.photoUrl = initData.user.photo_url || null;
-        
     } else {
-        // Для тестирования вне Telegram - используем ФИКСИРОВАННЫЙ ID
-        userId = 'test_user_default';
-        userData.id = userId;
-        userData.username = 'test_user';
-        userData.firstName = 'Тестовый';
-        userData.lastName = 'Пользователь';
+        // Если Telegram WebApp недоступен — оставляем id пустым
+        userId = null;
+        userData.id = null;
+        userData.username = '';
+        userData.firstName = '';
+        userData.lastName = '';
         userData.photoUrl = null;
-        
     }
     
     // КРИТИЧЕСКИ ВАЖНО: Убеждаемся, что ID всегда строка
@@ -157,13 +155,11 @@ function loadUserData() {
         const db = window.Database || Database;
         if (db && typeof db.getBalanceFixed === 'function') {
             savedBalance = db.getBalanceFixed('RUB');
-            console.log('✅ Баланс из фиксированного ключа (через Database):', savedBalance);
         } else {
             // Прямая проверка localStorage
             const balanceKey = 'jetstore_balance_fixed';
             const balanceData = JSON.parse(localStorage.getItem(balanceKey) || '{}');
             savedBalance = balanceData.RUB || 0;
-            console.log('✅ Баланс из localStorage (фиксированный ключ, прямое чтение):', savedBalance);
         }
     } catch (e) {
         console.warn('⚠️ Ошибка загрузки баланса из фиксированного ключа:', e);
@@ -1597,15 +1593,23 @@ function openTelegramLink(url, e) {
 
 // Открыть документ
 function openDocument(type) {
-    const titles = {
-        'offer': 'Оферта',
-        'agreement': 'Пользовательское соглашение',
-        'privacy': 'Политика конфиденциальности'
+    const urls = {
+        'offer': 'https://telegra.ph/Dogovor-Oferty-02-11-4',
+        'agreement': 'https://telegra.ph/Polzovatelskoe-soglashenie-02-11-33',
+        'privacy': 'https://telegra.ph/Politika-konfidecialnosti-02-11'
     };
-    
-    // Здесь можно добавить реальные ссылки на документы
-    if (typeof showNotification === 'function') {
-        showNotification(`Документ "${titles[type]}" будет доступен позже`, 'info');
+    const url = urls[type] || null;
+    if (!url) {
+        if (typeof showNotification === 'function') {
+            showNotification('Этот документ пока недоступен.', 'info');
+        }
+        return;
+    }
+    const tg = window.Telegram?.WebApp;
+    if (tg && tg.openLink) {
+        tg.openLink(url);
+    } else {
+        window.open(url, '_blank');
     }
 }
 
