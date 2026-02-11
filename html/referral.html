@@ -119,6 +119,33 @@
             margin: 0 auto;
         }
 
+        /* Верхний блок с пояснением, как работает заработок */
+        .referral-how-block {
+            display: flex;
+            align-items: center;
+            padding: 16px 16px 18px;
+            margin-bottom: 18px;
+            border-radius: 18px;
+            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.16), transparent 55%),
+                        rgba(6, 8, 18, 0.96);
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+        }
+        .referral-how-text-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .referral-how-text-sub {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.4;
+        }
+        .referral-how-text-sub b {
+            color: #00d4ff;
+            font-weight: 600;
+        }
+        
         /* Блок как в Portals: один уровень + карточка */
         .referral-portals-block {
             max-width: 620px;
@@ -1076,6 +1103,18 @@
     </div>
     
     <div class="referral-page-content">
+        <!-- Верхний блок-объяснение, как работает заработок -->
+        <div class="referral-how-block page-block-enter">
+            <div class="referral-how-text">
+                <div class="referral-how-text-title">Как работает заработок с JET</div>
+                <div class="referral-how-text-sub">
+                    Приглашайте друзей по вашей <b>личной ссылке</b>. Когда они покупают продукты в JET,
+                    вы получаете <b>процент с их оборота</b> в TON. Вся статистика и накопленный доход
+                    отображаются ниже на этой странице.
+                </div>
+            </div>
+        </div>
+
         <!-- Один блок как в Portals: уровень + статистика + объём + кнопка -->
         <div class="referral-portals-block page-block-enter">
             <!-- Верхняя полоса: УРОВЕНЬ JETREFS + процент + Больше > -->
@@ -1320,12 +1359,9 @@
                 }
             } catch (error) {
                 console.error('Failed to load referral link:', error);
-                // Fallback: создаем ссылку вручную
-                referralLink = `https://t.me/JetSold_bot?start=ref_${userId}`;
+                referralLink = '';
                 const linkTextEl = document.getElementById('referralLinkText');
-                if (linkTextEl) {
-                    linkTextEl.textContent = referralLink;
-                }
+                if (linkTextEl) linkTextEl.textContent = 'Не удалось получить ссылку. Попробуйте позже.';
             }
         }
 
