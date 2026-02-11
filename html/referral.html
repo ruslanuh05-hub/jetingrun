@@ -1176,13 +1176,32 @@
             return null;
         }
 
+        // Безопасно получаем базовый URL API (Railway) даже если config.js не загрузился
+        function getApiBaseSafe() {
+            let apiBase = '';
+            try {
+                if (typeof window.getJetApiBase === 'function') {
+                    apiBase = String(window.getJetApiBase() || '').trim();
+                }
+            } catch (_) {}
+            apiBase = apiBase
+                || (window.JET_BOT_API_URL ? String(window.JET_BOT_API_URL).trim() : '')
+                || (window.JET_BOT_API_FALLBACK ? String(window.JET_BOT_API_FALLBACK).trim() : '')
+                || (window.JET_API_BASE ? String(window.JET_API_BASE).trim() : '')
+                || String(localStorage.getItem('jet_bot_api_url') || '').trim()
+                || String(localStorage.getItem('jet_api_base') || '').trim()
+                || '';
+            // Последний fallback на известный Railway URL
+            if (!apiBase) apiBase = 'https://jet-store-bot-production.up.railway.app';
+            apiBase = apiBase.replace(/\/$/, '');
+            if (apiBase && !/^https?:\/\//i.test(apiBase)) apiBase = 'https://' + apiBase;
+            return apiBase;
+        }
+
         // Загружаем курс TON через API бота
         async function loadTonRate() {
             try {
-                var apiBase = (window.getJetApiBase && window.getJetApiBase())
-                    || window.JET_API_BASE
-                    || localStorage.getItem('jet_api_base')
-                    || '';
+                var apiBase = getApiBaseSafe();
                 if (!apiBase) {
                     console.warn('TON rate: apiBase is empty, using default 600');
                     tonRate = 600;
@@ -1211,13 +1230,8 @@
             currentUserId = userId;
 
             try {
-                const apiBase = (window.getJetApiBase && window.getJetApiBase())
-                    || window.JET_API_BASE
-                    || localStorage.getItem('jet_api_base')
-                    || '';
-                const url = apiBase
-                    ? apiBase.replace(/\/$/, '') + `/api/referral/stats?user_id=${userId}`
-                    : `/api/referral/stats?user_id=${userId}`;
+                const apiBase = getApiBaseSafe();
+                const url = apiBase.replace(/\/$/, '') + `/api/referral/stats?user_id=${userId}`;
                 const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
@@ -1241,13 +1255,8 @@
             }
 
             try {
-                const apiBase = (window.getJetApiBase && window.getJetApiBase())
-                    || window.JET_API_BASE
-                    || localStorage.getItem('jet_api_base')
-                    || '';
-                const url = apiBase
-                    ? apiBase.replace(/\/$/, '') + `/api/referral/link?user_id=${userId}`
-                    : `/api/referral/link?user_id=${userId}`;
+                const apiBase = getApiBaseSafe();
+                const url = apiBase.replace(/\/$/, '') + `/api/referral/link?user_id=${userId}`;
                 const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
@@ -1511,10 +1520,7 @@
             submitBtn.textContent = 'Отправка...';
 
             try {
-                const apiBase = (window.getJetApiBase && window.getJetApiBase())
-                    || window.JET_API_BASE
-                    || localStorage.getItem('jet_api_base')
-                    || '';
+                const apiBase = getApiBaseSafe();
                 const response = await fetch(apiBase.replace(/\/$/, '') + '/api/referral/withdraw', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
