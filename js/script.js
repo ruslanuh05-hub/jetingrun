@@ -2491,9 +2491,19 @@ async function submitIdea() {
     btn.disabled = true;
     btn.textContent = 'Отправка...';
 
-    var userId = window.userData && window.userData.id ? String(window.userData.id) : null;
-    var username = window.userData && window.userData.username ? window.userData.username : '';
-    var firstName = window.userData && window.userData.firstName ? window.userData.firstName : '';
+    // Жёстко берём данные из Telegram WebApp (чтобы разные аккаунты на одном устройстве не путались)
+    var tgUser = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe
+        ? window.Telegram.WebApp.initDataUnsafe.user
+        : null;
+    var userId = tgUser && tgUser.id
+        ? String(tgUser.id)
+        : (window.userData && window.userData.id ? String(window.userData.id) : null);
+    var username = tgUser && tgUser.username
+        ? tgUser.username
+        : (window.userData && window.userData.username ? window.userData.username : '');
+    var firstName = tgUser && tgUser.first_name
+        ? tgUser.first_name
+        : (window.userData && window.userData.firstName ? window.userData.firstName : '');
 
     var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || '';
     if (!apiBase) {
