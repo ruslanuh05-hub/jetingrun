@@ -77,53 +77,154 @@
             margin: 0 auto;
         }
 
-        /* Основной «портальный» блок */
-        .referral-bubble {
-            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.22), transparent 55%),
-                        radial-gradient(circle at bottom right, rgba(64, 224, 208, 0.18), transparent 55%),
-                        rgba(0, 0, 0, 0.75);
-            border-radius: 24px;
-            padding: 16px 16px 20px;
+        /* Блок как в Portals: один уровень + карточка */
+        .referral-portals-block {
+            max-width: 620px;
+            margin: 0 auto;
+        }
+        .referral-level-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(20, 22, 35, 0.95);
+            border-radius: 14px 14px 0 0;
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            border-bottom: none;
+        }
+        .referral-level-bar-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+        .referral-level-bar-badge {
+            margin-left: auto;
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: rgba(0, 212, 255, 0.25);
+            color: #00d4ff;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .referral-level-bar-more {
+            color: #00d4ff;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+        .referral-level-bar-more:hover { color: #40e0d0; }
+        .referral-portals-card {
+            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.12), transparent 50%),
+                        rgba(18, 20, 32, 0.98);
             border: 1px solid rgba(0, 212, 255, 0.35);
-            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+            border-radius: 0 0 20px 20px;
+            padding: 20px 16px 24px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
         }
-
-        /* Intro section (top banner) — компактнее, логотип больше */
-        .referral-bubble:first-of-type {
-            padding: 12px 16px 14px;
-            margin-bottom: 12px;
+        .referral-portals-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 22px;
         }
-        
-        /* JetRefs блок (Заработано + Рефералы) — в 1.3 раза меньше */
-        .referral-bubble:nth-of-type(2) {
-            padding: 12px 12px 15px;
+        .referral-portals-col {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 14px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
-        .referral-bubble:nth-of-type(2) .referral-card { padding: 14px 10px 0; }
-        .referral-bubble:nth-of-type(2) .referral-header { margin-bottom: 14px; }
-        .referral-bubble:nth-of-type(2) .referral-level-title { font-size: 0.85rem; }
-        .referral-bubble:nth-of-type(2) .referral-level-badge { padding: 3px 9px; font-size: 0.7rem; }
-        .referral-bubble:nth-of-type(2) .referral-more-link { font-size: 0.7rem; }
-        .referral-bubble:nth-of-type(2) .referral-earnings-section { margin-bottom: 14px; }
-        .referral-bubble:nth-of-type(2) .referral-earnings-title { font-size: 0.65rem; margin-bottom: 8px; }
-        .referral-bubble:nth-of-type(2) .referral-earnings-row { padding: 8px 0; }
-        .referral-bubble:nth-of-type(2) .referral-earnings-label { font-size: 0.7rem; }
-        .referral-bubble:nth-of-type(2) .referral-earnings-value { font-size: 0.92rem; }
-        .referral-bubble:nth-of-type(2) .referral-metrics { margin: 12px 0 16px; padding: 14px 14px; min-height: 70px; }
-        .referral-bubble:nth-of-type(2) .referral-metric { gap: 8px; }
-        .referral-bubble:nth-of-type(2) .referral-metric-row { gap: 12px; }
-        .referral-bubble:nth-of-type(2) .referral-metric-icon { width: 40px; height: 40px; font-size: 0.92rem; }
-        .referral-bubble:nth-of-type(2) .referral-metric-icon.referrals img { width: 40px; height: 40px; }
-        .referral-bubble:nth-of-type(2) .referral-metric-label { font-size: 0.77rem; }
-        .referral-bubble:nth-of-type(2) .referral-metric-value { font-size: 2.15rem; }
-        .referral-bubble:nth-of-type(2) .referral-volume-section { margin-bottom: 12px; }
-        .referral-bubble:nth-of-type(2) .referral-volume-header { margin-bottom: 8px; gap: 6px; }
-        .referral-bubble:nth-of-type(2) .referral-volume-icon { font-size: 0.92rem; }
-        .referral-bubble:nth-of-type(2) .referral-volume-label { font-size: 0.65rem; }
-        .referral-bubble:nth-of-type(2) .referral-volume-value { font-size: 1.38rem; margin-bottom: 10px; gap: 6px; }
-        .referral-bubble:nth-of-type(2) .referral-progress-bar { height: 5px; margin-bottom: 8px; }
-        .referral-bubble:nth-of-type(2) .referral-progress-text { font-size: 0.77rem; gap: 4px; }
-        .referral-bubble:nth-of-type(2) .referral-progress-text .ton-icon.small { width: 14px; height: 14px; }
-        .referral-bubble:nth-of-type(2) .referral-invite-btn { padding: 10px 16px; font-size: 0.85rem; }
+        .referral-portals-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .referral-portals-icon.earned {
+            background: rgba(76, 175, 80, 0.3);
+            color: #81c784;
+        }
+        .referral-portals-icon.refs {
+            background: rgba(156, 39, 176, 0.3);
+            color: #ce93d8;
+        }
+        .referral-portals-icon.refs img { width: 28px; height: 28px; object-fit: contain; }
+        .referral-portals-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        .referral-portals-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .referral-portals-value .ton-icon { width: 20px; height: 20px; }
+        .referral-portals-sub {
+            font-size: 0.75rem;
+            color: rgba(0, 212, 255, 0.85);
+        }
+        .referral-portals-volume {
+            margin-bottom: 20px;
+        }
+        .referral-portals-volume-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .referral-portals-volume-icon {
+            color: #00d4ff;
+            font-size: 0.95rem;
+        }
+        .referral-portals-volume-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        .referral-portals-volume-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .referral-portals-volume-value .ton-icon.small { width: 18px; height: 18px; }
+        .referral-portals-card .referral-progress-bar {
+            height: 6px;
+            margin-bottom: 10px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 3px;
+        }
+        .referral-portals-card .referral-progress-text {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .referral-portals-card .referral-link-block { margin-bottom: 14px; }
+        .referral-portals-card .referral-invite-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #00d4ff 0%, #00a3ff 100%);
+            color: #000;
+            border: none;
+            cursor: pointer;
+        }
+        .referral-portals-card .referral-invite-btn:hover { opacity: 0.95; }
 
         .referral-jet-logo {
             display: flex;
@@ -815,7 +916,9 @@
             width: 0;
             height: 0;
             border-radius: 999px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: left 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
+                        width 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
+                        height 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
             z-index: 0;
             pointer-events: none;
             background: linear-gradient(135deg, rgba(100, 120, 255, 0.35) 0%, rgba(180, 100, 255, 0.25) 50%, rgba(0, 200, 255, 0.2) 100%);
@@ -896,6 +999,16 @@
             box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.35);
             transition: all 0.25s ease;
         }
+        /* Появление блоков сверху вниз */
+        .page-block-enter {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page-block-enter.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
     <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>
@@ -906,7 +1019,7 @@
     </div>
     
     <div id="currentPageContent">
-    <div class="referral-page-header">
+    <div class="referral-page-header page-block-enter">
         <button class="referral-back-btn" onclick="window.location.href='index.html'">
             <i class="fas fa-chevron-left"></i>
         </button>
@@ -914,97 +1027,61 @@
     </div>
     
     <div class="referral-page-content">
-        <!-- Bubble 1: Intro -->
-        <div class="referral-bubble">
-            <div class="referral-jet-logo">
-                <img src="../assets/jet-logo.png" alt="JET">
+        <!-- Один блок как в Portals: уровень + статистика + объём + кнопка -->
+        <div class="referral-portals-block page-block-enter">
+            <!-- Верхняя полоса: УРОВЕНЬ JETREFS + процент + Больше > -->
+            <div class="referral-level-bar">
+                <span class="referral-level-bar-title">УРОВЕНЬ JETREFS</span>
+                <span class="referral-level-bar-badge" id="refLevelPercent">15%</span>
+                <a href="#" class="referral-level-bar-more" onclick="showJetRefsLevelsModal(); return false;">Больше &gt;</a>
             </div>
-            <div class="referral-intro-title">Приглашай друзей</div>
-            <div class="referral-intro-subtitle">Получите больше преимуществ</div>
-            <div class="referral-intro-banner" style="margin-bottom: 0;">
-                <div class="referral-intro-icon">
-                        <i class="fas fa-star"></i>
+
+            <!-- Карточка со статистикой -->
+            <div class="referral-portals-card">
+                <!-- Ряд 1: Заработанный | Рефералы -->
+                <div class="referral-portals-row">
+                    <div class="referral-portals-col referral-portals-earned">
+                        <div class="referral-portals-icon earned"><i class="fas fa-coins"></i></div>
+                        <div class="referral-portals-label">Заработанный</div>
+                        <div class="referral-portals-value">
+                            <span id="refEarnTon">0</span>
+                            <img class="ton-icon" src="../assets/ton.png" alt="TON">
+                        </div>
+                        <div class="referral-portals-sub" id="refEarnRubInTon">0 ₽</div>
                     </div>
-                <div>
-                    <div class="referral-intro-text-sub">
-                        Зарабатывайте до 25% JetRefs с покупок друзей. Больше объём&nbsp;— выше уровень и доход.
+                    <div class="referral-portals-col referral-portals-refs">
+                        <div class="referral-portals-icon refs"><img src="../assets/ref-icon.png" alt=""></div>
+                        <div class="referral-portals-label">Рефералы</div>
+                        <div class="referral-portals-value" id="refTotalRefs">0</div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Bubble 2: JetRefs -->
-        <div class="referral-bubble">
-            <div class="referral-card">
-            <!-- Header: Уровень -->
-            <div class="referral-header">
-                <div class="referral-level-title">
-                    <span>Уровень JetRefs</span>
-                    <span class="referral-level-badge" id="refLevelPercent">15%</span>
-            </div>
-                <a href="#" class="referral-more-link" onclick="showJetRefsLevelsModal(); return false;">Больше &gt;</a>
-        </div>
-        
-            <!-- Stats Tab -->
-            <div id="statsTab" class="referral-tab-content active">
-                <!-- Earnings Section: TON -->
-                <div class="referral-earnings-section">
-                    <div class="referral-earnings-title">Заработано</div>
-                    <div class="referral-earnings-row">
-                        <span class="referral-earnings-label">
-                            TON <img class="ton-icon" src="../assets/ton.png" alt="TON">
-                        </span>
-                        <span class="referral-earnings-value" id="refEarnTon">0</span>
+
+                <!-- Ряд 2: Объем рефералов + прогресс -->
+                <div class="referral-portals-volume">
+                    <div class="referral-portals-volume-header">
+                        <span class="referral-portals-volume-icon"><i class="fas fa-chart-line"></i></span>
+                        <span class="referral-portals-volume-label">Объем рефералов</span>
                     </div>
-                    <div class="referral-earnings-row" style="padding-top: 4px; border-top: none;">
-                        <span class="referral-earnings-label" style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.5);">≈</span>
-                        <span class="referral-earnings-value" id="refEarnRubInTon" style="font-size: 0.9rem; color: rgba(0, 212, 255, 0.8); font-weight: 500;">0 ₽</span>
-            </div>
-        </div>
-        
-                <!-- Metrics: Рефералы — цифра в один ряд с иконкой -->
-                <div class="referral-metrics">
-                    <div class="referral-metric">
-                        <div class="referral-metric-label">Рефералы</div>
-                        <div class="referral-metric-row">
-                            <div class="referral-metric-icon referrals">
-                                <img src="../assets/ref-icon.png" alt="Рефералы" style="width: 52px; height: 52px; object-fit: contain;">
-                </div>
-                            <div class="referral-metric-value" id="refTotalRefs">0</div>
-            </div>
-                </div>
-            </div>
-            
-                <!-- Progress Bar -->
-                <div class="referral-volume-section">
+                    <div class="referral-portals-volume-value" id="refVolumeDisplay">0 <img class="ton-icon small" src="../assets/ton.png" alt="TON"></div>
                     <div class="referral-progress-bar">
                         <div class="referral-progress-fill" id="refProgressBar" style="width: 0%;"></div>
                         <div class="referral-progress-tick l2"></div>
                         <div class="referral-progress-tick l3"></div>
-                </div>
-        
-                    <!-- Progress Text -->
+                    </div>
                     <div class="referral-progress-text" id="refProgressText">
                         <span>0</span>
                         <img class="ton-icon small" src="../assets/ton.png" alt="TON">
                         <span>осталось до следующего уровня</span>
-            </div>
-        </div>
-        
-                <!-- Referral link + Invite Button -->
-                <div class="referral-link-block">
-                    <div class="referral-link-text" id="referralLinkText">
-                        Загрузка ссылки...
                     </div>
-                    <button class="referral-link-copy-btn" id="copyReferralLinkBtn" title="Скопировать ссылку">
-                        <i class="fas fa-copy"></i>
-                    </button>
                 </div>
-                <button class="referral-invite-btn" id="inviteFriendsBtn">
-                    Пригласить друзей
-                </button>
-        </div>
+
+                <!-- Ссылка + копировать -->
+                <div class="referral-link-block">
+                    <div class="referral-link-text" id="referralLinkText">Загрузка ссылки...</div>
+                    <button class="referral-link-copy-btn" id="copyReferralLinkBtn" title="Скопировать ссылку"><i class="fas fa-copy"></i></button>
                 </div>
+
+                <button class="referral-invite-btn" id="inviteFriendsBtn">Пригласите друзей</button>
             </div>
         </div>
         
@@ -1202,15 +1279,22 @@
             const earnedTon = (stats.earned_ton || 0).toFixed(2);
             document.getElementById('refEarnTon').textContent = earnedTon.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-            // Эквивалент в рублях под TON
+            // Эквивалент в рублях (под суммой в TON)
             const earnedRub = (stats.earned_rub || 0).toFixed(2);
-            document.getElementById('refEarnRubInTon').textContent = `${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
+            const refEarnRubEl = document.getElementById('refEarnRubInTon');
+            if (refEarnRubEl) refEarnRubEl.textContent = `≈ ${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
 
-            // Всего рефералов с форматированием
+            // Всего рефералов
             const totalRefs = stats.total_referrals || 0;
             document.getElementById('refTotalRefs').textContent = totalRefs.toLocaleString('ru-RU');
 
-            // Объем рефералов (элемент убран, данные используются для прогресс-бара)
+            // Объем рефералов (в TON)
+            const volumeTon = stats.volume_ton != null ? Number(stats.volume_ton) : 0;
+            const refVolumeEl = document.getElementById('refVolumeDisplay');
+            if (refVolumeEl) {
+                const vStr = volumeTon.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                refVolumeEl.innerHTML = vStr + ' <img class="ton-icon small" src="../assets/ton.png" alt="TON">';
+            }
 
             // Прогресс-бар — используем progress_percent из API (уровни 1: 0–5k TON, 2: 5k–15k TON, 3: 15k+ TON)
             const globalPercent = Math.max(0, Math.min(100, stats.progress_percent ?? 0));
@@ -1491,6 +1575,16 @@
 
             // Обновляем индикатор навигации после инициализации
             setTimeout(updateNavIndicator, 100);
+            // Появление блоков сверху вниз
+            setTimeout(function() {
+                var container = document.getElementById('currentPageContent');
+                if (container) {
+                    var blocks = container.querySelectorAll('.page-block-enter');
+                    blocks.forEach(function(el, i) {
+                        setTimeout(function() { el.classList.add('visible'); }, i * 70);
+                    });
+                }
+            }, 80);
         }
 
         // Гарантируем инициализацию как при обычной загрузке, так и при SPA-подгрузке
@@ -1577,25 +1671,47 @@
             history.replaceState({ page: 'referral.html', navIndex: navIndex }, '', 'referral.html');
         }
         
+        var NAV_BUBBLE_DURATION_MS = 260;
+        function goToNavPage(url) {
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    if (typeof updateNavIndicator === 'function') updateNavIndicator();
+                });
+            });
+            setTimeout(function() { window.location.href = url; }, NAV_BUBBLE_DURATION_MS);
+        }
         (function() {
             document.querySelectorAll('.profile-nav-btn[data-nav-index="0"]').forEach(function(btn) {
-                btn.onclick = function() { window.location.href = 'index.html'; };
+                btn.onclick = function() {
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('index.html');
+                };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="1"]').forEach(function(btn) {
                 btn.onclick = function() {
                     document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
                     this.classList.add('active');
+                    requestAnimationFrame(function() {
+                        requestAnimationFrame(function() {
+                            if (typeof updateNavIndicator === 'function') updateNavIndicator();
+                        });
+                    });
                     showCurrentPage(1);
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="2"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    window.location.href = 'assets.html';
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('assets.html');
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="3"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    window.location.href = 'profile.html';
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('profile.html');
                 };
             });
         })();

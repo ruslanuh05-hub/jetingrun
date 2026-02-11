@@ -220,21 +220,40 @@ function loadInitialData() {
     loadSettings();
 }
 
-// Обновление статистики (оставлено для совместимости)
+// Обновление статистики в формате: продажи, динамика, пользователи, регистрации, активность
 function refreshStatistics() {
-    if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
-        const stats = (window.Database || {}).getStatistics();
-        const statUsers = document.getElementById('statUsers');
-        const statProducts = document.getElementById('statProducts');
-        const statBalance = document.getElementById('statBalance');
-        const statUpdated = document.getElementById('statUpdated');
-        const statTurnover = document.getElementById('statTurnover');
-        if (statUsers) statUsers.textContent = stats.totalUsers || 0;
-        if (statProducts) statProducts.textContent = stats.totalProducts || 0;
-        if (statBalance) statBalance.textContent = (stats.totalBalance || 0) + ' ₽';
-        if (statUpdated) statUpdated.textContent = stats.lastUpdated || '-';
-        if (statTurnover) statTurnover.textContent = (stats.totalTurnoverRub || 0).toLocaleString('ru-RU') + ' ₽';
+    const block = document.getElementById('statBlock');
+    if (!block) return;
+    if (typeof window.Database === 'undefined' || typeof (window.Database || {}).getStatistics !== 'function') {
+        block.textContent = 'Данные недоступны';
+        return;
     }
+    const s = (window.Database || {}).getStatistics();
+    const fmt = (n) => (Number(n) || 0).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    const fmtRub = (n) => (Number(n) || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+    block.textContent = [
+        '🛍️ Продажи',
+        '▸ Всего продаж: ' + (s.totalSales ?? 0),
+        '▸ Общий оборот: ' + fmtRub(s.totalTurnoverRub),
+        '',
+        '⏳ Динамика продаж:',
+        '├ Сегодня: ' + (s.salesToday ?? 0) + ' на ' + fmtRub(s.turnoverToday),
+        '├ Неделя: ' + (s.salesWeek ?? 0) + ' на ' + fmtRub(s.turnoverWeek),
+        '└ Месяц: ' + (s.salesMonth ?? 0) + ' на ' + fmtRub(s.turnoverMonth),
+        '',
+        '👥 Пользователи',
+        '▸ Всего аккаунтов: ' + (s.totalUsers ?? 0),
+        '',
+        '📊 Регистрации:',
+        '├ За день: ' + (s.regsDay ?? 0),
+        '├ За неделю: ' + (s.regsWeek ?? 0),
+        '└ За месяц: ' + (s.regsMonth ?? 0),
+        '',
+        '🔥 Активность:',
+        '├ Дневная: ' + (s.activityDay ?? 0),
+        '├ Недельная: ' + (s.activityWeek ?? 0),
+        '└ Месячная: ' + (s.activityMonth ?? 0)
+    ].join('\n');
 }
 
 // Загрузка товаров
@@ -604,6 +623,14 @@ function saveCurrencyRates() {
         var steamRate = parseFloat(document.getElementById('steamRateInput')?.value) || 1.06;
         if (steamRate < 0.01) steamRate = 1.06;
         try { localStorage.setItem('jetstore_steam_rate', steamRate.toString()); } catch (e) {}
+        var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (apiBase) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/steam-rate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steam_rate_rub: steamRate })
+            }).then(function(r) { if (r.ok) console.log('Steam rate saved on server'); }).catch(function() {});
+        }
         var cryptobotUsdt = parseFloat(document.getElementById('cryptobotUsdtAmount')?.value) || 1;
         if (cryptobotUsdt < 0.1) cryptobotUsdt = 1;
         try { localStorage.setItem('jetstore_cryptobot_usdt_amount', cryptobotUsdt.toString()); } catch (e) {}

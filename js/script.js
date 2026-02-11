@@ -2109,24 +2109,62 @@ function updateMarketBalance() {
     if (el) el.textContent = currentBalance.toLocaleString('ru-RU') + ' ₽';
 }
 
-// Курс Steam: 1 Steam R = X ₽ (из админки или 1.06 по умолчанию)
+// Курс Steam: 1 ₽ на Steam = X ₽ (с бэкенда /api/steam-rate или из админки localStorage)
+var _steamRateCache = null;
 function getSteamRate() {
+    if (_steamRateCache != null && _steamRateCache > 0) return _steamRateCache;
     try {
         var v = parseFloat(localStorage.getItem('jetstore_steam_rate') || '1.06');
         return v > 0 ? v : 1.06;
     } catch (e) { return 1.06; }
+}
+function updateSteamPayTotalDisplay() {
+    var amount = parseFloat(document.getElementById('steamAmount')?.value) || 0;
+    var rate = getSteamRate();
+    var total = amount > 0 ? (Math.round(amount * rate * 100) / 100) : 0;
+    var el = document.getElementById('steamPayTotalDisplay');
+    if (el) el.textContent = 'К оплате: ' + (total > 0 ? total.toLocaleString('ru-RU') + ' ₽' : '0 ₽');
+}
+// Загрузить курс Steam с бэкенда (курс из админки / env)
+function loadSteamRateFromApi(callback) {
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) {
+        if (callback) callback();
+        return;
+    }
+    fetch(apiBase.replace(/\/$/, '') + '/api/steam-rate', { method: 'GET', mode: 'cors' })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+            if (data && typeof data.steam_rate_rub === 'number' && data.steam_rate_rub > 0) {
+                _steamRateCache = data.steam_rate_rub;
+                try { localStorage.setItem('jetstore_steam_rate', String(_steamRateCache)); } catch (e) {}
+            }
+            if (callback) callback();
+        })
+        .catch(function() { if (callback) callback(); });
 }
 
 // Функции для окна пополнения Steam
 function showSteamTopup() {
     const popup = document.getElementById('steamTopupPopup');
     if (!popup) return;
-    
-    var rate = getSteamRate();
+    document.body.classList.add('steam-popup-open');
     var rateEl = document.getElementById('steamRateDisplay');
-    if (rateEl) rateEl.textContent = '1 рубль на стим = ' + rate.toFixed(2).replace('.', ',') + ' ₽';
-    
+    var payTotalEl = document.getElementById('steamPayTotalDisplay');
+    function applyRate() {
+        var rate = getSteamRate();
+        if (rateEl) rateEl.textContent = '1 ₽ на Steam = ' + rate.toFixed(2).replace('.', ',') + ' ₽';
+        updateSteamPayTotalDisplay();
+    }
+    loadSteamRateFromApi(applyRate);
+    applyRate();
     popup.classList.add('active');
+    var amountInput = document.getElementById('steamAmount');
+    if (amountInput) {
+        if (window._steamAmountInputHandler) amountInput.removeEventListener('input', window._steamAmountInputHandler);
+        window._steamAmountInputHandler = function() { updateSteamPayTotalDisplay(); };
+        amountInput.addEventListener('input', window._steamAmountInputHandler);
+    }
     
     // Баланс в шапке окна
     const balanceEl = document.getElementById('steamTopupBalance');
@@ -2142,7 +2180,6 @@ function showSteamTopup() {
     }
     
     const loginInput = document.getElementById('steamLogin');
-    const amountInput = document.getElementById('steamAmount');
     if (loginInput) loginInput.value = '';
     if (amountInput) amountInput.value = '';
 
@@ -2203,6 +2240,7 @@ document.addEventListener('click', function(e) {
 });
 
 function closeSteamTopup() {
+    document.body.classList.remove('steam-popup-open');
     const popup = document.getElementById('steamTopupPopup');
     if (popup) {
         popup.classList.remove('active');
@@ -2413,22 +2451,38 @@ function closePaymentMethodPopup(skipReturnToPrevious) {
 function selectPaymentMethod(method, bonusPercent) {
     closePaymentMethodPopup(true);  // Не возвращаться назад — идём к оплате
     
-    // Рассчитываем сумму с учетом комиссии
-    const baseAmount = currentPurchase.amount;
-    const commission = Math.round(baseAmount * bonusPercent / 100);
-    const totalAmount = baseAmount + commission;
+    var baseAmount, commission, totalAmount, purchase;
+    if (currentPurchase.type === 'steam') {
+        var amountSteam = currentPurchase.amount;  // рубли на Steam (что вводил пользователь)
+        var amountRub = Math.round(amountSteam * getSteamRate() * 100) / 100;  // базовая сумма по курсу
+        baseAmount = amountRub;
+        commission = Math.round(baseAmount * (bonusPercent || 0) / 100);  // комиссия CryptoBot 4%
+        totalAmount = baseAmount + commission;
+        purchase = {
+            type: 'steam',
+            amount_steam: amountSteam,
+            amount: amountRub,
+            login: currentPurchase.login,
+            currency: currentPurchase.currency || 'RUB',
+            productId: currentPurchase.productId,
+            productName: currentPurchase.productName
+        };
+    } else {
+        baseAmount = currentPurchase.amount;
+        commission = Math.round(baseAmount * bonusPercent / 100);
+        totalAmount = baseAmount + commission;
+        purchase = currentPurchase;
+    }
     
-    // Сохраняем данные для экрана ожидания
     window.paymentData = {
         method: method,
         bonusPercent: bonusPercent,
         baseAmount: baseAmount,
         commission: commission,
         totalAmount: totalAmount,
-        purchase: currentPurchase
+        purchase: purchase
     };
     
-    // Показываем экран ожидания оплаты
     showPaymentWaiting();
 }
 
@@ -2459,9 +2513,10 @@ function showPaymentWaiting() {
     const curSym = steamSymbols[steamCur] || '₽';
 
     if (data.purchase?.type === 'steam') {
+        var amountSteam = data.purchase.amount_steam != null ? data.purchase.amount_steam : data.baseAmount;
         document.getElementById('paymentWaitingDescription').textContent =
-            `Пополнение Steam для ${data.purchase.login} на ${data.baseAmount.toLocaleString('ru-RU')} ${curSym}`;
-        document.getElementById('paymentDetailAmount').textContent = `${data.baseAmount.toLocaleString('ru-RU')} ${curSym}`;
+            'Пополнение Steam для ' + (data.purchase.login || '') + ' на ' + (amountSteam.toLocaleString('ru-RU')) + ' ₽ (на кошелёк)';
+        document.getElementById('paymentDetailAmount').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ₽';
     } else {
         document.getElementById('paymentWaitingDescription').textContent =
             `Оплатите ${data.totalAmount.toLocaleString('ru-RU')} ₽ через ${methodNames[data.method]} (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)`;

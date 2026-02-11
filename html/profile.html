@@ -1822,7 +1822,9 @@
             width: 0;
             height: 0;
             border-radius: 999px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: left 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
+                        width 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
+                        height 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
             z-index: 0;
             pointer-events: none;
             background: linear-gradient(135deg, rgba(100, 120, 255, 0.35) 0%, rgba(180, 100, 255, 0.25) 50%, rgba(0, 200, 255, 0.2) 100%);
@@ -2155,6 +2157,16 @@
             will-change: transform;
             transform: translateZ(0);
         }
+        /* Появление блоков сверху вниз */
+        .page-block-enter {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page-block-enter.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
     <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>
@@ -2167,7 +2179,7 @@
     <div id="currentPageContent">
     <div class="profile-container">
         <!-- Шапка с логотипом Kupol -->
-        <header class="profile-header-top">
+        <header class="profile-header-top page-block-enter">
             <div class="header-left">
                 <div class="logo-icon logo-icon-img">
                     <img src="../assets/jet-logo.png" alt="JET">
@@ -2186,7 +2198,7 @@
         <!-- Основной контент -->
         <div class="profile-content">
             <!-- Карточка пользователя -->
-            <div class="user-card">
+            <div class="user-card page-block-enter">
                 <div class="user-avatar-wrapper">
                     <div class="user-avatar" id="profileAvatar">
                         <i class="fas fa-user"></i>
@@ -2199,7 +2211,7 @@
                 </div>
             
             <!-- Секция баланса -->
-            <div class="balance-section">
+            <div class="balance-section page-block-enter">
                 <p class="balance-label">Доступный баланс</p>
                 <p class="balance-amount-main" id="profileBalance">Скоро</p>
                 <div class="balance-actions-main">
@@ -2225,7 +2237,7 @@
             </div>
             
             <!-- TonKeeper: подключено (адрес, баланс, отвязать) или кнопка подключения -->
-            <div class="tonkeeper-section">
+            <div class="tonkeeper-section page-block-enter">
                 <div id="tonkeeperConnectedBlock" class="tonkeeper-connected-block" style="display: none;">
                     <div class="tonkeeper-connected-row">
                         <span class="tonkeeper-connected-label">Адрес</span>
@@ -2250,7 +2262,7 @@
             </div>
             
             <!-- Секция информации и реферальная программа -->
-            <div class="info-section">
+            <div class="info-section page-block-enter">
                 <div class="info-item" onclick="showInfo('about')">
                     <div class="info-icon purple">
                         <i class="fas fa-info-circle"></i>
@@ -2260,7 +2272,7 @@
                 </div>
             
             <!-- Вкладки -->
-            <div class="tabs-container">
+            <div class="tabs-container page-block-enter">
                 <button class="tab-btn active" onclick="switchTab('purchases')">История</button>
                 <button class="tab-btn" onclick="switchTab('transactions')">Транзакции</button>
             </div>
@@ -2378,55 +2390,7 @@
                         <span class="payment-name">СБП / Банковские карты</span>
                         <span class="payment-badge" style="background: rgba(255,255,255,0.3);">Скоро</span>
                     </button>
-                    <button class="payment-method-btn usdt" onclick="showUsdtDeposit()" style="margin-top: 12px;">
-                        <div class="payment-icon usdt" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
-                            <i class="fab fa-telegram-plane" style="color: #fff; font-size: 1.2rem;"></i>
-                        </div>
-                        <span class="payment-name">USDT (CryptoBot)</span>
-                        <span class="payment-badge active">Доступно</span>
-                    </button>
                 </div>
-                <div class="usdt-rate-info">
-                    <i class="fas fa-info-circle"></i>
-                    <span>USDT: комиссия <strong>4%</strong></span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Попап для USDT пополнения -->
-    <div id="usdtDepositPopup" class="popup">
-        <div class="popup-content">
-            <div class="popup-header">
-                <h3>Пополнение через USDT</h3>
-                <button class="close-btn" onclick="closeUsdtPopup()">×</button>
-            </div>
-            <div class="popup-body">
-                <div class="usdt-input-section">
-                    <label class="usdt-label">Сумма в рублях</label>
-                    <div class="usdt-input-wrapper">
-                        <input type="number" id="usdtAmountRub" placeholder="1000" min="100" max="100000" oninput="updateUsdtConversion()">
-                        <span class="usdt-currency">₽</span>
-                    </div>
-                </div>
-                <div class="usdt-conversion">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Вы получите: <strong id="usdtAmountResult">0</strong> ₽ на баланс</span>
-                </div>
-                <div class="usdt-pay-amount">
-                    <span>К оплате: <strong id="usdtPayAmount">0</strong> USDT</span>
-                </div>
-                <div class="promo-info">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Минимум: 100 ₽ (~1.25 USDT). Оплата через @CryptoBot</span>
-                </div>
-            </div>
-            <div class="popup-footer">
-                <button class="btn-secondary" onclick="closeUsdtPopup()">Отмена</button>
-                <button class="btn-primary usdt-btn" onclick="processUsdtDeposit()">
-                    <i class="fab fa-telegram-plane"></i>
-                    Оплатить через CryptoBot
-                </button>
             </div>
         </div>
     </div>
@@ -3356,6 +3320,16 @@
             initProfileExtras();
             initProfilePurchases();
             initProfileNavIndicator();
+            // Появление блоков сверху вниз
+            setTimeout(function() {
+                var container = document.getElementById('currentPageContent');
+                if (container) {
+                    var blocks = container.querySelectorAll('.page-block-enter');
+                    blocks.forEach(function(el, i) {
+                        setTimeout(function() { el.classList.add('visible'); }, i * 70);
+                    });
+                }
+            }, 80);
         }
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initProfileHtmlPage);
@@ -3421,25 +3395,46 @@
             history.replaceState({ page: 'profile.html', navIndex: navIndex }, '', 'profile.html');
         }
         
+        var NAV_BUBBLE_DURATION_MS = 260;
+        function goToNavPage(url) {
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    if (typeof updateNavIndicator === 'function') updateNavIndicator();
+                });
+            });
+            setTimeout(function() { window.location.href = url; }, NAV_BUBBLE_DURATION_MS);
+        }
         (function() {
             document.querySelectorAll('.profile-nav-btn[data-nav-index="0"]').forEach(function(btn) {
-                btn.onclick = function() { window.location.href = 'index.html'; };
+                btn.onclick = function() {
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('index.html');
+                };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="1"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    // Вкладка «Заработать»: переходим на полноэкранную страницу referral.html
-                    window.location.href = 'referral.html';
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('referral.html');
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="2"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    window.location.href = 'assets.html';
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('assets.html');
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="3"]').forEach(function(btn) {
                 btn.onclick = function() {
                     document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
                     this.classList.add('active');
+                    requestAnimationFrame(function() {
+                        requestAnimationFrame(function() {
+                            if (typeof updateNavIndicator === 'function') updateNavIndicator();
+                        });
+                    });
                     showCurrentPage(3);
                 };
             });

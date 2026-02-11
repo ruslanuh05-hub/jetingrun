@@ -837,7 +837,9 @@
             width: 0;
             height: 0;
             border-radius: 999px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: left 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
+                        width 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
+                        height 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
             z-index: 0;
             pointer-events: none;
             background: linear-gradient(135deg, rgba(100, 120, 255, 0.35) 0%, rgba(180, 100, 255, 0.25) 50%, rgba(0, 200, 255, 0.2) 100%);
@@ -3911,25 +3913,47 @@
             history.replaceState({ page: 'assets.html', navIndex: navIndex }, '', 'assets.html');
         }
         
+        var NAV_BUBBLE_DURATION_MS = 260;
+        function goToNavPage(url) {
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    if (typeof updateNavIndicator === 'function') updateNavIndicator();
+                });
+            });
+            setTimeout(function() { window.location.href = url; }, NAV_BUBBLE_DURATION_MS);
+        }
         (function() {
             document.querySelectorAll('.profile-nav-btn[data-nav-index="0"]').forEach(function(btn) {
-                btn.onclick = function() { window.location.href = 'index.html'; };
+                btn.onclick = function() {
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('index.html');
+                };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="1"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    window.location.href = 'referral.html';
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('referral.html');
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="2"]').forEach(function(btn) {
                 btn.onclick = function() {
                     document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
                     this.classList.add('active');
+                    requestAnimationFrame(function() {
+                        requestAnimationFrame(function() {
+                            if (typeof updateNavIndicator === 'function') updateNavIndicator();
+                        });
+                    });
                     showCurrentPage(2);
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="3"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    window.location.href = 'profile.html';
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('profile.html');
                 };
             });
         })();

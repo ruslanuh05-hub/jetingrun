@@ -46,15 +46,12 @@
             box-sizing: border-box;
             background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
             color: #ffffff;
-            opacity: 0;
-            transition: opacity 0.25s ease;
         }
         
         .main-menu-container.active {
             display: grid;
             grid-template-rows: auto 1fr;
             padding-bottom: max(105px, calc(95px + env(safe-area-inset-bottom, 0)));
-            opacity: 1;
         }
         
         /* Шапка магазина — уменьшена в 1.3 раза */
@@ -1676,6 +1673,14 @@
             pointer-events: none;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
+        /* В окне пополнения Steam скрываем подвал и пузырь меню (Главная, Заработать, Активы, Профиль) */
+        body.steam-popup-open .bottom-nav,
+        body.steam-popup-open .profile-nav {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
 
         .profile-nav-inner {
             pointer-events: auto;
@@ -1713,9 +1718,9 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             /* Плавное скольжение пузыря между кнопками */
-            transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-                        width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-                        height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: left 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
+                        width 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
+                        height 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
         }
 
         @supports (padding: max(0px)) {
@@ -1842,6 +1847,7 @@
             overflow-x: hidden;
             opacity: 1;
             z-index: 1;
+            transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .main-menu-view.hidden {
@@ -1861,6 +1867,7 @@
             flex-direction: column;
             overflow: hidden;
             align-self: stretch;
+            transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .store-view.active {
@@ -2466,6 +2473,14 @@
             font-size: 0.95rem;
             font-weight: 600;
             line-height: 1.45;
+        }
+        .steam-topup-pay-total {
+            margin-top: 8px;
+            background: rgba(0, 180, 120, 0.18);
+            border-color: rgba(0, 200, 140, 0.4);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
         }
         
         .steam-topup-input-group { margin-bottom: 20px; }
@@ -4509,6 +4524,17 @@
             .nav-icon-wrapper { min-width: 50px; min-height: 50px; }
         }
         
+        /* Появление блоков главного меню сверху вниз */
+        .page-block-enter {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page-block-enter.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
     </style>
     <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>
@@ -4521,7 +4547,7 @@
     <!-- Главное меню -->
     <div class="main-menu-container" id="mainMenu">
         <!-- Шапка -->
-        <header class="store-header">
+        <header class="store-header page-block-enter">
             <div class="store-header-left">
                 <img src="../assets/jet-logo.png" alt="JET" class="header-jet-logo">
                 <div class="store-title">
@@ -4541,32 +4567,32 @@
             <!-- Карточки меню -->
             <div class="main-menu-cards">
                 <!-- Баннер «Купить звёзды» -->
-                <div class="main-menu-card main-menu-card-stars banner-card" onclick="showStoreView('stars')">
+                <div class="main-menu-card main-menu-card-stars banner-card page-block-enter" onclick="showStoreView('stars')">
                     <div class="banner-image-wrapper">
                         <img src="../assets/buy-stars.jpg" alt="Купить звёзды" class="banner-image">
                     </div>
                 </div>
                 
                 <!-- Premium отдельной строкой — как баннер во всю ширину -->
-                <a href="premium.html" class="main-menu-card main-menu-card-premium banner-card" style="text-decoration: none; color: inherit;">
+                <a href="premium.html" class="main-menu-card main-menu-card-premium banner-card page-block-enter" style="text-decoration: none; color: inherit;">
                     <div class="banner-image-wrapper">
                         <img src="../assets/premium-icon.jpg" alt="Premium" class="banner-image">
                     </div>
                 </a>
                 
-                <!-- Ряд: Купить TON | Продать звёзды (временно отключены) -->
-                <div class="main-menu-card main-menu-card-ton main-menu-card-disabled" onclick="return false;" style="cursor: not-allowed; opacity: 0.6; pointer-events: none;">
-                    <div class="main-menu-card-title">Купить TON</div>
-                    <div class="main-menu-card-subtitle">криптовалюта</div>
+                <!-- Ряд: Поделиться идеей | Каталог игр (пока недоступны) -->
+                <div class="main-menu-card main-menu-card-ton main-menu-card-disabled page-block-enter" onclick="return false;" style="cursor: not-allowed; opacity: 0.6; pointer-events: none;">
+                    <div class="main-menu-card-title">Поделиться идеей</div>
+                    <div class="main-menu-card-subtitle">Предложить улучшение сервиса</div>
                 </div>
                 
-                <div class="main-menu-card main-menu-card-sell-stars main-menu-card-disabled" onclick="return false;" style="cursor: not-allowed; opacity: 0.6; pointer-events: none;">
-                    <div class="main-menu-card-title">Продать звёзды</div>
-                    <div class="main-menu-card-subtitle">звёзды</div>
+                <div class="main-menu-card main-menu-card-sell-stars main-menu-card-disabled page-block-enter" onclick="return false;" style="cursor: not-allowed; opacity: 0.6; pointer-events: none;">
+                    <div class="main-menu-card-title">Каталог игр</div>
+                    <div class="main-menu-card-subtitle">Скоро</div>
                 </div>
                 
                 <!-- Steam — пополнение через FunPay -->
-                <div class="main-menu-card steam-card" onclick="if (typeof showSteamTopup === 'function') showSteamTopup();">
+                <div class="main-menu-card steam-card page-block-enter" onclick="if (typeof showSteamTopup === 'function') showSteamTopup();">
                     <div class="main-menu-card-title">STEAM</div>
                     <div class="main-menu-card-subtitle">Пополнение</div>
                     <div class="steam-logo-bg">
@@ -4865,7 +4891,10 @@
                                 <button type="button" class="steam-topup-preset" onclick="setSteamAmount(5000)">5 000</button>
                             </div>
                             <div class="steam-topup-conversion" id="steamRateDisplay">
-                                1 рубль на стим = 1,06 ₽
+                                1 ₽ на Steam = 1,06 ₽
+                            </div>
+                            <div class="steam-topup-conversion steam-topup-pay-total" id="steamPayTotalDisplay">
+                                К оплате: 0 ₽
                             </div>
                         </div>
                     </div>
@@ -5805,6 +5834,22 @@
                 if (splashScreen) splashScreen.style.display = 'none';
                 if (mainMenu) mainMenu.classList.add('active');
                 if (oldMenu) oldMenu.style.display = 'none';
+                // Позиция пузыря нижней навигации после появления главного меню
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        if (typeof updateNavIndicator === 'function') updateNavIndicator();
+                    });
+                });
+                // Появление блоков главного меню сверху вниз
+                setTimeout(function runMainMenuBlocks() {
+                    var container = document.getElementById('mainMenuView');
+                    if (container) {
+                        var blocks = container.querySelectorAll('.page-block-enter');
+                        blocks.forEach(function(el, i) {
+                            setTimeout(function() { el.classList.add('visible'); }, i * 70);
+                        });
+                    }
+                }, 50);
                 // Открыть Маркет, если переход из профиля по кнопке «Маркет»
                 if (sessionStorage.getItem('openMarket') === '1') {
                     sessionStorage.removeItem('openMarket');
@@ -5991,25 +6036,51 @@
         
         window.showMainMenuView = showMainMenuView;
         
-        // Обработка кнопок подвала на главной
+        // Задержка перед открытием окна после начала движения пузыря (чуть короче анимации — окно открывается быстрее)
+        var NAV_BUBBLE_DURATION_MS = 260;
+        
+        // Обработка кнопок подвала: сначала плавное перемещение пузыря, затем переход
         (function() {
+            function goToNavPage(url) {
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        if (typeof updateNavIndicator === 'function') updateNavIndicator();
+                    });
+                });
+                setTimeout(function() {
+                    window.location.href = url;
+                }, NAV_BUBBLE_DURATION_MS);
+            }
             document.querySelectorAll('.profile-nav-btn[data-nav-index="1"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    window.location.href = 'referral.html';
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('referral.html');
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="2"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    window.location.href = 'assets.html';
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('assets.html');
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="3"]').forEach(function(btn) {
                 btn.onclick = function() {
-                    window.location.href = 'profile.html';
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    goToNavPage('profile.html');
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="0"]').forEach(function(btn) {
                 btn.onclick = function() {
+                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    requestAnimationFrame(function() {
+                        requestAnimationFrame(function() {
+                            if (typeof updateNavIndicator === 'function') updateNavIndicator();
+                        });
+                    });
                     showMainMenuView();
                 };
             });

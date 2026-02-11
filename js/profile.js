@@ -1544,7 +1544,7 @@ function showInfo(type) {
             </a>
             
             <!-- Отзывы -->
-            <div class="info-menu-item disabled">
+            <a href="https://t.me/RateJet" target="_blank" class="info-menu-item" onclick="openTelegramLink('https://t.me/RateJet', event)">
                 <div class="info-menu-icon reviews">
                     <i class="fas fa-star"></i>
                 </div>
@@ -1552,8 +1552,8 @@ function showInfo(type) {
                     <p class="info-menu-title">Отзывы</p>
                     <p class="info-menu-subtitle">Читать отзывы клиентов</p>
                 </div>
-                <span class="info-menu-badge">Скоро</span>
-            </div>
+                <i class="fas fa-chevron-right info-menu-arrow"></i>
+            </a>
             
             <!-- Поддержка -->
             <a href="https://t.me/JetStoreHelper" target="_blank" class="info-menu-item" onclick="openTelegramLink('https://t.me/JetStoreHelper', event)">

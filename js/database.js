@@ -466,18 +466,30 @@ const Database = class {
                 if (Array.isArray(arr)) totalProducts += arr.length;
             });
 
-            // История заказов (локальная) — для оборота
+            // История заказов (локальная) — для оборота и динамики
             const purchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
             let totalTurnoverRub = 0;
             let lastUpdated = '-';
+            let salesToday = 0, salesWeek = 0, salesMonth = 0;
+            let turnoverToday = 0, turnoverWeek = 0, turnoverMonth = 0;
+            const now = Date.now();
+            const dayMs = 24 * 60 * 60 * 1000;
+            const todayStart = new Date(new Date().toDateString()).getTime();
+            const weekStart = now - 7 * dayMs;
+            const monthStart = now - 30 * dayMs;
+
             if (Array.isArray(purchases) && purchases.length > 0) {
                 purchases.forEach(p => {
-                    const price = typeof p.price === 'number'
-                        ? p.price
-                        : parseFloat(p.price) || 0;
+                    const price = typeof p.price === 'number' ? p.price : parseFloat(p.price) || 0;
                     totalTurnoverRub += price;
+                    const d = p.date || p.created_at || p.timestamp;
+                    let ts = 0;
+                    if (typeof d === 'number') ts = d * 1000;
+                    else if (typeof d === 'string') ts = new Date(d).getTime();
+                    if (ts >= todayStart) { salesToday++; turnoverToday += price; }
+                    if (ts >= weekStart) { salesWeek++; turnoverWeek += price; }
+                    if (ts >= monthStart) { salesMonth++; turnoverMonth += price; }
                 });
-                // берём дату самого свежего заказа (у нас они добавляются через unshift)
                 lastUpdated = purchases[0].date || purchases[0].created_at || purchases[0].timestamp || '-';
             }
 
@@ -486,7 +498,20 @@ const Database = class {
                 totalProducts,
                 totalBalance: Math.round(totalBalance),
                 totalTurnoverRub: Math.round(totalTurnoverRub),
-                lastUpdated
+                totalSales: (purchases && purchases.length) || 0,
+                lastUpdated,
+                salesToday,
+                salesWeek,
+                salesMonth,
+                turnoverToday: Math.round(turnoverToday * 100) / 100,
+                turnoverWeek: Math.round(turnoverWeek * 100) / 100,
+                turnoverMonth: Math.round(turnoverMonth * 100) / 100,
+                regsDay: 0,
+                regsWeek: 0,
+                regsMonth: 0,
+                activityDay: 0,
+                activityWeek: 0,
+                activityMonth: 0
             };
         } catch (error) {
             console.error('Ошибка getStatistics:', error);
@@ -495,7 +520,12 @@ const Database = class {
                 totalProducts: 0,
                 totalBalance: 0,
                 totalTurnoverRub: 0,
-                lastUpdated: '-'
+                totalSales: 0,
+                lastUpdated: '-',
+                salesToday: 0, salesWeek: 0, salesMonth: 0,
+                turnoverToday: 0, turnoverWeek: 0, turnoverMonth: 0,
+                regsDay: 0, regsWeek: 0, regsMonth: 0,
+                activityDay: 0, activityWeek: 0, activityMonth: 0
             };
         }
     }
