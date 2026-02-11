@@ -513,53 +513,124 @@
             flex-shrink: 0;
         }
         
-        /* Блок «подключено»: адрес, баланс, отвязать */
+        /* Блок «подключено»: TonKeeper (красивее) */
         .tonkeeper-connected-block {
             width: 100%;
-            padding: 18px 20px;
-            background: #0a0a0a;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
+            padding: 16px 16px 14px;
+            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.12), transparent 55%),
+                        linear-gradient(135deg, rgba(0,0,0,0.92) 0%, rgba(10,10,10,0.9) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.22);
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
         }
-        .tonkeeper-connected-row {
+        .tonkeeper-connected-head {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .tonkeeper-connected-head .tk-logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.18);
+            overflow: hidden;
+        }
+        .tonkeeper-connected-head .tk-logo img { width: 28px; height: 28px; object-fit: contain; }
+        .tonkeeper-connected-head .tk-title {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex: 1;
+        }
+        .tonkeeper-connected-head .tk-title strong {
+            color: #fff;
+            font-size: 1.02rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            line-height: 1.15;
+        }
+        .tonkeeper-connected-head .tk-title span {
+            color: rgba(255,255,255,0.55);
+            font-size: 0.82rem;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tk-status {
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.12);
+            border: 1px solid rgba(0, 212, 255, 0.22);
+            flex-shrink: 0;
+        }
+        .tonkeeper-connected-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
             margin-bottom: 12px;
         }
-        .tonkeeper-connected-row:last-of-type {
-            margin-bottom: 16px;
+        .tonkeeper-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 12px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
         }
-        .tonkeeper-connected-label {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.9rem;
+        .tonkeeper-item .label {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+            flex-shrink: 0;
         }
-        .tonkeeper-connected-value {
+        .tonkeeper-item .value {
             color: #fff;
-            font-size: 0.9rem;
-            font-weight: 500;
-            word-break: break-all;
-            text-align: right;
-            max-width: 65%;
-        }
-        .btn-tonkeeper-unbind {
-            width: 100%;
-            padding: 12px 20px;
-            background: #c62828;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            font-size: 0.88rem;
             font-weight: 600;
+            text-align: right;
+            word-break: break-word;
+            min-width: 0;
+        }
+        .tonkeeper-item.balance .value {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #ffffff;
+        }
+        .tk-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .tk-btn {
+            flex: 1;
+            padding: 11px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 212, 255, 0.22);
+            background: rgba(0, 0, 0, 0.25);
+            color: #00d4ff;
+            font-weight: 700;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
         }
-        .btn-tonkeeper-unbind:hover {
-            background: #b71c1c;
+        .tk-btn:hover { border-color: rgba(0, 212, 255, 0.35); background: rgba(0, 212, 255, 0.08); }
+        .tk-btn:active { transform: scale(0.98); }
+        .tk-btn.danger {
+            border-color: rgba(255, 71, 87, 0.35);
+            color: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 71, 87, 0.10);
         }
-        .btn-tonkeeper-unbind:active {
-            transform: scale(0.98);
-        }
+        .tk-btn.danger:hover { background: rgba(255, 71, 87, 0.16); }
         
         .tonkeeper-arrow {
             color: rgba(255, 255, 255, 0.8);
@@ -2239,15 +2310,36 @@
             <!-- TonKeeper: подключено (адрес, баланс, отвязать) или кнопка подключения -->
             <div class="tonkeeper-section page-block-enter">
                 <div id="tonkeeperConnectedBlock" class="tonkeeper-connected-block" style="display: none;">
-                    <div class="tonkeeper-connected-row">
-                        <span class="tonkeeper-connected-label">Адрес</span>
-                        <span id="tonkeeperAddress" class="tonkeeper-connected-value">—</span>
+                    <div class="tonkeeper-connected-head">
+                        <div class="tk-logo">
+                            <img src="../assets/tonkeeper-icon.png" alt="TonKeeper">
+                        </div>
+                        <div class="tk-title">
+                            <strong>TonKeeper подключён</strong>
+                            <span>адрес и баланс</span>
+                        </div>
+                        <div class="tk-status">ONLINE</div>
                     </div>
-                    <div class="tonkeeper-connected-row">
-                        <span class="tonkeeper-connected-label">Баланс</span>
-                        <span id="tonkeeperBalance" class="tonkeeper-connected-value">0.00 TON</span>
+
+                    <div class="tonkeeper-connected-grid">
+                        <div class="tonkeeper-item">
+                            <div class="label">Адрес</div>
+                            <div id="tonkeeperAddress" class="value">—</div>
+                        </div>
+                        <div class="tonkeeper-item balance">
+                            <div class="label">Баланс</div>
+                            <div id="tonkeeperBalance" class="value">0.00 TON</div>
+                        </div>
                     </div>
-                    <button type="button" class="btn-tonkeeper-unbind" onclick="disconnectTonkeeper()">Отвязать</button>
+
+                    <div class="tk-actions">
+                        <button type="button" class="tk-btn" onclick="copyTonkeeperAddress()">
+                            <i class="fas fa-copy" style="margin-right: 8px;"></i>Копировать
+                        </button>
+                        <button type="button" class="tk-btn danger" onclick="disconnectTonkeeper()">
+                            <i class="fas fa-unlink" style="margin-right: 8px;"></i>Отвязать
+                        </button>
+                    </div>
                 </div>
                 <button type="button" id="tonkeeperConnectBtn" class="btn-tonkeeper" onclick="connectTonkeeper()">
                     <div class="tonkeeper-icon">
@@ -2463,62 +2555,34 @@
             }
         })();
         
-        // Убеждаемся, что Database инициализирована перед загрузкой profile.js
-        if (window.Database && typeof window.Database.init === 'function') {
-            window.Database.init();
-            console.log('✅ Database инициализирована в profile.html');
-        } else {
-            console.error('❌ Database не найдена или init не доступен!');
-        }
+        // Инициализируем Database перед загрузкой profile.js (без тестовых логов)
+        try {
+            if (window.Database && typeof window.Database.init === 'function') {
+                window.Database.init();
+            }
+        } catch (e) {}
     </script>
     <script src="../js/profile.js"></script>
     <script>
-        // Тестовая функция для проверки сохранения баланса
-        window.testBalanceSave = function(amount) {
-            console.log('🧪 ТЕСТ: Попытка сохранить баланс', amount);
-            
-            if (typeof Database !== 'undefined' && Database.saveBalanceFixed) {
-                const saved = Database.saveBalanceFixed('RUB', amount);
-                if (saved) {
-                    console.log('✅✅✅ ТЕСТ УСПЕШЕН: Баланс сохранен!');
-                    
-                    // Проверяем загрузку
-                    const loaded = Database.getBalanceFixed('RUB');
-                    console.log('✅ ТЕСТ: Загруженный баланс:', loaded);
-                    
-                    if (loaded === amount) {
-                        console.log('✅✅✅ ТЕСТ ПОЛНОСТЬЮ УСПЕШЕН: Сохранение и загрузка работают!');
-                        return true;
-                    } else {
-                        console.error('❌ ТЕСТ ПРОВАЛЕН: Загруженный баланс не совпадает!');
-                        return false;
-                    }
-                } else {
-                    console.error('❌ ТЕСТ ПРОВАЛЕН: Не удалось сохранить баланс!');
-                    return false;
-                }
-            } else {
-                console.error('❌ ТЕСТ ПРОВАЛЕН: Database или saveBalanceFixed не найдены!');
-                return false;
-            }
-        };
-        
-        // Показываем инструкции в консоли
-        console.log('%c📋 ИНСТРУКЦИЯ ПО ПРОВЕРКЕ БАЛАНСА', 'color: #4CAF50; font-size: 16px; font-weight: bold;');
-        console.log('1. Выполните в консоли: testBalanceSave(5000)');
-        console.log('2. Проверьте результат в консоли');
-        console.log('3. Обновите страницу и проверьте, что баланс сохранился');
-        
         // Получить баланс TON по адресу из блокчейна (TonKeeper)
+        var _tonBalanceCache = { address: '', ts: 0, value: '0.00' };
         function fetchTonBalance(address) {
             if (!address) return Promise.resolve('0.00');
+            try {
+                var now = Date.now();
+                if (_tonBalanceCache.address === address && (now - _tonBalanceCache.ts) < 30000) {
+                    return Promise.resolve(_tonBalanceCache.value || '0.00');
+                }
+            } catch (e) {}
             return fetch('https://toncenter.com/api/v2/getAddressBalance?address=' + encodeURIComponent(address))
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     var nano = parseInt((data && data.result) ? data.result : '0', 10);
-                    return (nano / 1e9).toFixed(2);
+                    var v = (nano / 1e9).toFixed(2);
+                    try { _tonBalanceCache = { address: address, ts: Date.now(), value: v }; } catch (e) {}
+                    return v;
                 })
-                .catch(function() { return '0.00'; });
+                .catch(function() { return (_tonBalanceCache && _tonBalanceCache.value) ? _tonBalanceCache.value : '0.00'; });
         }
         
         // Обновление блока TonKeeper: берём актуальный адрес из коннектора или localStorage, баланс — из API
@@ -2564,7 +2628,10 @@
                 }
             }
             var displayAddress = displayAddr ? (displayAddr.length > 18 ? displayAddr.slice(0, 8) + '…' + displayAddr.slice(-8) : displayAddr) : '—';
-            if (addressEl) addressEl.textContent = displayAddress;
+            if (addressEl) {
+                addressEl.textContent = displayAddress;
+                try { addressEl.dataset.fullAddress = String(displayAddr || address || ''); } catch (e) {}
+            }
             if (balanceEl) balanceEl.textContent = '… TON';
             
             if (isConnected && address && balanceEl) {
@@ -2573,6 +2640,40 @@
                     var el = document.getElementById('tonkeeperBalance');
                     if (el) el.textContent = balanceText + ' TON';
                 });
+            }
+        };
+
+        // Копировать адрес TonKeeper
+        window.copyTonkeeperAddress = function() {
+            try {
+                var addressEl = document.getElementById('tonkeeperAddress');
+                var full = '';
+                if (addressEl && addressEl.dataset && addressEl.dataset.fullAddress) full = String(addressEl.dataset.fullAddress || '');
+                if (!full) full = String(localStorage.getItem('jetstore_tonkeeper_address') || '');
+                if (!full) {
+                    if (typeof showNotification === 'function') showNotification('Адрес не найден', 'error');
+                    return;
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(full).then(function() {
+                        if (typeof showNotification === 'function') showNotification('Адрес скопирован', 'success');
+                    }).catch(function() {
+                        if (typeof showNotification === 'function') showNotification('Не удалось скопировать', 'error');
+                    });
+                } else {
+                    // fallback
+                    var ta = document.createElement('textarea');
+                    ta.value = full;
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try { document.execCommand('copy'); } catch (e) {}
+                    document.body.removeChild(ta);
+                    if (typeof showNotification === 'function') showNotification('Адрес скопирован', 'success');
+                }
+            } catch (e) {
+                if (typeof showNotification === 'function') showNotification('Ошибка копирования', 'error');
             }
         };
         
@@ -2699,9 +2800,7 @@
             }, false);
             
             // ВАЖНО: Сначала загружаем данные пользователя (включая баланс из базы)
-            // loadUserData уже вызвана выше, но убеждаемся, что данные синхронизированы
             // Используем только window.userData, так как локальная переменная userData может быть недоступна
-            console.log('Текущий баланс после загрузки:', window.userData?.currencies?.RUB);
             
             // Проверяем, что window.userData инициализирован
             if (!window.userData) {
@@ -2724,7 +2823,7 @@
                             window.userData.currencies = {};
                         }
                         window.userData.currencies.RUB = savedBalance;
-                        console.log('✅ Баланс загружен из фиксированного ключа:', savedBalance);
+                        // silent
                     }
                 } else {
                     // Прямая загрузка из localStorage
@@ -2735,14 +2834,13 @@
                             window.userData.currencies = {};
                         }
                         window.userData.currencies.RUB = balanceData.RUB;
-                        console.log('✅ Баланс загружен напрямую из localStorage:', balanceData.RUB);
+                        // silent
                     }
                 }
             } catch (e) {
                 console.warn('⚠️ Ошибка загрузки баланса:', e);
             }
-            
-            console.log('✅ window.userData инициализирован. Баланс:', window.userData.currencies?.RUB);
+            // silent
             
             // Инициализация профиля
             if (typeof initializeProfile === 'function') {
@@ -3496,7 +3594,8 @@
         (function() {
             if (typeof TonConnectSDK === 'undefined') return;
             var manifestUrl = (window.location.origin || 'https://jetstoreapp.ru') + '/tonconnect-manifest.json';
-            window.tonConnectConnector = new TonConnectSDK.TonConnect({ manifestUrl: manifestUrl });
+            // Отключаем аналитику TonConnect, чтобы не было ошибок/спама в консоли
+            window.tonConnectConnector = new TonConnectSDK.TonConnect({ manifestUrl: manifestUrl, analytics: { mode: 'off' } });
             window.tonConnectConnector.restoreConnection().then(function() {
                 if (typeof window.updateTonkeeperButton === 'function') window.updateTonkeeperButton();
             }).catch(function() {});

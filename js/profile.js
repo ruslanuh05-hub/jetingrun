@@ -52,13 +52,11 @@ function autoSaveBalance() {
 
 // Сохраняем перед закрытием страницы
 window.addEventListener('beforeunload', function() {
-    console.log('💾 Сохранение перед закрытием страницы...');
     autoSaveBalance();
 });
 
 // Сохраняем при потере фокуса
 window.addEventListener('blur', function() {
-    console.log('💾 Сохранение при потере фокуса...');
     autoSaveBalance();
 });
 
@@ -68,7 +66,6 @@ setInterval(function() {
     if (userData && userData.currencies && userData.currencies.RUB !== undefined) {
         const currentBalance = userData.currencies.RUB;
         if (lastSavedBalance !== currentBalance && userData.id) {
-            console.log('💾 Периодическое автосохранение баланса...');
             autoSaveBalance();
             lastSavedBalance = currentBalance;
         }
@@ -80,8 +77,6 @@ let profilePageInitialized = false;
 function initProfilePage() {
     if (profilePageInitialized) return;
     profilePageInitialized = true;
-
-    console.log('Инициализация профиля...');
     
     // Инициализируем базу данных (через ГЛОБАЛЬНЫЙ экземпляр window.Database)
     try {
@@ -115,7 +110,6 @@ function initProfilePage() {
         }
     }, 500);
     
-    console.log('Профиль инициализирован');
 }
 
 if (document.readyState === 'loading') {
@@ -126,8 +120,6 @@ if (document.readyState === 'loading') {
 
 // Загрузка данных пользователя
 function loadUserData() {
-    console.log('Загрузка данных пользователя...');
-    
     // Сначала получаем ID пользователя
     let userId = null;
     
@@ -143,7 +135,6 @@ function loadUserData() {
         userData.lastName = initData.user.last_name || '';
         userData.photoUrl = initData.user.photo_url || null;
         
-        console.log('Пользователь загружен из Telegram:', userId);
     } else {
         // Для тестирования вне Telegram - используем ФИКСИРОВАННЫЙ ID
         userId = 'test_user_default';
@@ -153,7 +144,6 @@ function loadUserData() {
         userData.lastName = 'Пользователь';
         userData.photoUrl = null;
         
-        console.log('✅ Используются тестовые данные с фиксированным ID:', userId);
     }
     
     // КРИТИЧЕСКИ ВАЖНО: Убеждаемся, что ID всегда строка
@@ -902,29 +892,19 @@ setTimeout(checkPendingPayments, 2000);
 
 // Процесс пополнения
 function processDeposit(amount = null) {
-    console.log('=== НАЧАЛО processDeposit ===');
-    console.log('Переданный amount:', amount);
-    
     // Синхронизируем userData с window.userData перед началом
     if (window.userData && window.userData.id) {
         userData = { ...userData, ...window.userData };
-        console.log('Синхронизирован userData с window.userData в начале функции');
     }
-    
-    console.log('Текущий userData:', userData);
-    console.log('Текущий window.userData:', window.userData);
     
     let depositAmount = amount;
     
     // Если сумма не передана, берем из input
     if (!depositAmount || depositAmount === 0) {
         const amountInput = document.getElementById('customAmount');
-        console.log('amountInput:', amountInput);
         if (amountInput && amountInput.value) {
             depositAmount = parseFloat(amountInput.value);
-            console.log('Сумма из input:', depositAmount);
         } else {
-            console.error('Сумма не введена!');
             const notifyFn = typeof showNotification === 'function' ? showNotification : (typeof window.showNotification === 'function' ? window.showNotification : alert);
             notifyFn('Введите сумму для пополнения', 'error');
             return;
@@ -933,32 +913,26 @@ function processDeposit(amount = null) {
     
     // Проверка на валидность числа
     if (isNaN(depositAmount) || depositAmount <= 0) {
-        console.error('Некорректная сумма:', depositAmount);
         const notifyFn = typeof showNotification === 'function' ? showNotification : (typeof window.showNotification === 'function' ? window.showNotification : alert);
         notifyFn('Введите корректную сумму', 'error');
         return;
     }
     
     if (depositAmount < 10) {
-        console.error('Сумма слишком мала:', depositAmount);
         const notifyFn = typeof showNotification === 'function' ? showNotification : (typeof window.showNotification === 'function' ? window.showNotification : alert);
         notifyFn('Минимальная сумма пополнения: 10 ₽', 'error');
         return;
     }
     
     if (depositAmount > 100000) {
-        console.error('Сумма слишком велика:', depositAmount);
         const notifyFn = typeof showNotification === 'function' ? showNotification : (typeof window.showNotification === 'function' ? window.showNotification : alert);
         notifyFn('Максимальная сумма пополнения: 100,000 ₽', 'error');
         return;
     }
     
-    console.log('✅ Валидация пройдена. Пополнение на сумму:', depositAmount);
-    
     // Синхронизируем userData с window.userData перед изменением
     if (window.userData && window.userData.id) {
         userData = { ...userData, ...window.userData };
-        console.log('Синхронизирован userData с window.userData');
     }
     
     // Инициализируем валюты, если их нет
@@ -1797,47 +1771,10 @@ window.updateBalanceDisplay = updateBalanceDisplay;
 window.loadUserData = loadUserData;
 window.updateProfileDisplay = updateProfileDisplay;
 
-// Убеждаемся, что все функции доступны глобально
+// Убеждаемся, что showNotification доступна глобально (без тестовых логов)
 if (typeof window.showNotification === 'undefined') {
     window.showNotification = showNotification;
 }
-
-// Проверка доступности функций при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== ПРОВЕРКА ДОСТУПНОСТИ ФУНКЦИЙ ===');
-    console.log('processDeposit:', typeof processDeposit, typeof window.processDeposit);
-    console.log('selectDepositAmount:', typeof selectDepositAmount, typeof window.selectDepositAmount);
-    console.log('processCustomAmount:', typeof processCustomAmount, typeof window.processCustomAmount);
-    console.log('showNotification:', typeof showNotification, typeof window.showNotification);
-    console.log('saveUserData:', typeof saveUserData, typeof window.saveUserData);
-    console.log('Database:', typeof Database);
-    console.log('userData:', userData);
-    console.log('window.userData:', window.userData);
-    
-    // Убеждаемся, что все функции доступны глобально
-    if (typeof window.processDeposit === 'undefined' && typeof processDeposit !== 'undefined') {
-        window.processDeposit = processDeposit;
-        console.log('✅ processDeposit экспортирована в window');
-    }
-    
-    if (typeof window.selectDepositAmount === 'undefined' && typeof selectDepositAmount !== 'undefined') {
-        window.selectDepositAmount = selectDepositAmount;
-        console.log('✅ selectDepositAmount экспортирована в window');
-    }
-    
-    if (typeof window.processCustomAmount === 'undefined' && typeof processCustomAmount !== 'undefined') {
-        window.processCustomAmount = processCustomAmount;
-        console.log('✅ processCustomAmount экспортирована в window');
-    }
-    
-    // Тестируем доступность элементов
-    setTimeout(() => {
-        const depositBtn = document.getElementById('depositBtn');
-        const customAmount = document.getElementById('customAmount');
-        console.log('depositBtn:', depositBtn);
-        console.log('customAmount:', customAmount);
-    }, 1000);
-});
 
 // Инициализация 
 window.addEventListener('load', function() {
@@ -1847,10 +1784,6 @@ window.addEventListener('load', function() {
 
 // Сохранение данных пользователя
 function saveUserData() {
-    console.log('=== saveUserData вызвана ===');
-    console.log('userData перед сохранением:', userData);
-    console.log('Баланс RUB:', userData.currencies?.RUB);
-    
     // Убеждаемся, что у пользователя есть ID
     if (!userData.id) {
         const tg = window.Telegram?.WebApp;
@@ -1860,20 +1793,15 @@ function saveUserData() {
         } else if (window.userData && window.userData.id) {
             userData.id = String(window.userData.id);
         } else {
-            userData.id = 'test_user_default'; // ФИКСИРОВАННЫЙ ID для тестирования
+            userData.id = 'unknown_web'; // вне Telegram
         }
-        console.log('✅ Установлен ID в saveUserData:', userData.id);
     }
     
     // КРИТИЧЕСКИ ВАЖНО: Сохранение в ФИКСИРОВАННЫЙ ключ
     const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
     if (db && typeof db.saveBalanceFixed === 'function' && userData.currencies) {
         const saved = db.saveBalanceFixed('RUB', userData.currencies.RUB);
-        if (saved) {
-            console.log('✅✅✅ БАЛАНС СОХРАНЕН (фиксированный ключ) в saveUserData:', userData.currencies.RUB);
-        } else {
-            console.error('❌ Ошибка сохранения баланса (фиксированный ключ)');
-        }
+        // silent
     }
     
     // Дополнительно: прямое сохранение

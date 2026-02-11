@@ -39,6 +39,47 @@
             top: 0;
             z-index: 10;
         }
+
+        .referral-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+        }
+        .referral-brand-logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: block;
+            object-fit: cover;
+            box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.25);
+            background: rgba(0, 0, 0, 0.35);
+        }
+        .referral-brand-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .referral-brand-name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            color: #ffffff;
+            line-height: 1.05;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .referral-brand-sub {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         
         .referral-back-btn {
             width: 40px;
@@ -65,10 +106,11 @@
         
         .referral-page-title {
             margin: 0;
-            font-size: 1.15rem;
+            font-size: 0.95rem;
             font-weight: 700;
-            color: #ffffff;
+            color: rgba(255,255,255,0.8);
             letter-spacing: 0.4px;
+            flex-shrink: 0;
         }
         
         .referral-page-content {
@@ -1020,9 +1062,16 @@
     
     <div id="currentPageContent">
     <div class="referral-page-header page-block-enter">
-        <button class="referral-back-btn" onclick="window.location.href='index.html'">
+        <button class="referral-back-btn" onclick="window.location.href='index.html'" aria-label="Назад">
             <i class="fas fa-chevron-left"></i>
         </button>
+        <div class="referral-brand">
+            <img src="../assets/jet-logo.png" alt="JET" class="referral-brand-logo">
+            <div class="referral-brand-text">
+                <div class="referral-brand-name">JET</div>
+                <div class="referral-brand-sub">официальный бот</div>
+            </div>
+        </div>
         <h1 class="referral-page-title">Заработать</h1>
     </div>
     
