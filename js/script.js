@@ -2447,6 +2447,119 @@ function closePaymentMethodPopup(skipReturnToPrevious) {
     }
 }
 
+// ======== Предложить идею ========
+function openIdeaModal() {
+    var overlay = document.getElementById('ideaOverlay');
+    var modal = document.getElementById('ideaModal');
+    var textarea = document.getElementById('ideaText');
+    var counter = document.getElementById('ideaCounter');
+    var btn = document.getElementById('ideaSubmitBtn');
+    if (!overlay || !modal || !textarea || !btn) return;
+    overlay.classList.add('active');
+    modal.classList.add('active');
+    textarea.value = '';
+    if (counter) counter.textContent = '0 / 500';
+    btn.disabled = false;
+    btn.textContent = 'Отправить';
+    setTimeout(function() { textarea.focus(); }, 50);
+}
+
+function closeIdeaModal() {
+    var overlay = document.getElementById('ideaOverlay');
+    var modal = document.getElementById('ideaModal');
+    if (overlay) overlay.classList.remove('active');
+    if (modal) modal.classList.remove('active');
+}
+
+function updateIdeaCounter() {
+    var textarea = document.getElementById('ideaText');
+    var counter = document.getElementById('ideaCounter');
+    if (!textarea || !counter) return;
+    var len = (textarea.value || '').length;
+    counter.textContent = len + ' / 500';
+}
+
+async function submitIdea() {
+    var textarea = document.getElementById('ideaText');
+    var btn = document.getElementById('ideaSubmitBtn');
+    if (!textarea || !btn) return;
+    var text = (textarea.value || '').trim();
+    if (!text || text.length < 5) {
+        if (typeof showStoreNotification === 'function') {
+            showStoreNotification('Опишите идею чуть подробнее (минимум 5 символов).', 'info');
+        } else {
+            alert('Опишите идею чуть подробнее (минимум 5 символов).');
+        }
+        return;
+    }
+    if (text.length > 500) {
+        text = text.slice(0, 500);
+        textarea.value = text;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Отправка...';
+
+    var userId = window.userData && window.userData.id ? String(window.userData.id) : null;
+    var username = window.userData && window.userData.username ? window.userData.username : '';
+    var firstName = window.userData && window.userData.firstName ? window.userData.firstName : '';
+
+    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || '';
+    if (!apiBase) {
+        apiBase = window.JET_BOT_API_URL || window.JET_BOT_API_FALLBACK || '';
+    }
+    apiBase = String(apiBase || '').replace(/\/$/, '');
+
+    try {
+        if (!apiBase) throw new Error('API URL empty');
+        var resp = await fetch(apiBase + '/api/idea/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId,
+                username: username,
+                first_name: firstName,
+                text: text,
+                source: 'webapp_main'
+            })
+        });
+        var data = {};
+        try { data = await resp.json(); } catch (e) {}
+        if (resp.ok && data && data.success) {
+            if (typeof showStoreNotification === 'function') {
+                showStoreNotification('Спасибо! Идея отправлена команде JET.', 'success');
+            } else {
+                alert('Спасибо! Идея отправлена команде JET.');
+            }
+            closeIdeaModal();
+        } else {
+            var msg = (data && data.message) || 'Не удалось отправить идею. Попробуйте позже.';
+            if (typeof showStoreNotification === 'function') {
+                showStoreNotification(msg, 'error');
+            } else {
+                alert(msg);
+            }
+            btn.disabled = false;
+            btn.textContent = 'Отправить';
+        }
+    } catch (e) {
+        console.warn('submitIdea error:', e);
+        if (typeof showStoreNotification === 'function') {
+            showStoreNotification('Сеть недоступна. Попробуйте ещё раз позже.', 'error');
+        } else {
+            alert('Сеть недоступна. Попробуйте ещё раз позже.');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Отправить';
+    }
+}
+
+// Экспорт в глобальную область
+window.openIdeaModal = openIdeaModal;
+window.closeIdeaModal = closeIdeaModal;
+window.submitIdea = submitIdea;
+window.updateIdeaCounter = updateIdeaCounter;
+
 // Выбрать способ оплаты
 function selectPaymentMethod(method, bonusPercent) {
     closePaymentMethodPopup(true);  // Не возвращаться назад — идём к оплате

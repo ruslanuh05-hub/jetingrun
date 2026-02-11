@@ -2614,6 +2614,141 @@
                 transform: translate(-50%, -50%) scale(1);
             }
         }
+
+        /* Модальное окно «Предложить идею» */
+        .idea-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .idea-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .idea-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.92);
+            width: 92%;
+            max-width: 420px;
+            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.16), transparent 55%),
+                        rgba(6, 8, 18, 0.98);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+            z-index: 10001;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.22s ease, visibility 0.22s ease, transform 0.22s ease;
+        }
+        .idea-modal.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .idea-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .idea-modal-title {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        .idea-modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .idea-modal-close:hover {
+            background: rgba(255, 70, 70, 0.4);
+        }
+        .idea-modal-body {
+            padding: 14px 18px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .idea-modal-hint {
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.4;
+        }
+        .idea-modal-textarea {
+            width: 100%;
+            min-height: 96px;
+            max-height: 200px;
+            resize: vertical;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            background: rgba(3, 5, 12, 0.95);
+            color: #fff;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .idea-modal-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .idea-modal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            gap: 10px;
+        }
+        .idea-modal-counter {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.55);
+        }
+        .idea-modal-submit {
+            flex-shrink: 0;
+            padding: 10px 18px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);
+            color: #000;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 10px 28px rgba(0, 212, 255, 0.4);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+        }
+        .idea-modal-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 36px rgba(0, 212, 255, 0.5);
+        }
+        .idea-modal-submit:active {
+            transform: translateY(0);
+            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.35);
+        }
+        .idea-modal-submit[disabled] {
+            opacity: 0.6;
+            cursor: default;
+            box-shadow: none;
+        }
         
         .steam-login-help-header {
             display: flex;
@@ -4580,15 +4715,15 @@
                     </div>
                 </a>
                 
-                <!-- Ряд: Поделиться идеей | Каталог игр (пока недоступны) -->
-                <div class="main-menu-card main-menu-card-ton main-menu-card-disabled page-block-enter" onclick="return false;" style="cursor: not-allowed; opacity: 0.6; pointer-events: none;">
+                <!-- Ряд: Поделиться идеей | Каталог игр -->
+                <div class="main-menu-card main-menu-card-ton page-block-enter" onclick="openIdeaModal();">
                     <div class="main-menu-card-title">Поделиться идеей</div>
                     <div class="main-menu-card-subtitle">Предложить улучшение сервиса</div>
                 </div>
                 
                 <div class="main-menu-card main-menu-card-sell-stars main-menu-card-disabled page-block-enter" onclick="return false;" style="cursor: not-allowed; opacity: 0.6; pointer-events: none;">
                     <div class="main-menu-card-title">Каталог игр</div>
-                    <div class="main-menu-card-subtitle">Скоро</div>
+                    <div class="main-menu-card-subtitle"></div>
                 </div>
                 
                 <!-- Steam — пополнение через FunPay -->
@@ -4941,6 +5076,31 @@
                 <button class="steam-login-help-btn" onclick="window.open('https://store.steampowered.com/account/', '_blank')">
                     Посмотреть свой логин Steam
                 </button>
+            </div>
+        </div>
+
+        <!-- Модальное окно «Предложить идею» -->
+        <div id="ideaOverlay" class="idea-overlay" onclick="closeIdeaModal()"></div>
+        <div id="ideaModal" class="idea-modal">
+            <div class="idea-modal-header">
+                <h2 class="idea-modal-title">Предложить идею</h2>
+                <button class="idea-modal-close" onclick="closeIdeaModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="idea-modal-body">
+                <p class="idea-modal-hint">
+                    Опишите, чего вам не хватает в JET: новые функции, улучшения, игры или любые предложения.
+                    Ваше сообщение попадёт напрямую команде.
+                </p>
+                <textarea id="ideaText" class="idea-modal-textarea" maxlength="500" oninput="updateIdeaCounter()" placeholder="Например: Добавьте раздел с подборкой лучших игр под скидки..."></textarea>
+                <div class="idea-modal-footer">
+                    <span id="ideaCounter" class="idea-modal-counter">0 / 500</span>
+                    <button id="ideaSubmitBtn" class="idea-modal-submit" onclick="submitIdea()">
+                        <i class="fas fa-paper-plane"></i>
+                        Отправить
+                    </button>
+                </div>
             </div>
         </div>
         
