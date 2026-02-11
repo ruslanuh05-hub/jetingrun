@@ -2439,6 +2439,83 @@ function closePaymentMethodPopup(skipReturnToPrevious) {
 }
 
 // ======== Предложить идею ========
+var ideaCooldownInterval = null;
+
+function getIdeaUserIdForCooldown() {
+    var tgUser = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe
+        ? window.Telegram.WebApp.initDataUnsafe.user
+        : null;
+    if (tgUser && tgUser.id) return String(tgUser.id);
+    if (window.userData && window.userData.id) return String(window.userData.id);
+    return null;
+}
+
+function getIdeaCooldownStorageKey(userId) {
+    return 'jet_idea_cooldown_' + (userId || 'anon');
+}
+
+function applyIdeaCooldown(nextTs) {
+    var btn = document.getElementById('ideaSubmitBtn');
+    var hint = document.getElementById('ideaCooldownHint');
+    if (!btn || !hint) return;
+
+    function updateCooldownText() {
+        var nowSec = Math.floor(Date.now() / 1000);
+        var remaining = Math.max(0, Math.floor(nextTs - nowSec));
+        if (remaining <= 0) {
+            hint.style.display = 'none';
+            hint.textContent = '';
+            btn.disabled = false;
+            btn.textContent = 'Отправить';
+            if (ideaCooldownInterval) {
+                clearInterval(ideaCooldownInterval);
+                ideaCooldownInterval = null;
+            }
+            var uid = getIdeaUserIdForCooldown();
+            if (uid) {
+                try { localStorage.removeItem(getIdeaCooldownStorageKey(uid)); } catch (e) {}
+            }
+            return;
+        }
+        var hours = Math.floor(remaining / 3600);
+        var minutes = Math.floor((remaining % 3600) / 60);
+        var text = 'Новую идею можно будет отправить через ';
+        if (hours > 0) {
+            text += hours + ' ч';
+            if (minutes > 0) text += ' ' + minutes + ' мин';
+        } else {
+            text += minutes + ' мин';
+        }
+        hint.textContent = text;
+        hint.style.display = 'block';
+        btn.disabled = true;
+        btn.textContent = 'Таймер...';
+    }
+
+    updateCooldownText();
+    if (ideaCooldownInterval) clearInterval(ideaCooldownInterval);
+    ideaCooldownInterval = setInterval(updateCooldownText, 60000);
+}
+
+function restoreIdeaCooldownIfNeeded() {
+    var uid = getIdeaUserIdForCooldown();
+    if (!uid) return;
+    var key = getIdeaCooldownStorageKey(uid);
+    var storedTs = 0;
+    try {
+        storedTs = parseInt(localStorage.getItem(key) || '0', 10);
+    } catch (e) {
+        storedTs = 0;
+    }
+    if (!storedTs) return;
+    var nowSec = Math.floor(Date.now() / 1000);
+    if (storedTs > nowSec) {
+        applyIdeaCooldown(storedTs);
+    } else {
+        try { localStorage.removeItem(key); } catch (e) {}
+    }
+}
+
 function openIdeaModal() {
     var overlay = document.getElementById('ideaOverlay');
     var modal = document.getElementById('ideaModal');
@@ -2452,6 +2529,8 @@ function openIdeaModal() {
     if (counter) counter.textContent = '0 / 500';
     btn.disabled = false;
     btn.textContent = 'Отправить';
+    // Проверяем, есть ли активный таймер на отправку идеи
+    restoreIdeaCooldownIfNeeded();
     setTimeout(function() { textarea.focus(); }, 50);
 }
 
@@ -2488,6 +2567,23 @@ async function submitIdea() {
         textarea.value = text;
     }
 
+    // Локальная проверка таймера перед отправкой (12 часов на одного пользователя)
+    var localUserId = getIdeaUserIdForCooldown();
+    if (localUserId) {
+        var key = getIdeaCooldownStorageKey(localUserId);
+        var storedTs = 0;
+        try {
+            storedTs = parseInt(localStorage.getItem(key) || '0', 10);
+        } catch (e) {
+            storedTs = 0;
+        }
+        var nowSecCheck = Math.floor(Date.now() / 1000);
+        if (storedTs && storedTs > nowSecCheck) {
+            applyIdeaCooldown(storedTs);
+            return;
+        }
+    }
+
     btn.disabled = true;
     btn.textContent = 'Отправка...';
 
@@ -2495,9 +2591,7 @@ async function submitIdea() {
     var tgUser = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe
         ? window.Telegram.WebApp.initDataUnsafe.user
         : null;
-    var userId = tgUser && tgUser.id
-        ? String(tgUser.id)
-        : (window.userData && window.userData.id ? String(window.userData.id) : null);
+    var userId = localUserId;
     var username = tgUser && tgUser.username
         ? tgUser.username
         : (window.userData && window.userData.username ? window.userData.username : '');
@@ -2532,6 +2626,14 @@ async function submitIdea() {
             } else {
                 alert('Спасибо! Идея отправлена команде JET.');
             }
+            // Фиксируем локальный таймер на 12 часов вперёд
+            if (userId) {
+                var nextTsSuccess = Math.floor(Date.now() / 1000) + 12 * 60 * 60;
+                try {
+                    localStorage.setItem(getIdeaCooldownStorageKey(userId), String(nextTsSuccess));
+                } catch (e) {}
+                applyIdeaCooldown(nextTsSuccess);
+            }
             closeIdeaModal();
         } else {
             var msg = (data && data.message) || 'Не удалось отправить идею. Попробуйте позже.';
@@ -2540,8 +2642,17 @@ async function submitIdea() {
             } else {
                 alert(msg);
             }
-            btn.disabled = false;
-            btn.textContent = 'Отправить';
+            // Если сервер вернул, что сработал лимит (cooldown) — фиксируем таймер локально
+            if (data && data.error === 'cooldown' && data.retry_after_seconds && userId) {
+                var nextTs = Math.floor(Date.now() / 1000) + Number(data.retry_after_seconds || 0);
+                try {
+                    localStorage.setItem(getIdeaCooldownStorageKey(userId), String(nextTs));
+                } catch (e) {}
+                applyIdeaCooldown(nextTs);
+            } else {
+                btn.disabled = false;
+                btn.textContent = 'Отправить';
+            }
         }
     } catch (e) {
         console.warn('submitIdea error:', e);
