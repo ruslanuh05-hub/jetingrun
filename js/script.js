@@ -2879,9 +2879,8 @@ function openPaymentPage() {
     const statusEl = document.getElementById('paymentDetailStatus');
     const primaryBtn = document.getElementById('paymentWaitingPrimaryBtn');
 
-    // ВАЖНО: для звёзд ВСЕГДА используем Fragment, даже если method === 'cryptobot'
-    // CryptoBot: создание инвойса (только для НЕ-звёзд)
-    if (data.method === 'cryptobot' && data.purchase?.type !== 'stars') {
+    // CryptoBot: создание инвойса (для всех типов, включая звёзды)
+    if (data.method === 'cryptobot') {
         var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (!apiBase) {
             if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js (JET_BOT_API_URL).', 'error');
@@ -3017,8 +3016,8 @@ function openPaymentPage() {
         return;
     }
 
-    // Звёзды: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
-    if (data.purchase?.type === 'stars') {
+    // Звёзды: Fragment.com / TonKeeper — этот путь используется только если method НЕ 'cryptobot'
+    if (data.purchase?.type === 'stars' && data.method !== 'cryptobot') {
         console.log('[Fragment Stars] Начинаем создание заказа звёзд через Fragment');
         var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
