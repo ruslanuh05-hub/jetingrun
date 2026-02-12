@@ -2343,6 +2343,7 @@ function showPaymentMethodSelection(purchaseType) {
             return;
         }
         
+        // Дополнительная валидация: минимум 50 ₽ для пополнения Steam
         if (amount < 50) {
             showStoreNotification('Минимальная сумма пополнения Steam — 50 ₽', 'error');
             return;

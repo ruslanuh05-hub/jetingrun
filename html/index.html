@@ -5085,14 +5085,14 @@
                         <div class="steam-topup-input-group">
                             <div class="steam-topup-label">
                                 <span>Сумма пополнения</span>
-                                <span class="steam-topup-hint" id="steamCurrencyHint">₽</span>
+                                <span class="steam-topup-hint" id="steamCurrencyHint">₽ · минимум 50 ₽</span>
                             </div>
                             <div class="steam-currency-switcher">
                                 <button type="button" id="steamCurRub" class="steam-currency-btn active" onclick="setSteamCurrency('RUB')">₽ RUB</button>
                             </div>
                             <div class="steam-topup-input-wrap">
                                 <span class="steam-currency-icon" id="steamCurrencyIcon">₽</span>
-                                <input type="number" id="steamAmount" class="steam-topup-input" placeholder="100" min="50">
+                                <input type="number" id="steamAmount" class="steam-topup-input" placeholder="100" min="1">
                                 <button type="button" class="steam-topup-clear" onclick="clearSteamInput('steamAmount')">
                                     <i class="fas fa-times"></i>
                                 </button>
