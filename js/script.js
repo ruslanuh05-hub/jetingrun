@@ -2176,14 +2176,12 @@ function showSteamTopup() {
     popup.classList.add('active');
     var amountInput = document.getElementById('steamAmount');
     if (amountInput) {
-        if (window._steamAmountInputHandler) amountInput.removeEventListener('input', window._steamAmountInputHandler);
+        if (window._steamAmountInputHandler) {
+            amountInput.removeEventListener('input', window._steamAmountInputHandler);
+        }
+        // Только обновляем отображение суммы к оплате, без жёсткого принуждения к 50 ₽,
+        // чтобы пользователь мог нормально редактировать поле.
         window._steamAmountInputHandler = function() {
-            var v = parseFloat(amountInput.value) || 0;
-            // Жёстко не даём ввести меньше 50 ₽
-            if (v && v < 50) {
-                v = 50;
-                amountInput.value = String(v);
-            }
             updateSteamPayTotalDisplay();
         };
         amountInput.addEventListener('input', window._steamAmountInputHandler);
