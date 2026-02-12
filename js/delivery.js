@@ -10,10 +10,16 @@ function runDeliveryAfterPayment(data, checkResponse) {
     }
     
     var statusEl = document.getElementById('paymentDetailStatus');
+    var purchaseType = (data && data.purchase && data.purchase.type) || '';
     
     // Оплата через Fragment (TonKeeper): товар уже выдан по вебхуку order.completed
     if (checkResponse && checkResponse.delivered_by_fragment === true) {
-        if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data);
+        var optsDelivered = null;
+        if (purchaseType === 'stars') {
+            // Для звёзд: явно фиксируем, что они выданы
+            optsDelivered = { status: 'delivered' };
+        }
+        if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, optsDelivered);
         if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
         if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
         return;
@@ -21,7 +27,6 @@ function runDeliveryAfterPayment(data, checkResponse) {
 
     // Для CryptoBot и других методов: выдача выполняется на бэкенде через вебхуки
     // Клиент только показывает сообщение о том, что оплата подтверждена и товар будет выдан автоматически
-    var purchaseType = (data.purchase && data.purchase.type) || '';
     var message = 'Оплата подтверждена. ';
     
     if (purchaseType === 'stars') {
@@ -34,7 +39,12 @@ function runDeliveryAfterPayment(data, checkResponse) {
         message += 'Товар будет выдан автоматически после обработки на сервере.';
     }
     
-    if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data);
+    var optsPending = null;
+    if (purchaseType === 'stars') {
+        // Для звёзд: оплата прошла, но сервер ещё отправляет — показываем "звёзды отправляются"
+        optsPending = { status: 'pending_delivery' };
+    }
+    if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, optsPending);
     if (typeof showStoreNotification === 'function') showStoreNotification(message, 'success');
     if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
 }

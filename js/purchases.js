@@ -12,7 +12,9 @@ function recordPurchaseIntent(data) {
 }
 
 // Сохранение покупки: только локальная история (для UI)
-function recordPurchaseSuccess(data) {
+// deliveryOptions (необязательный второй аргумент) может содержать:
+// { status: 'delivered' | 'pending_delivery' } — для расширенных статусов, например для звёзд.
+function recordPurchaseSuccess(data, deliveryOptions) {
     if (!data || !data.purchase) return;
     var p = data.purchase;
     var amountRub = parseFloat(data.totalAmount || data.baseAmount || p.amount || 0);
@@ -45,12 +47,23 @@ function recordPurchaseSuccess(data) {
         uid = null;
     }
 
+    // Статус по умолчанию
+    var statusText = 'успешно';
+    // Для звёзд учитываем дополнительные статусы, приходящие из delivery.js
+    if (type === 'stars' && deliveryOptions && typeof deliveryOptions === 'object') {
+        if (deliveryOptions.status === 'delivered') {
+            statusText = 'Звёзды выданы';
+        } else if (deliveryOptions.status === 'pending_delivery') {
+            statusText = 'Звёзды отправляются';
+        }
+    }
+
     var purchaseObj = {
         id: 'purchase_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
         type: type,
         productName: productName,
         price: amountRub,
-        status: 'успешно',
+        status: statusText,
         date: new Date().toISOString(),
         userId: uid
     };

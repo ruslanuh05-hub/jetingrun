@@ -3017,17 +3017,28 @@
                 purchases.forEach((purchase, index) => {
                     const item = document.createElement('div');
                     item.className = 'purchase-item';
-                    item.style.cssText = 'padding: 14px 16px; background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(5,10,20,0.9) 100%); border: 1px solid rgba(0,212,255,0.25); border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 22px rgba(0,0,0,0.45);';
-                    item.onclick = () => showPurchaseDetails(purchase);
-                    item.onmouseenter = function() { this.style.borderColor = 'rgba(0,212,255,0.4)'; };
-                    item.onmouseleave = function() { this.style.borderColor = 'rgba(0,212,255,0.2)'; };
-                    
+
                     const statusColors = {
                         'успешно': '#27ae60',
                         'в процессе': '#f1c40f',
-                        'отменен': '#e74c3c'
+                        'отменен': '#e74c3c',
+                        'Звёзды выданы': '#27ae60',
+                        'Звёзды отправляются': '#f1c40f'
                     };
                     const statusColor = statusColors[purchase.status] || '#888';
+
+                    // Цвет обводки карточки: для статуса "Звёзды отправляются" делаем жёлтую рамку
+                    let borderBase = 'rgba(0,212,255,0.25)';
+                    let borderHover = 'rgba(0,212,255,0.4)';
+                    if (purchase.type === 'stars' && purchase.status === 'Звёзды отправляются') {
+                        borderBase = 'rgba(241,196,15,0.8)';   // жёлтая рамка
+                        borderHover = 'rgba(241,196,15,1)';
+                    }
+
+                    item.style.cssText = 'padding: 14px 16px; background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(5,10,20,0.9) 100%); border: 1px solid ' + borderBase + '; border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 22px rgba(0,0,0,0.45);';
+                    item.onclick = () => showPurchaseDetails(purchase);
+                    item.onmouseenter = function() { this.style.borderColor = borderHover; };
+                    item.onmouseleave = function() { this.style.borderColor = borderBase; };
                     
                     const date = purchase.date ? new Date(purchase.date).toLocaleDateString('ru-RU', {
                         day: '2-digit',
@@ -3081,7 +3092,9 @@
             const statusColors = {
                 'успешно': '#4CAF50',
                 'в процессе': '#FFC107',
-                'отменен': '#f44336'
+                'отменен': '#f44336',
+                'Звёзды выданы': '#4CAF50',
+                'Звёзды отправляются': '#FFC107'
             };
             const statusColor = statusColors[purchase.status] || '#888';
             
