@@ -3040,7 +3040,7 @@
                         borderHover = 'rgba(241,196,15,1)';
                     }
 
-                    item.style.cssText = 'padding: 14px 16px; background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(5,10,20,0.9) 100%); border: 1px solid ' + borderBase + '; border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 22px rgba(0,0,0,0.45);';
+                    item.style.cssText = 'padding: 16px; background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(5,10,20,0.9) 100%); border: 1px solid ' + borderBase + '; border-radius: 14px; margin-bottom: 12px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 22px rgba(0,0,0,0.45);';
                     item.onclick = () => showPurchaseDetails(purchase);
                     item.onmouseenter = function() { this.style.borderColor = borderHover; };
                     item.onmouseleave = function() { this.style.borderColor = borderBase; };
@@ -3053,34 +3053,38 @@
                         minute: '2-digit'
                     }) : 'Дата не указана';
                     
+                    const productName = (purchase.productName || purchase.name || 'Товар').toString();
+                    const hasRecipient = (purchase.type === 'stars' || purchase.type === 'premium') && purchase.recipient;
+                    const hasSteamLogin = purchase.type === 'steam' && purchase.login;
+                    
                     item.innerHTML = `
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            <div style="width:40px;height:40px;border-radius:12px;background:${statusColor}20;display:flex;align-items:center;justify-content:center;color:${statusColor};flex-shrink:0;">
-                                <i class="${purchase.type === 'steam' ? 'fab fa-steam' : purchase.type === 'stars' ? 'fas fa-star' : purchase.type === 'premium' ? 'fas fa-crown' : 'fas fa-shopping-bag'}"></i>
+                        <div style="display:flex;align-items:flex-start;gap:14px;">
+                            <div style="width:44px;height:44px;border-radius:12px;background:${statusColor}20;display:flex;align-items:center;justify-content:center;color:${statusColor};flex-shrink:0;">
+                                <i class="${purchase.type === 'steam' ? 'fab fa-steam' : purchase.type === 'stars' ? 'fas fa-star' : purchase.type === 'premium' ? 'fas fa-crown' : 'fas fa-shopping-bag'}" style="font-size:1.2rem;"></i>
                             </div>
-                            <div style="flex:1;min-width:0;">
-                                <div style="color:#ffffff;font-weight:700;font-size:1.02rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                    ${purchase.productName || purchase.name || 'Товар'}
+                            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;">
+                                <div style="color:#ffffff;font-weight:700;font-size:1rem;line-height:1.3;word-break:break-word;">
+                                    ${productName}
                                 </div>
-                                <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-bottom:2px;">
+                                <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;line-height:1.3;">
                                     ${date}
                                 </div>
-                                ${ (purchase.type === 'stars' || purchase.type === 'premium') && purchase.recipient
-                                    ? `<div style="color:rgba(255,255,255,0.7);font-size:0.78rem;">Получатель: @${purchase.recipient}</div>`
+                                ${ hasRecipient
+                                    ? `<div style="color:rgba(255,255,255,0.75);font-size:0.8rem;line-height:1.3;">Получатель: @${purchase.recipient}</div>`
                                     : ''
                                 }
-                                ${ purchase.type === 'steam' && purchase.login
-                                    ? `<div style="color:rgba(255,255,255,0.7);font-size:0.78rem;">Логин Steam: ${purchase.login}</div>`
+                                ${ hasSteamLogin
+                                    ? `<div style="color:rgba(255,255,255,0.75);font-size:0.8rem;line-height:1.3;">Логин Steam: ${purchase.login}</div>`
                                     : ''
                                 }
-                                <div style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.75rem;font-weight:600;background:${statusColor}20;color:${statusColor};border:1px solid ${statusColor}33;">
-                                    ${purchase.status || 'в процессе'}
+                                <div style="margin-top:4px;">
+                                    <span style="display:inline-block;padding:4px 12px;border-radius:999px;font-size:0.75rem;font-weight:600;background:${statusColor}20;color:${statusColor};border:1px solid ${statusColor}33;">
+                                        ${purchase.status || 'в процессе'}
+                                    </span>
                                 </div>
                             </div>
-                            <div style="text-align:right;margin-left:8px;">
-                                <div style="color:#00d4ff;font-size:1.15rem;font-weight:700;white-space:nowrap;">
-                                    ${purchase.price || 0} ₽
-                                </div>
+                            <div style="flex-shrink:0;text-align:right;align-self:center;">
+                                <span style="color:#00d4ff;font-size:1.2rem;font-weight:700;white-space:nowrap;">${purchase.price || 0} ₽</span>
                             </div>
                         </div>
                     `;
