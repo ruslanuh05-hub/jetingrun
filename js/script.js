@@ -2337,8 +2337,8 @@ function showPaymentMethodSelection(purchaseType) {
             return;
         }
         
-        if (amount <= 0) {
-            showStoreNotification('Введите сумму пополнения', 'error');
+        if (amount < 50) {
+            showStoreNotification('Минимальная сумма пополнения Steam — 50 ₽', 'error');
             return;
         }
         

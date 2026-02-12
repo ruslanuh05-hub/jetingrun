@@ -96,6 +96,13 @@ function showAdminPanel() {
     if (loginContainer) { loginContainer.style.display = 'none'; loginContainer.classList.remove('visible'); }
     if (adminPanel) { adminPanel.style.display = 'block'; adminPanel.classList.add('visible'); }
     loadSettings();
+    // Сразу обновляем сводную статистику, чтобы убрать "Загрузка..."
+    if (typeof window.refreshStatistics === 'function') {
+        window.refreshStatistics();
+    } else {
+        // На случай, если функция ещё не присвоена в window
+        try { refreshStatistics(); } catch (e) {}
+    }
 }
 
 // Вход в админку
