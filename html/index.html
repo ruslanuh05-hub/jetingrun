@@ -2490,6 +2490,16 @@
             padding: 16px 0;
             outline: none;
         }
+
+        /* Убираем стрелки у числового поля суммы Steam */
+        .steam-topup-input[type="number"]::-webkit-outer-spin-button,
+        .steam-topup-input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .steam-topup-input[type="number"] {
+            -moz-appearance: textfield;
+        }
         
         .steam-topup-input::placeholder {
             color: rgba(255, 255, 255, 0.35);
@@ -2628,6 +2638,32 @@
             text-decoration: underline;
         }
         
+        /* Кнопка "Обязательно к прочтению" в окне Steam */
+        .steam-important-btn {
+            margin-top: 14px;
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(102, 192, 244, 0.4);
+            background: rgba(0, 0, 0, 0.4);
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .steam-important-btn i {
+            color: #66c0f4;
+        }
+        .steam-important-btn:hover {
+            background: rgba(102, 192, 244, 0.15);
+            border-color: rgba(102, 192, 244, 0.7);
+        }
+
         /* Модальное окно «Как узнать свой логин Steam?» */
         .steam-login-help-overlay {
             position: fixed;
@@ -5111,6 +5147,10 @@
                                 К оплате: 0 ₽
                             </div>
                         </div>
+                        <button type="button" class="steam-important-btn" onclick="openSteamImportantInfo()">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Обязательно к прочтению</span>
+                        </button>
                     </div>
                     
                     <div class="steam-topup-actions">
@@ -5159,6 +5199,47 @@
                 <button class="steam-login-help-btn" onclick="window.open('https://store.steampowered.com/account/', '_blank')">
                     Посмотреть свой логин Steam
                 </button>
+            </div>
+        </div>
+
+        <!-- Модальное окно с важной инструкцией по пополнению Steam -->
+        <div id="steamImportantOverlay" class="steam-login-help-overlay" onclick="closeSteamImportantInfo()"></div>
+        <div id="steamImportantModal" class="steam-login-help-modal">
+            <div class="steam-login-help-header">
+                <h2 class="steam-login-help-title">Важно перед пополнением</h2>
+                <button class="steam-login-help-close" onclick="closeSteamImportantInfo()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="steam-login-help-body" style="max-height: 70vh; overflow-y: auto;">
+                <p class="steam-login-help-text">
+                    • Валюта аккаунта должна быть в рублях (RUB).<br>
+                    • Регион аккаунта — Россия.
+                </p>
+                <p class="steam-login-help-text" style="color:#ffb347;">
+                    ⚠️ Если вы в ДНР, ЛНР, Крыму — не оплачивайте, платёж не пройдёт.
+                </p>
+                <p class="steam-login-help-text">
+                    В поле <b>«Логин Steam»</b> указывайте <b>ТОЧНО</b> логин, используемый для входа в ваш аккаунт.
+                    Ошибка в логине приведёт к тому, что пополнение не пройдёт или уйдёт другому пользователю.
+                    Деньги в этом случае <b>НЕ ВОЗВРАЩАЮТСЯ</b>.
+                </p>
+                <p class="steam-login-help-text">
+                    <b>Для новых аккаунтов:</b><br>
+                    Добавьте несколько бесплатных игр, чтобы закрепить регион, и только после этого пополняйте
+                    (сначала на минимальную сумму). Если этого не сделать, Steam может изменить регион на другой СНГ‑регион.
+                </p>
+                <p class="steam-login-help-text">
+                    Указывая логин, вы подтверждаете, что пополняете <b>СВОЙ</b> аккаунт. После успешного пополнения
+                    претензии не принимаются.
+                </p>
+                <p class="steam-login-help-text">
+                    <b>Частые вопросы:</b><br>
+                    • <b>Где найти логин Steam?</b> — Нажмите на аватарку → «Об аккаунте» → логин будет указан рядом.<br>
+                    • <b>Как узнать регион аккаунта?</b> — В «Об аккаунте» смотрите страну. Если указана Россия или страна СНГ — всё в порядке.
+                      Если другая страна — пополнение не пройдёт.<br>
+                    • <b>Изменится ли регион после пополнения?</b> — Нет. Регион не меняется. Для смены региона нужна отдельная услуга.
+                </p>
             </div>
         </div>
 

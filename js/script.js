@@ -2294,6 +2294,21 @@ function closeSteamLoginHelpModal() {
     if (modal) modal.classList.remove('active');
 }
 
+// Модальное окно с важной инструкцией по пополнению Steam
+function openSteamImportantInfo() {
+    const overlay = document.getElementById('steamImportantOverlay');
+    const modal = document.getElementById('steamImportantModal');
+    if (overlay) overlay.classList.add('active');
+    if (modal) modal.classList.add('active');
+}
+
+function closeSteamImportantInfo() {
+    const overlay = document.getElementById('steamImportantOverlay');
+    const modal = document.getElementById('steamImportantModal');
+    if (overlay) overlay.classList.remove('active');
+    if (modal) modal.classList.remove('active');
+}
+
 // Глобальные переменные для текущей покупки
 let currentPurchase = {
     type: null, // 'steam', 'game', 'stars', 'premium'
