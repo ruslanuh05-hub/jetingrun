@@ -606,21 +606,23 @@
             color: #00d4ff;
         }
         
-        /* TON icon */
+        /* TON icon — аккуратное отображение */
         .ton-icon {
-            width: 22px;
-            height: 22px;
+            width: 18px;
+            height: 18px;
             object-fit: contain;
             display: inline-block;
-            vertical-align: -4px;
-            margin-left: 8px;
+            vertical-align: middle;
+            margin-left: 4px;
+            filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.6));
         }
 
         .ton-icon.small {
-            width: 18px;
-            height: 18px;
-            vertical-align: -3px;
-            margin-left: 6px;
+            width: 16px;
+            height: 16px;
+            margin-left: 4px;
+            vertical-align: middle;
+            filter: drop-shadow(0 0 3px rgba(0, 212, 255, 0.5));
         }
         
         .referral-link-block {
@@ -1120,7 +1122,7 @@
             <!-- Верхняя полоса: УРОВЕНЬ JETREFS + процент + Больше > -->
             <div class="referral-level-bar">
                 <span class="referral-level-bar-title">УРОВЕНЬ JETREFS</span>
-                <span class="referral-level-bar-badge" id="refLevelPercent">15%</span>
+                <span class="referral-level-bar-badge" id="refLevelPercent">4%</span>
                 <a href="#" class="referral-level-bar-more" onclick="showJetRefsLevelsModal(); return false;">Больше &gt;</a>
             </div>
 
@@ -1175,27 +1177,27 @@
         
     <!-- Нижняя навигация -->
     <!-- Модальное окно уровней JetRefs -->
-    <div class="jetrefs-levels-overlay" id="jetRefsLevelsOverlay" onclick="closeJetRefsLevelsModal(event)">
+            <div class="jetrefs-levels-overlay" id="jetRefsLevelsOverlay" onclick="closeJetRefsLevelsModal(event)">
         <div class="jetrefs-levels-modal" onclick="event.stopPropagation()">
             <div class="jetrefs-levels-title">Уровни JetRefs</div>
             <div class="jetrefs-level-item">
                 <div class="jetrefs-level-badge l1">1</div>
                 <div class="jetrefs-level-info">
-                    <strong>15% JetRefs</strong>
+                    <strong>4% JetRefs</strong>
                     <span>Объём рефералов: 0 – 999 TON</span>
                 </div>
             </div>
             <div class="jetrefs-level-item">
                 <div class="jetrefs-level-badge l2">2</div>
                 <div class="jetrefs-level-info">
-                    <strong>20% JetRefs</strong>
+                    <strong>8% JetRefs</strong>
                     <span>Объём рефералов: 1 000 – 4 999 TON</span>
                 </div>
             </div>
             <div class="jetrefs-level-item">
                 <div class="jetrefs-level-badge l3">3</div>
                 <div class="jetrefs-level-info">
-                    <strong>25% JetRefs</strong>
+                    <strong>12% JetRefs</strong>
                     <span>Объём рефералов: 5 000+ TON (максимум)</span>
                 </div>
             </div>
@@ -1367,9 +1369,10 @@
 
         // Обновляем UI с данными статистики
         function updateReferralUI(stats) {
-            // Уровень и процент
+            // Уровень и процент JetRefs
             const level = stats.level || 1;
-            const percent = level === 1 ? 15 : level === 2 ? 20 : 25;
+            // Проценты JetRefs: 1‑й уровень 4%, 2‑й — 8%, 3‑й — 12%
+            const percent = level === 1 ? 4 : level === 2 ? 8 : 12;
             document.getElementById('refLevelPercent').textContent = `${percent}%`;
 
             // Заработано в TON

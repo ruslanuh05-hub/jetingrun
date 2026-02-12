@@ -28,23 +28,39 @@
             align-items: center;
             justify-content: space-between;
             padding: 16px max(16px, env(safe-area-inset-left)) 14px max(16px, env(safe-area-inset-right));
-            border-bottom: 1px solid rgba(0, 212, 255, 0.18);
+            /* Убираем нижнюю линию под хедером */
+            border-bottom: none;
             flex-shrink: 0;
             background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.16), transparent 55%),
                         rgba(3, 5, 12, 0.96);
         }
         .steam-back-btn {
-            background: none;
-            border: none;
-            color: #ffffff;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 8px;
-            width: 40px;
-            height: 40px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+        }
+
+        .steam-back-btn:hover {
+            background: rgba(0, 212, 255, 0.18);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        .steam-back-btn:active {
+            transform: scale(0.97);
+        }
+
+        .steam-back-btn-icon {
+            font-size: 1rem;
         }
         .steam-popup-title {
             color: #ffffff;
@@ -72,9 +88,15 @@
             font-weight: 600;
             letter-spacing: 0.3px;
         }
-        .store-input-row {
+        .store-field-label-row {
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .store-input-row {
+            display: flex;
+            align-items: flex-start; /* Кнопка /купить себе прижата к верху */
             gap: 10px;
             flex-wrap: wrap;
         }
@@ -87,7 +109,8 @@
                         rgba(10, 12, 28, 0.96);
             border-radius: 16px;
             border: 1px solid rgba(0, 212, 255, 0.35);
-            padding: 0 14px;
+            padding: 4px 14px; /* Чуть выше и выше поле ввода */
+            min-height: 52px;  /* Блок ввода стал немного больше */
             box-shadow: 0 10px 26px rgba(0, 0, 0, 0.65);
         }
         .store-input-icon { color: rgba(255, 255, 255, 0.5); margin-right: 10px; }
@@ -110,6 +133,32 @@
             font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
+            align-self: flex-start; /* Кнопка /купить себе выше блока ввода */
+            margin-top: 2px;
+        }
+
+        /* Резерв под галочку / крестик для username */
+        .premium-status-icons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        .premium-status-icons i {
+            font-size: 1rem;
+            opacity: 0; /* по умолчанию скрыто, место зарезервировано */
+        }
+
+        .premium-status-icons.ok-visible i.ok {
+            color: #2ecc71;
+            opacity: 1;
+        }
+
+        .premium-status-icons.err-visible i.err {
+            color: #ff4757;
+            opacity: 1;
         }
         .store-field-hint {
             color: rgba(255, 255, 255, 0.55);
@@ -233,7 +282,8 @@
     <div class="supercell-popup-content">
         <header class="steam-popup-header">
             <a href="index.html" class="steam-back-btn" id="backBtn" aria-label="Назад">
-                <i class="fas fa-chevron-left"></i>
+                <i class="fas fa-chevron-left steam-back-btn-icon"></i>
+                <span>Назад</span>
             </a>
             <h1 class="steam-popup-title">Telegram Premium</h1>
             <div style="width: 40px;"></div>
@@ -241,11 +291,19 @@
         <div class="steam-popup-body">
             <div class="store-form">
                 <div class="store-field">
-                    <label class="store-label">Получатель</label>
+                    <div class="store-field-label-row">
+                        <label class="store-label">Получатель</label>
+                        <button type="button" class="store-input-action" onclick="fillOwnUsername()">/купить себе</button>
+                    </div>
                     <div class="store-input-row">
                         <div class="store-input-wrapper" id="premiumRecipientWrapper">
                             <i class="fas fa-user store-input-icon"></i>
                             <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupPremiumRecipientPage();}">
+                            <!-- Резерв под галочку / крестик валидации username -->
+                            <div class="premium-status-icons" id="premiumStatusIcons">
+                                <i class="fas fa-check-circle ok"></i>
+                                <i class="fas fa-times-circle err"></i>
+                            </div>
                             <div id="premiumUserPreview" class="tg-user-chip" style="display:none;align-items:center;gap:8px;flex:1;min-width:0;">
                                 <img id="premiumUserAvatar" src="" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
                                 <span id="premiumUserName" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -253,7 +311,6 @@
                             </div>
                         </div>
                         <span id="premiumUserError" class="store-field-error" style="display:none;color:#ff4757;font-size:0.8rem;">Пользователь не найден</span>
-                        <button type="button" class="store-input-action" onclick="fillOwnUsername()">/купить себе</button>
                     </div>
                     <p class="store-field-hint">Если указан неверный @username — ответственность несёт покупатель.</p>
                 </div>

@@ -529,6 +529,12 @@ function switchStoreTab(tab) {
     const section = document.getElementById(sectionId);
     if (section) {
         section.classList.add('active');
+        // При переключении вкладки гарантируем прокрутку контента магазина к началу,
+        // чтобы при повторном входе не оставался пустой чёрный блок сверху.
+        const storeContent = document.querySelector('.store-content');
+        if (storeContent) {
+            storeContent.scrollTop = 0;
+        }
     }
     
     // Обновляем индикаторы
@@ -2011,6 +2017,24 @@ function showStoreView(section) {
     if (typeof document !== 'undefined' && document.body) {
         document.body.classList.add('store-open');
     }
+
+    // Всегда прокручиваем окно и контент магазина в начало,
+    // чтобы при повторном заходе не оставалось пустого пространства сверху.
+    try {
+        if (typeof window !== 'undefined') {
+            window.scrollTo(0, 0);
+        }
+        if (document.documentElement) {
+            document.documentElement.scrollTop = 0;
+        }
+        if (document.body) {
+            document.body.scrollTop = 0;
+        }
+        const storeContent = document.querySelector('.store-content');
+        if (storeContent) {
+            storeContent.scrollTop = 0;
+        }
+    } catch (e) {}
     
     // Обновляем активные кнопки в нижней навигации
     const navButtons = document.querySelectorAll('.main-nav-btn');
@@ -2580,6 +2604,9 @@ async function submitIdea() {
         var nowSecCheck = Math.floor(Date.now() / 1000);
         if (storedTs && storedTs > nowSecCheck) {
             applyIdeaCooldown(storedTs);
+            // Показываем всплывающее окно с оставшимся временем
+            var remaining = storedTs - nowSecCheck;
+            openIdeaCooldownModal(remaining);
             return;
         }
     }
@@ -2649,6 +2676,7 @@ async function submitIdea() {
                     localStorage.setItem(getIdeaCooldownStorageKey(userId), String(nextTs));
                 } catch (e) {}
                 applyIdeaCooldown(nextTs);
+                openIdeaCooldownModal(Number(data.retry_after_seconds || 0));
             } else {
                 btn.disabled = false;
                 btn.textContent = 'Отправить';
@@ -2666,11 +2694,44 @@ async function submitIdea() {
     }
 }
 
+function openIdeaCooldownModal(remainingSeconds) {
+    var overlay = document.getElementById('ideaCooldownOverlay');
+    var modal = document.getElementById('ideaCooldownModal');
+    var textEl = document.getElementById('ideaCooldownModalText');
+    if (!overlay || !modal || !textEl) return;
+
+    var sec = Math.max(0, Math.floor(remainingSeconds || 0));
+    var hours = Math.floor(sec / 3600);
+    var minutes = Math.floor((sec % 3600) / 60);
+    if (minutes <= 0 && hours === 0) minutes = 1;
+
+    var text = 'Новую идею можно будет отправить через ';
+    if (hours > 0) {
+        text += hours + ' ч';
+        if (minutes > 0) text += ' ' + minutes + ' мин';
+    } else {
+        text += minutes + ' мин';
+    }
+    textEl.textContent = text + '.';
+
+    overlay.classList.add('active');
+    modal.classList.add('active');
+}
+
+function closeIdeaCooldownModal() {
+    var overlay = document.getElementById('ideaCooldownOverlay');
+    var modal = document.getElementById('ideaCooldownModal');
+    if (overlay) overlay.classList.remove('active');
+    if (modal) modal.classList.remove('active');
+}
+
 // Экспорт в глобальную область
 window.openIdeaModal = openIdeaModal;
 window.closeIdeaModal = closeIdeaModal;
 window.submitIdea = submitIdea;
 window.updateIdeaCounter = updateIdeaCounter;
+window.openIdeaCooldownModal = openIdeaCooldownModal;
+window.closeIdeaCooldownModal = closeIdeaCooldownModal;
 
 // Выбрать способ оплаты
 function selectPaymentMethod(method, bonusPercent) {
