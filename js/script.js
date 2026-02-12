@@ -2879,8 +2879,9 @@ function openPaymentPage() {
     const statusEl = document.getElementById('paymentDetailStatus');
     const primaryBtn = document.getElementById('paymentWaitingPrimaryBtn');
 
-    // CryptoBot: создание инвойса (должно быть ПЕРВЫМ, до проверок типа покупки)
-    if (data.method === 'cryptobot') {
+    // ВАЖНО: для звёзд ВСЕГДА используем Fragment, даже если method === 'cryptobot'
+    // CryptoBot: создание инвойса (только для НЕ-звёзд)
+    if (data.method === 'cryptobot' && data.purchase?.type !== 'stars') {
         var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (!apiBase) {
             if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js (JET_BOT_API_URL).', 'error');
@@ -3018,22 +3019,37 @@ function openPaymentPage() {
 
     // Звёзды: Fragment.com / TonKeeper — создать заказ, получить order_id и ссылку оплаты
     if (data.purchase?.type === 'stars') {
+        console.log('[Fragment Stars] Начинаем создание заказа звёзд через Fragment');
         var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         var recipient = (data.purchase.login || '').toString().trim().replace(/^@/, '');
         var starsAmount = data.purchase.stars_amount || data.baseAmount || 0;
+        console.log('[Fragment Stars] apiBase:', apiBase, 'recipient:', recipient, 'starsAmount:', starsAmount);
         if (!apiBase || !recipient || !starsAmount) {
+            console.error('[Fragment Stars] Недостаточно данных для создания заказа');
             if (typeof showStoreNotification === 'function') showStoreNotification('Укажите получателя и количество звёзд.', 'error');
             return;
         }
         if (statusEl) statusEl.textContent = 'Создаём заказ...';
         if (primaryBtn) primaryBtn.disabled = true;
-        fetch(apiBase.replace(/\/$/, '') + '/api/fragment/create-star-order', {
+        var fragmentUrl = apiBase.replace(/\/$/, '') + '/api/fragment/create-star-order';
+        console.log('[Fragment Stars] Отправка POST на:', fragmentUrl);
+        fetch(fragmentUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ recipient: recipient, stars_amount: starsAmount })
         })
-            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(r) {
+                console.log('[Fragment Stars] Получен ответ от сервера, status:', r.status, 'ok:', r.ok);
+                return r.json().catch(function(e) {
+                    console.error('[Fragment Stars] Ошибка парсинга JSON:', e);
+                    return r.text().then(function(text) {
+                        console.error('[Fragment Stars] Тело ответа (не JSON):', text);
+                        return { error: 'parse_error', message: 'Ответ не JSON: ' + text };
+                    });
+                });
+            })
             .then(function(res) {
+                console.log('[Fragment Stars] Результат от сервера:', res);
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание...';
                 if (res.success && res.order_id) {
