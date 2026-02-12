@@ -20,6 +20,16 @@ function runDeliveryAfterPayment(data, checkResponse) {
             optsDelivered = { status: 'delivered' };
         }
         if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, optsDelivered);
+        
+        // Перезагружаем историю покупок, если мы на странице профиля
+        setTimeout(function() {
+            if (typeof window.loadPurchases === 'function') {
+                window.loadPurchases();
+            } else if (typeof loadPurchases === 'function') {
+                loadPurchases();
+            }
+        }, 500);
+        
         if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
         if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
         return;
@@ -46,7 +56,18 @@ function runDeliveryAfterPayment(data, checkResponse) {
     if (purchaseType === 'stars') {
         opts = { status: 'delivered' };
     }
+    console.log('[runDeliveryAfterPayment] Вызываем recordPurchaseSuccess, data.purchase:', data && data.purchase, 'purchaseType:', purchaseType, 'opts:', opts);
     if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, opts);
+    
+    // Перезагружаем историю покупок, если мы на странице профиля
+    setTimeout(function() {
+        if (typeof window.loadPurchases === 'function') {
+            window.loadPurchases();
+        } else if (typeof loadPurchases === 'function') {
+            loadPurchases();
+        }
+    }, 500);
+    
     if (typeof showStoreNotification === 'function') showStoreNotification(message, 'success');
     if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
 }

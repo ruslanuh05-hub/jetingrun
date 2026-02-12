@@ -2477,6 +2477,11 @@
                         <div id="purchaseDetailsGame" style="color: #00d4ff; font-size: 1.1rem; font-weight: 600;"></div>
                     </div>
                     
+                    <div id="purchaseDetailsRecipientWrapper" style="margin-bottom: 20px; display: none;">
+                        <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 8px;">Получатель</div>
+                        <div id="purchaseDetailsRecipient" style="color: #00d4ff; font-size: 1.1rem; font-weight: 600;"></div>
+                    </div>
+                    
                     <div style="margin-bottom: 20px;">
                         <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 8px;">Дата</div>
                         <div id="purchaseDetailsDate" style="color: rgba(255,255,255,0.8); font-size: 1rem;"></div>
@@ -3116,6 +3121,7 @@
             document.getElementById('purchaseDetailsStatus').style.color = statusColor;
             document.getElementById('purchaseDetailsPrice').textContent = `${purchase.price || 0} ₽`;
             
+            // Отображение игры (для Supercell товаров)
             if (purchase.game) {
                 const gameNames = {
                     'clashroyale': 'Clash Royale',
@@ -3129,6 +3135,16 @@
             } else {
                 const gameWrapperEl = document.getElementById('purchaseDetailsGameWrapper');
                 if (gameWrapperEl) gameWrapperEl.style.display = 'none';
+            }
+            
+            // Отображение получателя (для звёзд и премиума)
+            const recipientWrapperEl = document.getElementById('purchaseDetailsRecipientWrapper');
+            const recipientEl = document.getElementById('purchaseDetailsRecipient');
+            if ((purchase.type === 'stars' || purchase.type === 'premium') && purchase.recipient) {
+                if (recipientEl) recipientEl.textContent = '@' + purchase.recipient;
+                if (recipientWrapperEl) recipientWrapperEl.style.display = 'block';
+            } else {
+                if (recipientWrapperEl) recipientWrapperEl.style.display = 'none';
             }
             
             popup.classList.add('active');

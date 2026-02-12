@@ -58,7 +58,13 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         }
     }
 
-    var recipientUsername = (p.login || p.username || '').toString().trim();
+    // Получатель: для звёзд и премиума берём из purchase.login или purchase.username
+    var recipientUsername = '';
+    if (type === 'stars' || type === 'premium') {
+        // Пробуем разные варианты полей, где может быть username получателя
+        recipientUsername = (p.login || p.username || p.recipient || '').toString().trim().replace(/^@/, '');
+    }
+    console.log('[recordPurchaseSuccess] type:', type, 'recipientUsername:', recipientUsername, 'p:', JSON.stringify(p));
 
     var purchaseObj = {
         id: 'purchase_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -68,13 +74,22 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         status: statusText,
         date: new Date().toISOString(),
         userId: uid,
-        recipient: recipientUsername
+        recipient: recipientUsername || undefined  // Сохраняем только если не пусто
     };
     // Сохраняем только локально для истории в UI
     try {
         var list = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
         list.unshift(purchaseObj);
         localStorage.setItem('jetstore_purchases', JSON.stringify(list));
+        
+        // Перезагружаем историю покупок, если мы на странице профиля
+        setTimeout(function() {
+            if (typeof window.loadPurchases === 'function') {
+                window.loadPurchases();
+            } else if (typeof loadPurchases === 'function') {
+                loadPurchases();
+            }
+        }, 300);
     } catch (e) { console.warn('recordPurchaseSuccess jetstore_purchases:', e); }
     if (window.userData && Array.isArray(window.userData.purchases)) {
         window.userData.purchases.unshift(purchaseObj);

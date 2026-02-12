@@ -817,7 +817,8 @@ function proceedStarsPurchase() {
     
     // Получаем получателя из поля ввода
     const recipientInput = document.getElementById('starsRecipient');
-    const recipient = recipientInput ? recipientInput.value.trim() : '';
+    const recipient = recipientInput ? recipientInput.value.trim().replace(/^@/, '') : '';
+    console.log('[proceedStarsPurchase] recipient из поля:', recipient, 'input value:', recipientInput ? recipientInput.value : 'input not found');
     
     // Сохраняем данные покупки и открываем выбор способа оплаты
     currentPurchase = {
@@ -828,6 +829,7 @@ function proceedStarsPurchase() {
         productId: null,
         productName: `Покупка ${selectedStars.amount} звёзд`
     };
+    console.log('[proceedStarsPurchase] currentPurchase:', currentPurchase);
     
     showPaymentMethodSelection('stars');
 }
@@ -2782,6 +2784,11 @@ function selectPaymentMethod(method, bonusPercent) {
         purchase = currentPurchase;
     }
     
+    // Убеждаемся, что для звёзд и премиума login сохраняется
+    if ((purchase.type === 'stars' || purchase.type === 'premium') && !purchase.login) {
+        console.warn('[selectPaymentMethod] ВНИМАНИЕ: purchase.login отсутствует для', purchase.type, 'purchase:', purchase);
+    }
+    
     window.paymentData = {
         method: method,
         bonusPercent: bonusPercent,
@@ -2790,6 +2797,8 @@ function selectPaymentMethod(method, bonusPercent) {
         totalAmount: totalAmount,
         purchase: purchase
     };
+    
+    console.log('[selectPaymentMethod] window.paymentData.purchase:', window.paymentData.purchase);
     
     showPaymentWaiting();
 }
