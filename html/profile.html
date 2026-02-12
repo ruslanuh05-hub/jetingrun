@@ -1119,6 +1119,52 @@
             color: #ffffff;
         }
         
+        /* Попап «Детали покупки» — нормальная кнопка «Назад» */
+        #purchaseDetailsPopup .steam-popup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.95);
+        }
+        #purchaseDetailsPopup .steam-back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 44px;
+            min-height: 44px;
+            padding: 10px 14px;
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.15s;
+            flex-shrink: 0;
+        }
+        #purchaseDetailsPopup .steam-back-btn:hover {
+            background: rgba(0, 212, 255, 0.25);
+            border-color: rgba(0, 212, 255, 0.6);
+        }
+        #purchaseDetailsPopup .steam-back-btn:active {
+            transform: scale(0.97);
+        }
+        #purchaseDetailsPopup .steam-back-btn i {
+            font-size: 1rem;
+        }
+        #purchaseDetailsPopup .steam-popup-title {
+            flex: 1;
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0;
+            text-align: center;
+        }
+        
         .popup-body h3,
         .popup-body p,
         .popup-body span {
@@ -2459,9 +2505,10 @@
     <div id="purchaseDetailsPopup" class="popup">
         <div class="popup-content steam-popup-content">
             <div class="steam-popup-header">
-                <button class="steam-back-btn" onclick="closePurchaseDetails()">
+                <button type="button" class="steam-back-btn" onclick="closePurchaseDetails()" aria-label="Назад">
                     <i class="fas fa-chevron-left"></i>
-            </button>
+                    <span>Назад</span>
+                </button>
                 <h2 class="steam-popup-title">Детали покупки</h2>
             </div>
             
