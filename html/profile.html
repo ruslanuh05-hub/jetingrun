@@ -3069,6 +3069,10 @@
                                     ? `<div style="color:rgba(255,255,255,0.7);font-size:0.78rem;">Получатель: @${purchase.recipient}</div>`
                                     : ''
                                 }
+                                ${ purchase.type === 'steam' && purchase.login
+                                    ? `<div style="color:rgba(255,255,255,0.7);font-size:0.78rem;">Логин Steam: ${purchase.login}</div>`
+                                    : ''
+                                }
                                 <div style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.75rem;font-weight:600;background:${statusColor}20;color:${statusColor};border:1px solid ${statusColor}33;">
                                     ${purchase.status || 'в процессе'}
                                 </div>

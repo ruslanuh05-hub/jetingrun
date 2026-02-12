@@ -64,7 +64,14 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         // Пробуем разные варианты полей, где может быть username получателя
         recipientUsername = (p.login || p.username || p.recipient || '').toString().trim().replace(/^@/, '');
     }
-    console.log('[recordPurchaseSuccess] type:', type, 'recipientUsername:', recipientUsername, 'p:', JSON.stringify(p));
+
+    // Логин Steam-аккаунта (для истории покупок)
+    var steamLogin = '';
+    if (type === 'steam') {
+        steamLogin = (p.login || '').toString().trim();
+    }
+
+    console.log('[recordPurchaseSuccess] type:', type, 'recipientUsername:', recipientUsername, 'steamLogin:', steamLogin, 'p:', JSON.stringify(p));
 
     var purchaseObj = {
         id: 'purchase_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -74,7 +81,8 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         status: statusText,
         date: new Date().toISOString(),
         userId: uid,
-        recipient: recipientUsername || undefined  // Сохраняем только если не пусто
+        recipient: recipientUsername || undefined,  // Сохраняем только если не пусто
+        login: steamLogin || undefined              // Для Steam: логин аккаунта
     };
     // Сохраняем только локально для истории в UI
     try {
