@@ -39,12 +39,14 @@ function runDeliveryAfterPayment(data, checkResponse) {
         message += 'Товар будет выдан автоматически после обработки на сервере.';
     }
     
-    var optsPending = null;
+    // Для CryptoBot: к этому моменту /api/payment/check уже вернул paid:true,
+    // а на бэке либо webhook, либо fallback доставили товар.
+    // Для звёзд считаем, что они выданы.
+    var opts = null;
     if (purchaseType === 'stars') {
-        // Для звёзд: оплата прошла, но сервер ещё отправляет — показываем "звёзды отправляются"
-        optsPending = { status: 'pending_delivery' };
+        opts = { status: 'delivered' };
     }
-    if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, optsPending);
+    if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, opts);
     if (typeof showStoreNotification === 'function') showStoreNotification(message, 'success');
     if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
 }

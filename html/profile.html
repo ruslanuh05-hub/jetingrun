@@ -3057,9 +3057,13 @@
                                 <div style="color:#ffffff;font-weight:700;font-size:1.02rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                     ${purchase.productName || purchase.name || 'Товар'}
                                 </div>
-                                <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-bottom:4px;">
+                                <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-bottom:2px;">
                                     ${date}
                                 </div>
+                                ${ (purchase.type === 'stars' || purchase.type === 'premium') && purchase.recipient
+                                    ? `<div style="color:rgba(255,255,255,0.7);font-size:0.78rem;">Получатель: @${purchase.recipient}</div>`
+                                    : ''
+                                }
                                 <div style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.75rem;font-weight:600;background:${statusColor}20;color:${statusColor};border:1px solid ${statusColor}33;">
                                     ${purchase.status || 'в процессе'}
                                 </div>

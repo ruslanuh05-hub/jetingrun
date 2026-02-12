@@ -58,6 +58,8 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         }
     }
 
+    var recipientUsername = (p.login || p.username || '').toString().trim();
+
     var purchaseObj = {
         id: 'purchase_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
         type: type,
@@ -65,7 +67,8 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         price: amountRub,
         status: statusText,
         date: new Date().toISOString(),
-        userId: uid
+        userId: uid,
+        recipient: recipientUsername
     };
     // Сохраняем только локально для истории в UI
     try {
