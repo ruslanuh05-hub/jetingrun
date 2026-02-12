@@ -2177,7 +2177,15 @@ function showSteamTopup() {
     var amountInput = document.getElementById('steamAmount');
     if (amountInput) {
         if (window._steamAmountInputHandler) amountInput.removeEventListener('input', window._steamAmountInputHandler);
-        window._steamAmountInputHandler = function() { updateSteamPayTotalDisplay(); };
+        window._steamAmountInputHandler = function() {
+            var v = parseFloat(amountInput.value) || 0;
+            // Жёстко не даём ввести меньше 50 ₽
+            if (v && v < 50) {
+                v = 50;
+                amountInput.value = String(v);
+            }
+            updateSteamPayTotalDisplay();
+        };
         amountInput.addEventListener('input', window._steamAmountInputHandler);
     }
     
