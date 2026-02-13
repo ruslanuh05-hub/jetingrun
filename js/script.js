@@ -2784,6 +2784,41 @@ function selectPaymentMethod(method, bonusPercent) {
         purchase = currentPurchase;
     }
     
+    // Глобальный уникальный ID заказа для связи админ‑поиска и истории (#ABC123)
+    try {
+        var existing = [];
+        try {
+            existing = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+            if (!Array.isArray(existing)) existing = [];
+        } catch (e) {
+            existing = [];
+        }
+        var usedIds = {};
+        for (var ei = 0; ei < existing.length; ei++) {
+            var eo = existing[ei] && existing[ei].orderId;
+            if (eo) usedIds[String(eo).toUpperCase()] = true;
+        }
+        function genOrderId() {
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            var code = '';
+            for (var j = 0; j < 6; j++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return '#' + code;
+        }
+        if (!purchase.order_id) {
+            var oid = '';
+            var tries = 0;
+            do {
+                oid = genOrderId();
+                tries++;
+            } while (usedIds[oid.toUpperCase()] && tries < 50);
+            purchase.order_id = oid;
+        }
+    } catch (e) {
+        console.warn('[selectPaymentMethod] order_id generation error:', e);
+    }
+    
     // Убеждаемся, что для звёзд и премиума login сохраняется
     if ((purchase.type === 'stars' || purchase.type === 'premium') && !purchase.login) {
         console.warn('[selectPaymentMethod] ВНИМАНИЕ: purchase.login отсутствует для', purchase.type, 'purchase:', purchase);

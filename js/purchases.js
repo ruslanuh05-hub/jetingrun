@@ -71,36 +71,41 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         steamLogin = (p.login || '').toString().trim();
     }
 
-    // Загружаем уже сохранённые покупки, чтобы не допустить повторения ID
+    // Берём уже сгенерированный на этапе создания инвойса order_id, если есть
+    var orderId = (p.order_id || '').toString().trim().toUpperCase();
+    if (orderId && !orderId.startsWith('#')) {
+        orderId = '#' + orderId;
+    }
+    
+    // На всякий случай: если по какой‑то причине order_id нет (старые заказы) —
+    // генерируем новый локальный, чтобы у записи всё равно был ID.
     var existingPurchases = [];
-    try {
-        existingPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
-        if (!Array.isArray(existingPurchases)) existingPurchases = [];
-    } catch (e) {
-        existingPurchases = [];
-    }
-    var existingIds = {};
-    for (var i = 0; i < existingPurchases.length; i++) {
-        var oid = existingPurchases[i] && existingPurchases[i].orderId;
-        if (oid) existingIds[oid] = true;
-    }
-
-    // Уникальный ID заказа формата: #ABC123 (6 символов: A-Z0-9)
-    function generateOrderId() {
-        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        var code = '';
-        for (var j = 0; j < 6; j++) {
-            code += chars.charAt(Math.floor(Math.random() * chars.length));
+    if (!orderId) {
+        try {
+            existingPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+            if (!Array.isArray(existingPurchases)) existingPurchases = [];
+        } catch (e) {
+            existingPurchases = [];
         }
-        return '#' + code;
+        var existingIds = {};
+        for (var i = 0; i < existingPurchases.length; i++) {
+            var oid = existingPurchases[i] && existingPurchases[i].orderId;
+            if (oid) existingIds[String(oid).toUpperCase()] = true;
+        }
+        function generateOrderId() {
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            var code = '';
+            for (var j = 0; j < 6; j++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return '#' + code;
+        }
+        var attempts = 0;
+        do {
+            orderId = generateOrderId();
+            attempts += 1;
+        } while (existingIds[orderId.toUpperCase()] && attempts < 50);
     }
-
-    var orderId = '';
-    var attempts = 0;
-    do {
-        orderId = generateOrderId();
-        attempts += 1;
-    } while (existingIds[orderId] && attempts < 50);
 
     console.log('[recordPurchaseSuccess] type:', type, 'recipientUsername:', recipientUsername, 'steamLogin:', steamLogin, 'orderId:', orderId, 'p:', JSON.stringify(p));
 
@@ -118,7 +123,13 @@ function recordPurchaseSuccess(data, deliveryOptions) {
     };
     // Сохраняем только локально для истории в UI
     try {
-        var list = existingPurchases || [];
+        var list;
+        try {
+            list = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+            if (!Array.isArray(list)) list = [];
+        } catch (e) {
+            list = [];
+        }
         list.unshift(purchaseObj);
         localStorage.setItem('jetstore_purchases', JSON.stringify(list));
         
