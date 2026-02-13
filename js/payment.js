@@ -37,6 +37,13 @@ function confirmPayment() {
             return;
         }
         checkPayload.invoice_id = data.invoice_id;
+    } else if (data.method === 'platega') {
+        if (!data.transaction_id) {
+            if (statusEl) statusEl.textContent = 'Ожидание создания платежа...';
+            console.log('[Payment Check] transaction_id not found for Platega, skipping check');
+            return;
+        }
+        checkPayload.transaction_id = data.transaction_id;
     } else {
         // Для других методов (Fragment, TON) используем старую логику
         checkPayload.totalAmount = data.totalAmount;
@@ -102,8 +109,11 @@ function startPaymentPolling() {
     // Для CryptoBot проверяем наличие invoice_id перед запуском polling
     if (window.paymentData.method === 'cryptobot' && !window.paymentData.invoice_id) {
         console.log('[Payment Polling] invoice_id not found for CryptoBot, will start after invoice creation');
-        // Не запускаем polling, если invoice_id ещё не создан
-        // Polling будет запущен после создания инвойса в openPaymentPage
+        return;
+    }
+    // Для Platega проверяем наличие transaction_id
+    if (window.paymentData.method === 'platega' && !window.paymentData.transaction_id) {
+        console.log('[Payment Polling] transaction_id not found for Platega, will start after create-transaction');
         return;
     }
     

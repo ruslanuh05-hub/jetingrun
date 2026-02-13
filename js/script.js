@@ -2762,11 +2762,12 @@ function selectPaymentMethod(method, bonusPercent) {
     closePaymentMethodPopup(true);  // Не возвращаться назад — идём к оплате
     
     var baseAmount, commission, totalAmount, purchase;
+    var isPlatega = (method === 'platega');
     if (currentPurchase.type === 'steam') {
         var amountSteam = currentPurchase.amount;  // рубли на Steam (что вводил пользователь)
         var amountRub = Math.round(amountSteam * getSteamRate() * 100) / 100;  // базовая сумма по курсу
         baseAmount = amountRub;
-        commission = Math.round(baseAmount * (bonusPercent || 0) / 100);  // комиссия CryptoBot 4%
+        commission = isPlatega ? 0 : Math.round(baseAmount * (bonusPercent || 0) / 100);
         totalAmount = baseAmount + commission;
         purchase = {
             type: 'steam',
@@ -2779,7 +2780,7 @@ function selectPaymentMethod(method, bonusPercent) {
         };
     } else {
         baseAmount = currentPurchase.amount;
-        commission = Math.round(baseAmount * bonusPercent / 100);
+        commission = isPlatega ? 0 : Math.round(baseAmount * (bonusPercent || 0) / 100);
         totalAmount = baseAmount + commission;
         purchase = currentPurchase;
     }
@@ -2847,7 +2848,8 @@ function showPaymentWaiting() {
     const methodNames = {
         'sbp': 'СБП',
         'card': 'Карта',
-        'cryptobot': 'CryptoBot'
+        'cryptobot': 'CryptoBot',
+        'platega': 'Карты / СБП'
     };
     
     const statusEl = document.getElementById('paymentDetailStatus');
@@ -3040,6 +3042,71 @@ function openPaymentPage() {
                 console.error('[CryptoBot] Критическая ошибка:', err, 'apiBase:', apiBase, 'URL:', createUrl);
                 var msg = 'Ошибка создания счёта: ' + errMsg + '. Проверьте: 1) URL бота в config.js (' + (apiBase || 'не задан') + ') 2) Бот запущен на Railway 3) Откройте консоль браузера (F12) для деталей.';
                 if (typeof showStoreNotification === 'function') showStoreNotification(msg, 'error');
+            });
+        return;
+    }
+
+    // Platega (карты / СБП): создание транзакции и переход по redirect
+    if (data.method === 'platega') {
+        var apiBasePlatega = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (!apiBasePlatega) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js.', 'error');
+            return;
+        }
+        if (statusEl) statusEl.textContent = 'Создаём платёж (карты / СБП)...';
+        if (primaryBtn) primaryBtn.disabled = true;
+        var createUrlPlatega = apiBasePlatega.replace(/\/$/, '') + '/api/platega/create-transaction';
+        fetch(createUrlPlatega, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                context: 'purchase',
+                user_id: (window.userData && window.userData.id) || (window.userData && window.userData.user && window.userData.user.id) || 'unknown',
+                purchase: data.purchase || {}
+            })
+        })
+            .then(function(r) {
+                if (!r.ok) return r.text().then(function(t) { return { ok: false, text: t }; });
+                return r.json().then(function(j) { return { ok: true, json: j }; });
+            })
+            .then(function(result) {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
+                if (!result.ok) {
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания платежа. Попробуйте позже.', 'error');
+                    return;
+                }
+                var res = result.json || {};
+                if (res.success && res.redirect) {
+                    window.paymentData = window.paymentData || {};
+                    window.paymentData.transaction_id = res.transaction_id;
+                    if (typeof savePendingPayment === 'function') savePendingPayment();
+                    if (typeof window.startPaymentPolling === 'function') window.startPaymentPolling();
+                    var payUrl = (res.redirect || '').trim();
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+                        try { window.Telegram.WebApp.openLink(payUrl); } catch (e) { window.open(payUrl, '_blank'); }
+                    } else {
+                        window.open(payUrl, '_blank');
+                    }
+                    if (typeof showStoreNotification === 'function') showStoreNotification('Открыта страница оплаты. После оплаты статус обновится автоматически.', 'info');
+                    if (statusEl) {
+                        statusEl.innerHTML = 'Платёж создан. <a href="#" id="plategaOpenLink" style="color:#00d4ff;text-decoration:underline;">Открыть оплату</a>';
+                        var linkEl = document.getElementById('plategaOpenLink');
+                        if (linkEl) linkEl.onclick = function(e) {
+                            e.preventDefault();
+                            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) window.Telegram.WebApp.openLink(payUrl);
+                            else window.open(payUrl, '_blank');
+                        };
+                    }
+                } else {
+                    if (typeof showStoreNotification === 'function') showStoreNotification((res.message || res.error || 'Ошибка создания платежа') + '', 'error');
+                }
+            })
+            .catch(function(err) {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка сети. Попробуйте позже.', 'error');
             });
         return;
     }
