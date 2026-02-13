@@ -1165,6 +1165,35 @@
             text-align: center;
         }
         
+        /* Мобильная оптимизация окна детализации заказа */
+        @media (max-width: 420px) {
+            #purchaseDetailsPopup .steam-popup-header {
+                padding: 12px 14px;
+            }
+            #purchaseDetailsPopup .steam-back-btn {
+                min-width: 40px;
+                min-height: 40px;
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
+            #purchaseDetailsPopup .steam-back-btn span {
+                font-size: 0.9rem;
+            }
+            #purchaseDetailsPopup .steam-popup-title {
+                font-size: 1.05rem;
+            }
+            #purchaseDetailsPopup .steam-popup-body > div {
+                padding: 16px 14px !important;
+            }
+            #purchaseDetailsPopup #purchaseDetailsName {
+                font-size: 1.15rem !important;
+            }
+            #purchaseDetailsPopup #purchaseDetailsStatus {
+                font-size: 0.9rem !important;
+                padding: 6px 12px !important;
+            }
+        }
+        
         .popup-body h3,
         .popup-body p,
         .popup-body span {
@@ -3756,4 +3785,5 @@
         })();
     </script>
 </body>
+</html>
 </html>
