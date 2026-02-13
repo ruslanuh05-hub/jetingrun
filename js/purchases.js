@@ -71,10 +71,42 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         steamLogin = (p.login || '').toString().trim();
     }
 
-    console.log('[recordPurchaseSuccess] type:', type, 'recipientUsername:', recipientUsername, 'steamLogin:', steamLogin, 'p:', JSON.stringify(p));
+    // Загружаем уже сохранённые покупки, чтобы не допустить повторения ID
+    var existingPurchases = [];
+    try {
+        existingPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+        if (!Array.isArray(existingPurchases)) existingPurchases = [];
+    } catch (e) {
+        existingPurchases = [];
+    }
+    var existingIds = {};
+    for (var i = 0; i < existingPurchases.length; i++) {
+        var oid = existingPurchases[i] && existingPurchases[i].orderId;
+        if (oid) existingIds[oid] = true;
+    }
+
+    // Уникальный ID заказа формата: #ABC123 (6 символов: A-Z0-9)
+    function generateOrderId() {
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        var code = '';
+        for (var j = 0; j < 6; j++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return '#' + code;
+    }
+
+    var orderId = '';
+    var attempts = 0;
+    do {
+        orderId = generateOrderId();
+        attempts += 1;
+    } while (existingIds[orderId] && attempts < 50);
+
+    console.log('[recordPurchaseSuccess] type:', type, 'recipientUsername:', recipientUsername, 'steamLogin:', steamLogin, 'orderId:', orderId, 'p:', JSON.stringify(p));
 
     var purchaseObj = {
-        id: 'purchase_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        id: 'purchase_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9), // внутренний ID
+        orderId: orderId,                                  // внешний ID для пользователя
         type: type,
         productName: productName,
         price: amountRub,
@@ -86,7 +118,7 @@ function recordPurchaseSuccess(data, deliveryOptions) {
     };
     // Сохраняем только локально для истории в UI
     try {
-        var list = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+        var list = existingPurchases || [];
         list.unshift(purchaseObj);
         localStorage.setItem('jetstore_purchases', JSON.stringify(list));
         
