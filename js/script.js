@@ -3042,14 +3042,20 @@ function openPaymentPage() {
             })
         })
             .then(function(r) {
-                if (!r.ok) return r.text().then(function(t) { return { ok: false, text: t }; });
-                return r.json().then(function(j) { return { ok: true, json: j }; });
+                return r.text().then(function(t) {
+                    var j = null;
+                    try { j = t ? JSON.parse(t) : {}; } catch (e) {}
+                    return { ok: r.ok, status: r.status, text: t, json: j };
+                });
             })
             .then(function(result) {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
                 if (!result.ok) {
-                    if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка создания платежа. Попробуйте позже.', 'error');
+                    var errMsg = (result.json && (result.json.message || result.json.error)) || result.text || ('Ошибка ' + result.status);
+                    if (result.json && result.json.error === 'not_configured') errMsg = 'Platega не настроен (укажите PLATEGA_MERCHANT_ID и PLATEGA_SECRET на сервере).';
+                    if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
+                    console.error('[Platega] create-transaction failed:', result.status, result.json || result.text);
                     return;
                 }
                 var res = result.json || {};
