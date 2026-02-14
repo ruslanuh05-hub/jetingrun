@@ -1010,33 +1010,6 @@ function clearStarsRecipient() {
     setStarsRecipientState('empty');
 }
 
-function lookupStarsRecipient() {
-    const input = document.getElementById('starsRecipient');
-    if (!input) return;
-    let username = (input.value || '').trim().replace(/^@/, '');
-    if (!username) {
-        setStarsRecipientState('empty');
-        return;
-    }
-    setStarsRecipientState('loading', { username: username });
-    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-    var url = (apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '');
-    if (!url) {
-        setStarsRecipientState('found', { username: username, firstName: username });
-        return;
-    }
-    fetch(url)
-        .then(function(r) { return r.json().catch(function() { return null; }); })
-        .then(function(data) {
-            if (data && (data.username || data.firstName)) {
-                setStarsRecipientState('found', data);
-            } else {
-                setStarsRecipientState('not_found');
-            }
-        })
-        .catch(function() { setStarsRecipientState('not_found'); });
-}
-
 function setPremiumRecipientState(state, userData) {
     var wrapper = document.getElementById('premiumRecipientWrapper');
     var input = document.getElementById('premiumRecipient');
@@ -1078,33 +1051,6 @@ function clearPremiumRecipient() {
     var input = document.getElementById('premiumRecipient');
     if (input) input.value = '';
     setPremiumRecipientState('empty');
-}
-
-function lookupPremiumRecipient() {
-    var input = document.getElementById('premiumRecipient');
-    if (!input) return;
-    var username = (input.value || '').trim().replace(/^@/, '');
-    if (!username) {
-        setPremiumRecipientState('empty');
-        return;
-    }
-    setPremiumRecipientState('loading', { username: username });
-    var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-    var url = apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '';
-    if (!url) {
-        setPremiumRecipientState('found', { username: username, firstName: username });
-        return;
-    }
-    fetch(url)
-        .then(function(r) { return r.json().catch(function() { return null; }); })
-        .then(function(data) {
-            if (data && (data.username || data.firstName)) {
-                setPremiumRecipientState('found', data);
-            } else {
-                setPremiumRecipientState('not_found');
-            }
-        })
-        .catch(function() { setPremiumRecipientState('not_found'); });
 }
 
 // Уведомления в магазине
@@ -2677,8 +2623,8 @@ async function submitIdea() {
     try {
         if (!apiBase) throw new Error('API URL empty');
         var resp = await fetch(apiBase + '/api/idea/submit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 user_id: userId,
                 username: username,
@@ -2690,7 +2636,7 @@ async function submitIdea() {
         var data = {};
         try { data = await resp.json(); } catch (e) {}
         if (resp.ok && data && data.success) {
-            if (typeof showStoreNotification === 'function') {
+                if (typeof showStoreNotification === 'function') {
                 showStoreNotification('Спасибо! Идея отправлена команде JET.', 'success');
             } else {
                 alert('Спасибо! Идея отправлена команде JET.');
@@ -2704,9 +2650,9 @@ async function submitIdea() {
                 applyIdeaCooldown(nextTsSuccess);
             }
             closeIdeaModal();
-        } else {
+            } else {
             var msg = (data && data.message) || 'Не удалось отправить идею. Попробуйте позже.';
-            if (typeof showStoreNotification === 'function') {
+                if (typeof showStoreNotification === 'function') {
                 showStoreNotification(msg, 'error');
             } else {
                 alert(msg);
@@ -2726,7 +2672,7 @@ async function submitIdea() {
         }
     } catch (e) {
         console.warn('submitIdea error:', e);
-        if (typeof showStoreNotification === 'function') {
+            if (typeof showStoreNotification === 'function') {
             showStoreNotification('Сеть недоступна. Попробуйте ещё раз позже.', 'error');
         } else {
             alert('Сеть недоступна. Попробуйте ещё раз позже.');
@@ -2897,7 +2843,7 @@ function showPaymentWaiting() {
         document.getElementById('paymentWaitingDescription').textContent =
             'Пополнение Steam для ' + (data.purchase.login || '') + ' на ' + (amountSteam.toLocaleString('ru-RU')) + ' ₽ (на кошелёк)';
         document.getElementById('paymentDetailAmount').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ₽';
-    } else {
+                } else {
         var methodLabel = methodNames[data.method] + (data.bonusPercent ? ` (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)` : '');
         document.getElementById('paymentWaitingDescription').textContent =
             'Оплатите ' + data.totalAmount.toLocaleString('ru-RU') + ' ₽ через ' + methodLabel;
@@ -3548,7 +3494,7 @@ function buySupercellProduct(game, productIndex) {
             uid = window.userData.id;
         }
         if (uid != null && uid !== undefined) uid = String(uid); else uid = null;
-
+        
         // Сохраняем покупку
         const purchase = {
             id: 'supercell_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),

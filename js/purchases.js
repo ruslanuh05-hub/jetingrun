@@ -107,6 +107,13 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         } while (existingIds[orderId.toUpperCase()] && attempts < 50);
     }
 
+    var paymentMethodLabel = '—';
+    if (data.method === 'cryptobot') paymentMethodLabel = 'CryptoBot';
+    else if (data.method === 'platega') {
+        if (data.platega_method === 2) paymentMethodLabel = 'СБП';
+        else if (data.platega_method === 10) paymentMethodLabel = 'Карты';
+        else paymentMethodLabel = 'Карты / СБП';
+    }
     console.log('[recordPurchaseSuccess] type:', type, 'recipientUsername:', recipientUsername, 'steamLogin:', steamLogin, 'orderId:', orderId, 'p:', JSON.stringify(p));
 
     var purchaseObj = {
@@ -119,7 +126,8 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         date: new Date().toISOString(),
         userId: uid,
         recipient: recipientUsername || undefined,  // Сохраняем только если не пусто
-        login: steamLogin || undefined              // Для Steam: логин аккаунта
+        login: steamLogin || undefined,             // Для Steam: логин аккаунта
+        paymentMethod: paymentMethodLabel          // СБП / Карты / CryptoBot
     };
     // Сохраняем только локально для истории в UI
     try {

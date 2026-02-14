@@ -298,7 +298,7 @@
                     <div class="store-input-row">
                         <div class="store-input-wrapper" id="premiumRecipientWrapper">
                             <i class="fas fa-user store-input-icon"></i>
-                            <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupPremiumRecipientPage();}">
+                            <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя" autocomplete="off">
                             <!-- Резерв под галочку / крестик валидации username -->
                             <div class="premium-status-icons" id="premiumStatusIcons">
                                 <i class="fas fa-check-circle ok"></i>
@@ -459,21 +459,7 @@
                 if (inp) inp.value = '';
                 setPremiumRecipientStatePage('empty');
             };
-            window.lookupPremiumRecipientPage = function() {
-                var inp = document.getElementById('premiumRecipient');
-                if (!inp) return;
-                var username = (inp.value || '').trim().replace(/^@/, '');
-                if (!username) { setPremiumRecipientStatePage('empty'); return; }
-                setPremiumRecipientStatePage('loading', { username: username });
-                var apiBase = window.JET_API_BASE || localStorage.getItem('jet_api_base') || window.location.origin || '';
-                var url = apiBase ? (apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(username)) : '';
-                if (!url) { setPremiumRecipientStatePage('found', { username: username, firstName: username }); return; }
-                fetch(url).then(function(r) { return r.json().catch(function() { return null; }); })
-                    .then(function(d) {
-                        if (d && (d.username || d.firstName)) setPremiumRecipientStatePage('found', d);
-                        else setPremiumRecipientStatePage('not_found');
-                    }).catch(function() { setPremiumRecipientStatePage('not_found'); });
-            };
+            window.lookupPremiumRecipientPage = function() { /* поиск @username отключён */ };
             window.proceedPay = function() {
                 if (selectedPremium.months <= 0) return;
                 var recipient = (document.getElementById('premiumRecipient') && document.getElementById('premiumRecipient').value) ? document.getElementById('premiumRecipient').value.trim() : '';
