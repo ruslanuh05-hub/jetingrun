@@ -2348,8 +2348,26 @@ let previousView = {
     supercellGame: null
 };
 
+// Кэш комиссии Platega (СБП %, Карты %) — загружается при открытии выбора способа оплаты
+function loadPlategaCommissionIfNeeded() {
+    var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase || (window._plategaCommission && window._plategaCommission.sbp != null)) return;
+    fetch(apiBase.replace(/\/$/, '') + '/api/platega-commission', { method: 'GET', mode: 'cors' })
+        .then(function(r) { return r.ok ? r.json() : {}; })
+        .then(function(data) {
+            window._plategaCommission = {
+                sbp: (data.sbp_percent != null && !isNaN(data.sbp_percent)) ? Number(data.sbp_percent) : 10,
+                cards: (data.cards_percent != null && !isNaN(data.cards_percent)) ? Number(data.cards_percent) : 14
+            };
+        })
+        .catch(function() {
+            window._plategaCommission = { sbp: 10, cards: 14 };
+        });
+}
+
 // Показать окно выбора способа оплаты
 function showPaymentMethodSelection(purchaseType) {
+    loadPlategaCommissionIfNeeded();
     // Сохраняем данные покупки
     if (purchaseType === 'steam') {
         const login = document.getElementById('steamLogin')?.value.trim();
@@ -2757,17 +2775,22 @@ window.updateIdeaCounter = updateIdeaCounter;
 window.openIdeaCooldownModal = openIdeaCooldownModal;
 window.closeIdeaCooldownModal = closeIdeaCooldownModal;
 
-// Выбрать способ оплаты
-function selectPaymentMethod(method, bonusPercent) {
+// Выбрать способ оплаты (plategaMethod: 2 = СБП, 10 = Карты)
+function selectPaymentMethod(method, bonusPercent, plategaMethod) {
     closePaymentMethodPopup(true);  // Не возвращаться назад — идём к оплате
     
     var baseAmount, commission, totalAmount, purchase;
     var isPlatega = (method === 'platega');
+    var plategaCommissionPct = 0;
+    if (isPlatega && (plategaMethod === 2 || plategaMethod === 10)) {
+        var c = window._plategaCommission || {};
+        plategaCommissionPct = (plategaMethod === 2) ? (c.sbp != null ? c.sbp : 10) : (c.cards != null ? c.cards : 14);
+    }
     if (currentPurchase.type === 'steam') {
         var amountSteam = currentPurchase.amount;  // рубли на Steam (что вводил пользователь)
         var amountRub = Math.round(amountSteam * getSteamRate() * 100) / 100;  // базовая сумма по курсу
         baseAmount = amountRub;
-        commission = isPlatega ? 0 : Math.round(baseAmount * (bonusPercent || 0) / 100);
+        commission = isPlatega ? Math.round(baseAmount * plategaCommissionPct / 100) : Math.round(baseAmount * (bonusPercent || 0) / 100);
         totalAmount = baseAmount + commission;
         purchase = {
             type: 'steam',
@@ -2780,7 +2803,7 @@ function selectPaymentMethod(method, bonusPercent) {
         };
     } else {
         baseAmount = currentPurchase.amount;
-        commission = isPlatega ? 0 : Math.round(baseAmount * (bonusPercent || 0) / 100);
+        commission = isPlatega ? Math.round(baseAmount * plategaCommissionPct / 100) : Math.round(baseAmount * (bonusPercent || 0) / 100);
         totalAmount = baseAmount + commission;
         purchase = currentPurchase;
     }
@@ -2827,12 +2850,15 @@ function selectPaymentMethod(method, bonusPercent) {
     
     window.paymentData = {
         method: method,
-        bonusPercent: bonusPercent,
+        bonusPercent: isPlatega ? plategaCommissionPct : bonusPercent,
         baseAmount: baseAmount,
         commission: commission,
         totalAmount: totalAmount,
         purchase: purchase
     };
+    if (method === 'platega' && (plategaMethod === 2 || plategaMethod === 10)) {
+        window.paymentData.platega_method = plategaMethod;
+    }
     
     console.log('[selectPaymentMethod] window.paymentData.purchase:', window.paymentData.purchase);
     
@@ -2849,7 +2875,7 @@ function showPaymentWaiting() {
         'sbp': 'СБП',
         'card': 'Карта',
         'cryptobot': 'CryptoBot',
-        'platega': 'Карты / СБП'
+        'platega': (data.platega_method === 2 ? 'СБП' : 'Карты')
     };
     
     const statusEl = document.getElementById('paymentDetailStatus');
@@ -2872,14 +2898,15 @@ function showPaymentWaiting() {
             'Пополнение Steam для ' + (data.purchase.login || '') + ' на ' + (amountSteam.toLocaleString('ru-RU')) + ' ₽ (на кошелёк)';
         document.getElementById('paymentDetailAmount').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ₽';
     } else {
+        var methodLabel = methodNames[data.method] + (data.bonusPercent ? ` (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)` : '');
         document.getElementById('paymentWaitingDescription').textContent =
-            `Оплатите ${data.totalAmount.toLocaleString('ru-RU')} ₽ через ${methodNames[data.method]} (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)`;
-        document.getElementById('paymentDetailAmount').textContent = `${data.baseAmount.toLocaleString('ru-RU')} ₽`;
+            'Оплатите ' + data.totalAmount.toLocaleString('ru-RU') + ' ₽ через ' + methodLabel;
+        document.getElementById('paymentDetailAmount').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ₽';
     }
-    document.getElementById('paymentDetailCommissionLabel').textContent = `Комиссия (${data.bonusPercent}%)`;
-    document.getElementById('paymentDetailCommission').textContent = `+${data.commission.toLocaleString('ru-RU')} ${data.purchase?.type === 'steam' ? curSym : '₽'}`;
-    document.getElementById('paymentDetailTotal').textContent = `${data.totalAmount.toLocaleString('ru-RU')} ${data.purchase?.type === 'steam' ? curSym : '₽'}`;
-    document.getElementById('paymentDetailMethod').textContent = `${methodNames[data.method]} (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)`;
+    document.getElementById('paymentDetailCommissionLabel').textContent = 'Комиссия (' + (data.bonusPercent || 0) + '%)';
+    document.getElementById('paymentDetailCommission').textContent = '+' + data.commission.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
+    document.getElementById('paymentDetailTotal').textContent = data.totalAmount.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
+    document.getElementById('paymentDetailMethod').textContent = methodNames[data.method] + (data.bonusPercent ? ' (' + (data.bonusPercent > 0 ? '+' : '') + data.bonusPercent + '%)' : '');
     
     popup.classList.add('active');
     
@@ -3053,7 +3080,8 @@ function openPaymentPage() {
             if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js.', 'error');
             return;
         }
-        if (statusEl) statusEl.textContent = 'Создаём платёж (карты / СБП)...';
+        var plategaLabel = (data.platega_method === 2) ? 'СБП' : 'Карты';
+        if (statusEl) statusEl.textContent = 'Создаём платёж (' + plategaLabel + ')...';
         if (primaryBtn) primaryBtn.disabled = true;
         var createUrlPlatega = apiBasePlatega.replace(/\/$/, '') + '/api/platega/create-transaction';
         fetch(createUrlPlatega, {
@@ -3063,7 +3091,8 @@ function openPaymentPage() {
             body: JSON.stringify({
                 context: 'purchase',
                 user_id: (window.userData && window.userData.id) || (window.userData && window.userData.user && window.userData.user.id) || 'unknown',
-                purchase: data.purchase || {}
+                purchase: data.purchase || {},
+                platega_method: (data.platega_method === 2 || data.platega_method === 10) ? data.platega_method : 10
             })
         })
             .then(function(r) {

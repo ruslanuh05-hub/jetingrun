@@ -4216,6 +4216,24 @@
             display: none;
         }
         
+        /* Картинки для блоков «Идея» и «Игры» */
+        .main-menu-card-block-img {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            opacity: 0.85;
+            pointer-events: none;
+        }
+        .main-menu-card-idea .main-menu-card-block-img,
+        .main-menu-card-games .main-menu-card-block-img {
+            width: 52px;
+            height: 52px;
+        }
+        
         /* Секция ИГРЫ в главном меню */
         .main-menu-games-section {
             padding: 20px;
@@ -4830,12 +4848,14 @@
                 </a>
                 
                 <!-- Ряд: Поделиться идеей | Каталог игр -->
-                <div class="main-menu-card main-menu-card-ton page-block-enter" onclick="openIdeaModal();">
+                <div class="main-menu-card main-menu-card-ton page-block-enter main-menu-card-idea" onclick="openIdeaModal();">
+                    <img src="../assets/idea.png" alt="" class="main-menu-card-block-img" onerror="this.style.display='none'">
                     <div class="main-menu-card-title">Поделиться идеей</div>
                     <div class="main-menu-card-subtitle">Предложить улучшение сервиса</div>
                 </div>
                 
-                <div class="main-menu-card main-menu-card-sell-stars main-menu-card-disabled page-block-enter" onclick="return false;" style="cursor: not-allowed; opacity: 0.6; pointer-events: none;">
+                <div class="main-menu-card main-menu-card-sell-stars main-menu-card-disabled page-block-enter main-menu-card-games" onclick="return false;" style="cursor: not-allowed; opacity: 0.6; pointer-events: none;">
+                    <img src="../assets/plaing.png" alt="" class="main-menu-card-block-img" onerror="this.style.display='none'">
                     <div class="main-menu-card-title">Каталог игр</div>
                     <div class="main-menu-card-subtitle"></div>
                 </div>
@@ -5303,17 +5323,26 @@
                     <button class="payment-back-btn" onclick="closePaymentMethodPopup()" style="margin-bottom:12px;">
                         <i class="fas fa-chevron-left"></i> Назад
                     </button>
-                    <!-- СБП / Банковские карты (Platega.io) -->
+                    <!-- СБП (Platega) -->
                     <div class="payment-category">
-                        <h3 class="payment-category-title">СБП / Банковские карты</h3>
+                        <h3 class="payment-category-title">СБП и карты</h3>
                         <div class="payment-methods-list payment-methods-compact">
-                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('platega', 0)">
+                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('platega', 0, 2)">
+                                <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #00a86b 0%, #008f5a 100%);">
+                                    <i class="fas fa-mobile-alt" style="color: #fff;"></i>
+                                </div>
+                                <div class="payment-method-info">
+                                    <span class="payment-method-name">СБП</span>
+                                    <span class="payment-method-bonus" style="background: rgba(0,168,107,0.5); color: #fff;">QR</span>
+                                </div>
+                            </button>
+                            <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('platega', 0, 10)">
                                 <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);">
                                     <i class="fas fa-credit-card" style="color: #fff;"></i>
                                 </div>
                                 <div class="payment-method-info">
-                                    <span class="payment-method-name">Карты / СБП</span>
-                                    <span class="payment-method-bonus" style="background: rgba(255,255,255,0.3); color: rgba(255,255,255,0.9);">Platega</span>
+                                    <span class="payment-method-name">Карты</span>
+                                    <span class="payment-method-bonus" style="background: rgba(0,212,255,0.5); color: #fff;">МИР / Visa / MC</span>
                                 </div>
                             </button>
                         </div>

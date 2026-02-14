@@ -641,6 +641,20 @@ function saveCurrencyRates() {
         var cryptobotUsdt = parseFloat(document.getElementById('cryptobotUsdtAmount')?.value) || 1;
         if (cryptobotUsdt < 0.1) cryptobotUsdt = 1;
         try { localStorage.setItem('jetstore_cryptobot_usdt_amount', cryptobotUsdt.toString()); } catch (e) {}
+        var plategaSbp = parseFloat(document.getElementById('plategaSbpCommissionInput')?.value);
+        var plategaCards = parseFloat(document.getElementById('plategaCardsCommissionInput')?.value);
+        if (typeof plategaSbp !== 'number' || isNaN(plategaSbp)) plategaSbp = 10;
+        if (typeof plategaCards !== 'number' || isNaN(plategaCards)) plategaCards = 14;
+        plategaSbp = Math.max(0, Math.min(100, plategaSbp));
+        plategaCards = Math.max(0, Math.min(100, plategaCards));
+        try { localStorage.setItem('jetstore_platega_sbp_commission', plategaSbp.toString()); localStorage.setItem('jetstore_platega_cards_commission', plategaCards.toString()); } catch (e) {}
+        if (apiBase) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/platega-commission', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sbp_percent: plategaSbp, cards_percent: plategaCards })
+            }).then(function(r) { if (r.ok) console.log('Platega commission saved on server'); }).catch(function() {});
+        }
         
         const usdtRateEl = document.getElementById('usdtRate');
         const usdRateEl = document.getElementById('usdRate');
@@ -779,6 +793,26 @@ function loadSettings() {
     if (cryptobotEl) {
         var saved = localStorage.getItem('jetstore_cryptobot_usdt_amount');
         cryptobotEl.value = saved ? parseFloat(saved) || 1 : 1;
+    }
+    var plategaSbpEl = document.getElementById('plategaSbpCommissionInput');
+    var plategaCardsEl = document.getElementById('plategaCardsCommissionInput');
+    if (plategaSbpEl || plategaCardsEl) {
+        var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (apiBase) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/platega-commission', { method: 'GET', mode: 'cors' })
+                .then(function(r) { return r.ok ? r.json() : {}; })
+                .then(function(data) {
+                    if (plategaSbpEl) plategaSbpEl.value = (data.sbp_percent != null ? data.sbp_percent : parseFloat(localStorage.getItem('jetstore_platega_sbp_commission') || '10'));
+                    if (plategaCardsEl) plategaCardsEl.value = (data.cards_percent != null ? data.cards_percent : parseFloat(localStorage.getItem('jetstore_platega_cards_commission') || '14'));
+                })
+                .catch(function() {
+                    if (plategaSbpEl) plategaSbpEl.value = parseFloat(localStorage.getItem('jetstore_platega_sbp_commission') || '10') || 10;
+                    if (plategaCardsEl) plategaCardsEl.value = parseFloat(localStorage.getItem('jetstore_platega_cards_commission') || '14') || 14;
+                });
+        } else {
+            if (plategaSbpEl) plategaSbpEl.value = parseFloat(localStorage.getItem('jetstore_platega_sbp_commission') || '10') || 10;
+            if (plategaCardsEl) plategaCardsEl.value = parseFloat(localStorage.getItem('jetstore_platega_cards_commission') || '14') || 14;
+        }
     }
     
     // Загружаем курс скупки звезды
