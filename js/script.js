@@ -2294,10 +2294,10 @@ let previousView = {
     supercellGame: null
 };
 
-// Кэш комиссии Platega (СБП %, Карты %) — загружается при открытии выбора способа оплаты
+// Комиссия Platega (СБП %, Карты %) — при каждом открытии выбора способа оплаты запрашиваем актуальные значения с сервера
 function loadPlategaCommissionIfNeeded() {
     var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-    if (!apiBase || (window._plategaCommission && window._plategaCommission.sbp != null)) return;
+    if (!apiBase) return;
     fetch(apiBase.replace(/\/$/, '') + '/api/platega-commission', { method: 'GET', mode: 'cors' })
         .then(function(r) { return r.ok ? r.json() : {}; })
         .then(function(data) {
@@ -2307,7 +2307,7 @@ function loadPlategaCommissionIfNeeded() {
             };
         })
         .catch(function() {
-            window._plategaCommission = { sbp: 10, cards: 14 };
+            window._plategaCommission = window._plategaCommission || { sbp: 10, cards: 14 };
         });
 }
 
