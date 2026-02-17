@@ -1968,21 +1968,31 @@ function showStoreView(section) {
 
     // Всегда прокручиваем окно и контент магазина в начало,
     // чтобы при повторном заходе не оставалось пустого пространства сверху.
-    try {
-        if (typeof window !== 'undefined') {
-            window.scrollTo(0, 0);
-        }
-        if (document.documentElement) {
-            document.documentElement.scrollTop = 0;
-        }
-        if (document.body) {
-            document.body.scrollTop = 0;
-        }
-        const storeContent = document.querySelector('.store-content');
-        if (storeContent) {
-            storeContent.scrollTop = 0;
-        }
-    } catch (e) {}
+    function resetStoreScroll() {
+        try {
+            if (typeof window !== 'undefined') {
+                window.scrollTo(0, 0);
+            }
+            if (document.documentElement) {
+                document.documentElement.scrollTop = 0;
+            }
+            if (document.body) {
+                document.body.scrollTop = 0;
+            }
+            const storeContent = document.querySelector('.store-content');
+            if (storeContent) {
+                storeContent.scrollTop = 0;
+            }
+            const mainMenuContainer = document.querySelector('.main-menu-container');
+            if (mainMenuContainer) {
+                mainMenuContainer.scrollTop = 0;
+            }
+        } catch (e) {}
+    }
+    resetStoreScroll();
+    // На некоторых устройствах Telegram сначала меняет высоту webview,
+    // поэтому дублируем сброс скролла на следующий тик.
+    setTimeout(resetStoreScroll, 0);
     
     // Обновляем активные кнопки в нижней навигации
     const navButtons = document.querySelectorAll('.main-nav-btn');
