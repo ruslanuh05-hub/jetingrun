@@ -2721,7 +2721,9 @@ window.updateIdeaCounter = updateIdeaCounter;
 window.openIdeaCooldownModal = openIdeaCooldownModal;
 window.closeIdeaCooldownModal = closeIdeaCooldownModal;
 
-// Выбрать способ оплаты (plategaMethod: 2 = СБП, 10 = Карты)
+// Выбрать способ оплаты
+// plategaMethod: 2 = СБП, 10 = Карты (для Platega)
+// Для FreeKassa через методы 'sbp' / 'card' третий параметр используется как значение i (44 = СБП (QR), 36 = карты РФ)
 function selectPaymentMethod(method, bonusPercent, plategaMethod) {
     closePaymentMethodPopup(true);  // Не возвращаться назад — идём к оплате
     
@@ -2818,10 +2820,10 @@ function showPaymentWaiting() {
     
     const data = window.paymentData;
     const methodNames = {
-        'sbp': 'СБП',
-        'card': 'Карта',
+        'sbp': 'СБП (FreeKassa)',
+        'card': 'Карта (FreeKassa)',
         'cryptobot': 'CryptoBot',
-        'platega': (data.platega_method === 2 ? 'СБП' : 'Карты')
+        'platega': (data.platega_method === 2 ? 'СБП (Platega)' : 'Карты (Platega)')
     };
     
     const statusEl = document.getElementById('paymentDetailStatus');
@@ -3088,6 +3090,85 @@ function openPaymentPage() {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
                 if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка сети. Попробуйте позже.', 'error');
+            });
+        return;
+    }
+
+    // FreeKassa (СБП / карты): создание заказа и переход по ссылке оплаты
+    if (data.method === 'sbp' || data.method === 'card') {
+        var apiBaseFk = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (!apiBaseFk) {
+            if (typeof showStoreNotification === 'function') showStoreNotification('API бота не настроен. Укажите URL в js/config.js.', 'error');
+            return;
+        }
+        var fkLabel = data.method === 'sbp' ? 'СБП (FreeKassa)' : 'Карта (FreeKassa)';
+        if (statusEl) statusEl.textContent = 'Создаём платёж (' + fkLabel + ')...';
+        if (primaryBtn) primaryBtn.disabled = true;
+        // Параметр i для FreeKassa: 44 — СБП (QR), 36 — карты РФ
+        var fkI = data.method === 'sbp' ? 44 : 36;
+        var createUrlFk = apiBaseFk.replace(/\/$/, '') + '/api/freekassa/create-order';
+        fetch(createUrlFk, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                context: 'purchase',
+                user_id: (window.userData && window.userData.id) || (window.userData && window.userData.user && window.userData.user.id) || 'unknown',
+                purchase: data.purchase || {},
+                method: data.method,
+                i: fkI
+            })
+        })
+            .then(function(r) {
+                return r.text().then(function(t) {
+                    var j = null;
+                    try { j = t ? JSON.parse(t) : {}; } catch (e) {}
+                    return { ok: r.ok, status: r.status, text: t, json: j };
+                });
+            })
+            .then(function(result) {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
+                if (!result.ok) {
+                    var errMsg = (result.json && (result.json.message || result.json.error)) || result.text || ('Ошибка ' + result.status);
+                    if (result.json && result.json.error === 'not_configured') errMsg = 'FreeKassa не настроена (заданы ли FREEKASSA_SHOP_ID, FREEKASSA_API_KEY и FREEKASSA_SECRET2 на сервере?).';
+                    if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
+                    console.error('[FreeKassa] create-order failed:', result.status, result.json || result.text);
+                    return;
+                }
+                var res = result.json || {};
+                if (res.success && res.payment_url) {
+                    window.paymentData = window.paymentData || {};
+                    if (res.order_id) window.paymentData.order_id = res.order_id;
+                    window.paymentData.payment_url = res.payment_url;
+                    if (typeof window.startPaymentPolling === 'function') window.startPaymentPolling();
+                    var payUrl = (res.payment_url || '').trim();
+                    if (payUrl) {
+                        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+                            try { window.Telegram.WebApp.openLink(payUrl); } catch (e) { window.open(payUrl, '_blank'); }
+                        } else {
+                            window.open(payUrl, '_blank');
+                        }
+                        if (typeof showStoreNotification === 'function') showStoreNotification('Открыта страница оплаты. После оплаты статус обновится автоматически.', 'info');
+                        if (statusEl) {
+                            statusEl.innerHTML = 'Платёж создан. <a href="#" id="freekassaOpenLink" style="color:#00d4ff;text-decoration:underline;">Открыть оплату</a>';
+                            var linkEl = document.getElementById('freekassaOpenLink');
+                            if (linkEl) linkEl.onclick = function(e) {
+                                e.preventDefault();
+                                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) window.Telegram.WebApp.openLink(payUrl);
+                                else window.open(payUrl, '_blank');
+                            };
+                        }
+                    }
+                } else {
+                    if (typeof showStoreNotification === 'function') showStoreNotification((res.message || res.error || 'Ошибка создания платежа') + '', 'error');
+                }
+            })
+            .catch(function(err) {
+                if (primaryBtn) primaryBtn.disabled = false;
+                if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
+                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка сети. Попробуйте позже.', 'error');
+                console.error('[FreeKassa] create-order network error:', err);
             });
         return;
     }

@@ -110,9 +110,13 @@ function recordPurchaseSuccess(data, deliveryOptions) {
     var paymentMethodLabel = '—';
     if (data.method === 'cryptobot') paymentMethodLabel = 'CryptoBot';
     else if (data.method === 'platega') {
-        if (data.platega_method === 2) paymentMethodLabel = 'СБП';
-        else if (data.platega_method === 10) paymentMethodLabel = 'Карты';
-        else paymentMethodLabel = 'Карты / СБП';
+        if (data.platega_method === 2) paymentMethodLabel = 'СБП (Platega)';
+        else if (data.platega_method === 10) paymentMethodLabel = 'Карты (Platega)';
+        else paymentMethodLabel = 'Карты / СБП (Platega)';
+    } else if (data.method === 'sbp') {
+        paymentMethodLabel = 'СБП (FreeKassa)';
+    } else if (data.method === 'card') {
+        paymentMethodLabel = 'Карты (FreeKassa)';
     }
     console.log('[recordPurchaseSuccess] type:', type, 'recipientUsername:', recipientUsername, 'steamLogin:', steamLogin, 'orderId:', orderId, 'p:', JSON.stringify(p));
 
