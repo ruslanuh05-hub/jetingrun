@@ -510,7 +510,12 @@ function updatePricesDisplay() {
 function switchStoreTab(tab) {
     // Убираем активный класс у всех вкладок
     document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.store-section').forEach(s => s.classList.remove('active'));
+    // Скрываем все секции и принудительно сбрасываем их высоту, чтобы убрать пустое пространство
+    document.querySelectorAll('.store-section').forEach(s => {
+        s.classList.remove('active');
+        s.style.height = '0';
+        s.style.overflow = 'hidden';
+    });
     
     // Активируем выбранную вкладку
     const tabBtn = document.querySelector('.store-tab[data-tab="' + tab + '"]');
@@ -528,6 +533,9 @@ function switchStoreTab(tab) {
     const sectionId = tab + 'Section';
     const section = document.getElementById(sectionId);
     if (section) {
+        // Сначала принудительно показываем секцию (height: auto), затем добавляем класс active
+        section.style.height = 'auto';
+        section.style.overflow = 'visible';
         section.classList.add('active');
         
         // Агрессивный сброс скролла: вызываем несколько раз с задержками,
@@ -563,6 +571,8 @@ function switchStoreTab(tab) {
         setTimeout(forceScrollReset, 0);
         setTimeout(forceScrollReset, 50);
         setTimeout(forceScrollReset, 150);
+        // Дополнительный сброс после того, как секция полностью отрисуется
+        setTimeout(forceScrollReset, 300);
     }
     
     // Обновляем индикаторы
@@ -2033,8 +2043,16 @@ function showStoreView(section) {
         // Принудительно активируем секцию звёзд сразу, чтобы избежать пустого экрана
         const starsSection = document.getElementById('starsSection');
         if (starsSection) {
-            document.querySelectorAll('.store-section').forEach(s => s.classList.remove('active'));
+            // Сначала скрываем все секции (убираем active и принудительно ставим height: 0)
+            document.querySelectorAll('.store-section').forEach(s => {
+                s.classList.remove('active');
+                s.style.height = '0';
+                s.style.overflow = 'hidden';
+            });
+            // Затем активируем секцию звёзд
             starsSection.classList.add('active');
+            starsSection.style.height = 'auto';
+            starsSection.style.overflow = 'visible';
         }
         const starsTab = document.querySelector('.store-tab[data-tab="stars"]');
         if (starsTab) {

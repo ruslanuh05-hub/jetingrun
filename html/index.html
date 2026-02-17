@@ -401,12 +401,18 @@
             right: 0;
             width: 100%;
             transition: opacity 0.35s ease;
+            /* Предотвращаем создание пустого пространства при переключении */
+            height: 0;
+            overflow: hidden;
         }
         
         .store-section.active {
             opacity: 1;
             pointer-events: auto;
             position: relative;
+            /* Когда секция активна, высота определяется содержимым */
+            height: auto;
+            overflow: visible;
         }
         
         /* Заголовок секции */
@@ -5344,7 +5350,7 @@
                                 </div>
                                 <div class="payment-method-info">
                                     <span class="payment-method-name">СБП (FreeKassa)</span>
-                                    <span class="payment-method-bonus" style="background: rgba(0,168,107,0.5); color: #fff;">QR</span>
+                                    <span class="payment-method-bonus" style="background: rgba(0,168,107,0.5); color: #fff;">+7%</span>
                                 </div>
                             </button>
                             <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('card', 8, 36)">
@@ -5353,7 +5359,7 @@
                                 </div>
                                 <div class="payment-method-info">
                                     <span class="payment-method-name">Карты (FreeKassa)</span>
-                                    <span class="payment-method-bonus" style="background: rgba(0,212,255,0.5); color: #fff;">МИР / Visa / MC</span>
+                                    <span class="payment-method-bonus" style="background: rgba(0,212,255,0.5); color: #fff;">+8%</span>
                                 </div>
                             </button>
                         </div>
