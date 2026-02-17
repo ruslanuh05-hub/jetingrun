@@ -514,9 +514,9 @@ function switchStoreTab(tab) {
     
     // Активируем выбранную вкладку
     const tabBtn = document.querySelector('.store-tab[data-tab="' + tab + '"]');
-    if (event && event.currentTarget) {
-        event.currentTarget.classList.add('active');
-    } else if (tabBtn) {
+    // ВАЖНО: не используем неявную глобальную переменную `event` (на некоторых устройствах её нет),
+    // иначе функция падает и вкладка остаётся пустой при повторном входе.
+    if (tabBtn) {
         tabBtn.classList.add('active');
     } else {
         document.querySelectorAll('.store-tab').forEach(btn => {
@@ -2754,6 +2754,24 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
         commission = isPlatega ? Math.round(baseAmount * plategaCommissionPct / 100) : Math.round(baseAmount * (bonusPercent || 0) / 100);
         totalAmount = baseAmount + commission;
         purchase = currentPurchase;
+    }
+    
+    // Дополняем purchase username / first_name из Telegram WebApp / userData,
+    // чтобы рейтинг и рефералка видели логин, а не "Пользователь".
+    try {
+        var tgUser = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) || null;
+        var localUser = (window.userData && (window.userData.user || window.userData)) || null;
+        var srcUser = tgUser || localUser;
+        if (srcUser) {
+            if (!purchase.username && srcUser.username) {
+                purchase.username = String(srcUser.username).trim();
+            }
+            if (!purchase.first_name && (srcUser.first_name || srcUser.firstName)) {
+                purchase.first_name = String(srcUser.first_name || srcUser.firstName).trim();
+            }
+        }
+    } catch (e) {
+        console.warn('[selectPaymentMethod] failed to enrich purchase with username:', e);
     }
     
     // Глобальный уникальный ID заказа для связи админ‑поиска и истории (#ABC123)
