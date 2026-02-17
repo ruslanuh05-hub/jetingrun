@@ -529,12 +529,40 @@ function switchStoreTab(tab) {
     const section = document.getElementById(sectionId);
     if (section) {
         section.classList.add('active');
-        // При переключении вкладки гарантируем прокрутку контента магазина к началу,
-        // чтобы при повторном входе не оставался пустой чёрный блок сверху.
-        const storeContent = document.querySelector('.store-content');
-        if (storeContent) {
-            storeContent.scrollTop = 0;
+        
+        // Агрессивный сброс скролла: вызываем несколько раз с задержками,
+        // чтобы гарантированно убрать пустой отступ при повторном входе.
+        function forceScrollReset() {
+            try {
+                if (typeof window !== 'undefined') {
+                    window.scrollTo(0, 0);
+                }
+                if (document.documentElement) {
+                    document.documentElement.scrollTop = 0;
+                }
+                if (document.body) {
+                    document.body.scrollTop = 0;
+                }
+                const storeContent = document.querySelector('.store-content');
+                if (storeContent) {
+                    storeContent.scrollTop = 0;
+                }
+                const storeView = document.getElementById('storeView');
+                if (storeView) {
+                    storeView.scrollTop = 0;
+                }
+                const mainMenuContainer = document.querySelector('.main-menu-container');
+                if (mainMenuContainer) {
+                    mainMenuContainer.scrollTop = 0;
+                }
+            } catch (e) {}
         }
+        
+        // Сбрасываем скролл сразу и с задержками для надёжности
+        forceScrollReset();
+        setTimeout(forceScrollReset, 0);
+        setTimeout(forceScrollReset, 50);
+        setTimeout(forceScrollReset, 150);
     }
     
     // Обновляем индикаторы
@@ -2002,6 +2030,17 @@ function showStoreView(section) {
     
     // Переключаем на нужную вкладку / окно
     if (section === 'stars') {
+        // Принудительно активируем секцию звёзд сразу, чтобы избежать пустого экрана
+        const starsSection = document.getElementById('starsSection');
+        if (starsSection) {
+            document.querySelectorAll('.store-section').forEach(s => s.classList.remove('active'));
+            starsSection.classList.add('active');
+        }
+        const starsTab = document.querySelector('.store-tab[data-tab="stars"]');
+        if (starsTab) {
+            document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
+            starsTab.classList.add('active');
+        }
         // Откладываем переключение на следующий тик, чтобы storeView успел отрисоваться и секция звёзд показалась с первого раза
         setTimeout(function() {
             switchStoreTab('stars');
