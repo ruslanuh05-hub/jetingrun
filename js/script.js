@@ -2079,7 +2079,14 @@ function showMainMenuView() {
     const marketView = document.getElementById('marketView');
     
     if (mainMenuView) mainMenuView.classList.remove('hidden');
-    if (storeView) storeView.classList.remove('active');
+    if (storeView) {
+        storeView.classList.remove('active');
+        // Сбрасываем inline-стили секций, иначе при 2-м заходе остаётся пустой экран
+        document.querySelectorAll('.store-section').forEach(function(s) {
+            s.style.height = '';
+            s.style.overflow = '';
+        });
+    }
     if (marketView) marketView.style.display = 'none';
     
     // Выходим из режима магазина — возвращаем подвал
@@ -2144,16 +2151,18 @@ function showStoreView(section) {
     
     // Переключаем на нужную вкладку / окно
     if (section === 'stars') {
-        // Принудительно активируем секцию звёзд сразу, чтобы избежать пустого экрана
+        // Сбрасываем inline-стили секций (важно при 2-м заходе — иначе пустой экран)
+        document.querySelectorAll('.store-section').forEach(function(s) {
+            s.style.height = '';
+            s.style.overflow = '';
+        });
         const starsSection = document.getElementById('starsSection');
         if (starsSection) {
-            // Сначала скрываем все секции (убираем active и принудительно ставим height: 0)
-            document.querySelectorAll('.store-section').forEach(s => {
+            document.querySelectorAll('.store-section').forEach(function(s) {
                 s.classList.remove('active');
                 s.style.height = '0';
                 s.style.overflow = 'hidden';
             });
-            // Затем активируем секцию звёзд
             starsSection.classList.add('active');
             starsSection.style.height = 'auto';
             starsSection.style.overflow = 'visible';
@@ -2163,7 +2172,6 @@ function showStoreView(section) {
             document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
             starsTab.classList.add('active');
         }
-        // Откладываем переключение на следующий тик, чтобы storeView успел отрисоваться и секция звёзд показалась с первого раза
         setTimeout(function() {
             switchStoreTab('stars');
         }, 0);
