@@ -2306,15 +2306,13 @@ function showSteamTopup() {
         if (window._steamAmountInputHandler) {
             amountInput.removeEventListener('input', window._steamAmountInputHandler);
         }
-        // Обновляем отображение и ограничиваем ввод: 50..500000 ₽
+        // Обновляем отображение и ограничиваем ввод: только max (мин проверяем при отправке)
         window._steamAmountInputHandler = function() {
             var el = document.getElementById('steamAmount');
             if (el) {
                 var v = parseFloat(el.value);
                 if (!isNaN(v) && v > VALIDATION_LIMITS.steamMax) {
                     el.value = VALIDATION_LIMITS.steamMax;
-                } else if (!isNaN(v) && v > 0 && v < VALIDATION_LIMITS.steamMin) {
-                    el.value = '';
                 }
             }
             updateSteamPayTotalDisplay();
