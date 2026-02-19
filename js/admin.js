@@ -126,6 +126,7 @@ function login(password) {
         .then(function(res) {
             if (res.ok === true) {
                 localStorage.setItem('jetStoreAdminLoggedIn', 'true');
+                try { sessionStorage.setItem('jetStoreAdminPassword', password); } catch (e) {}
                 showAdminPanel();
                 showNotification('Успешный вход', 'success');
             } else {
@@ -140,6 +141,7 @@ function login(password) {
 // Выход из админки
 function logout() {
     localStorage.removeItem('jetStoreAdminLoggedIn');
+    try { sessionStorage.removeItem('jetStoreAdminPassword'); } catch (e) {}
     showLoginPanel();
     const adminPasswordInput = document.getElementById('adminPassword');
     if (adminPasswordInput) adminPasswordInput.value = '';
@@ -234,17 +236,57 @@ function loadInitialData() {
     loadSettings();
 }
 
-// Обновление статистики в формате: продажи, динамика, пользователи, регистрации, активность
+// Обновление статистики: с сервера (GET /api/admin/stats) или из локальной Database
 function refreshStatistics() {
     const block = document.getElementById('statBlock');
     if (!block) return;
-    if (typeof window.Database === 'undefined' || typeof (window.Database || {}).getStatistics !== 'function') {
-        block.textContent = 'Данные недоступны';
+    block.textContent = 'Загрузка...';
+    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var pwd = '';
+    try { pwd = sessionStorage.getItem('jetStoreAdminPassword') || ''; } catch (e) {}
+    if (apiBase && pwd) {
+        fetch(apiBase.replace(/\/$/, '') + '/api/admin/stats', {
+            method: 'GET',
+            headers: { 'Authorization': 'Bearer ' + pwd }
+        })
+            .then(function(r) {
+                if (r.ok) return r.json();
+                if (r.status === 401) return null;
+                return r.json().catch(function() { return null; });
+            })
+            .then(function(data) {
+                if (data && typeof data.totalSales !== 'undefined') {
+                    renderStatsBlock(block, data);
+                    return;
+                }
+                try { if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
+                    renderStatsBlock(block, (window.Database || {}).getStatistics());
+                    return;
+                } } catch (e) {}
+                block.textContent = 'Данные недоступны';
+            })
+            .catch(function() {
+                try { if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
+                    renderStatsBlock(block, (window.Database || {}).getStatistics());
+                    return;
+                } } catch (e) {}
+                block.textContent = 'Ошибка загрузки. Проверьте API и пароль.';
+            });
         return;
     }
-    const s = (window.Database || {}).getStatistics();
-    const fmt = (n) => (Number(n) || 0).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-    const fmtRub = (n) => (Number(n) || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+    try {
+        if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
+            var s = (window.Database || {}).getStatistics();
+            renderStatsBlock(block, s);
+            return;
+        }
+    } catch (e) {}
+    block.textContent = 'Данные недоступны. Войдите в админку и нажмите «Обновить».';
+}
+
+function renderStatsBlock(block, s) {
+    var fmt = function(n) { return (Number(n) || 0).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); };
+    var fmtRub = function(n) { return (Number(n) || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽'; };
     block.textContent = [
         '🛍️ Продажи',
         '▸ Всего продаж: ' + (s.totalSales ?? 0),
@@ -679,7 +721,7 @@ function saveCurrencyRates() {
     }
 }
 
-// Сохранение курса 1 звезды
+// Сохранение курса 1 звезды (покупка: 1 звезда = X ₽)
 function saveStarRate() {
     console.log('Сохраняем курс 1 звезды...');
     
@@ -690,16 +732,25 @@ function saveStarRate() {
         showNotification('Курс 1 звезды сохранён', 'success');
         console.log('Курс 1 звезды сохранён:', starRate);
         
-        // Обновляем отображение
         const starRateEl = document.getElementById('starRate');
         if (starRateEl) starRateEl.textContent = starRate;
+        
+        // Отправляем на бэкенд, чтобы расчёт сумм (CryptoBot, FreeKassa и т.д.) использовал новый курс
+        var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (apiBase) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/star-rate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ star_price_rub: starRate })
+            }).then(function(r) { if (r.ok) console.log('Star rate saved on server'); }).catch(function() {});
+        }
     } catch (error) {
         console.error('Ошибка сохранения курса 1 звезды:', error);
         showNotification('Ошибка сохранения курса', 'error');
     }
 }
 
-// Сохранение курса скупки 1 звезды
+// Сохранение курса скупки 1 звезды (продажа: 1 звезда = X ₽)
 function saveStarBuyRate() {
     console.log('Сохраняем курс скупки 1 звезды...');
     
@@ -712,6 +763,16 @@ function saveStarBuyRate() {
         
         const starBuyRateEl = document.getElementById('starBuyRate');
         if (starBuyRateEl) starBuyRateEl.textContent = buyRate;
+        
+        // Отправляем на бэкенд
+        var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (apiBase) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/star-rate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ star_buy_rate_rub: buyRate })
+            }).then(function(r) { if (r.ok) console.log('Star buy rate saved on server'); }).catch(function() {});
+        }
     } catch (error) {
         console.error('Ошибка сохранения курса скупки 1 звезды:', error);
         showNotification('Ошибка сохранения курса скупки', 'error');
@@ -722,8 +783,20 @@ function saveStarBuyRate() {
 function saveStarsPrices() {
     console.log('Сохраняем цены на звёзды...');
     
-    // Сначала сохраняем курс 1 звезды
     saveStarRate();
+    saveStarBuyRate();
+    
+    // Одним запросом отправляем оба курса на бэкенд (чтобы расчёты использовали актуальные значения)
+    var starPrice = parseFloat(document.getElementById('starRateInput')?.value) || 1.37;
+    var starBuyRate = parseFloat(document.getElementById('starBuyRateInput')?.value) || 0.65;
+    var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (apiBase) {
+        fetch(apiBase.replace(/\/$/, '') + '/api/star-rate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ star_price_rub: starPrice, star_buy_rate_rub: starBuyRate })
+        }).then(function(r) { if (r.ok) console.log('Star rates saved on server'); }).catch(function() {});
+    }
     
     const prices = {
         50: parseFloat(document.getElementById('starsPrice50')?.value) || 69,
@@ -793,8 +866,22 @@ function loadSettings() {
     }
     var steamRateEl = document.getElementById('steamRateInput');
     if (steamRateEl) {
-        var saved = localStorage.getItem('jetstore_steam_rate');
-        steamRateEl.value = saved ? parseFloat(saved) || 1.06 : 1.06;
+        var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (apiBase) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/steam-rate', { method: 'GET', mode: 'cors' })
+                .then(function(r) { return r.ok ? r.json() : {}; })
+                .then(function(data) {
+                    if (data.steam_rate_rub != null && !isNaN(data.steam_rate_rub))
+                        steamRateEl.value = data.steam_rate_rub;
+                    else
+                        steamRateEl.value = parseFloat(localStorage.getItem('jetstore_steam_rate') || '1.06') || 1.06;
+                })
+                .catch(function() {
+                    steamRateEl.value = parseFloat(localStorage.getItem('jetstore_steam_rate') || '1.06') || 1.06;
+                });
+        } else {
+            steamRateEl.value = parseFloat(localStorage.getItem('jetstore_steam_rate') || '1.06') || 1.06;
+        }
     }
     var cryptobotEl = document.getElementById('cryptobotUsdtAmount');
     if (cryptobotEl) {
@@ -822,7 +909,33 @@ function loadSettings() {
         }
     }
     
-    // Загружаем курс скупки звезды
+    // Загружаем курсы звёзд с бэкенда (как на сервере) или из localStorage
+    var starRateInputEl = document.getElementById('starRateInput');
+    var starBuyRateInputEl = document.getElementById('starBuyRateInput');
+    if (starRateInputEl || starBuyRateInputEl) {
+        var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (apiBase) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/star-rate', { method: 'GET', mode: 'cors' })
+                .then(function(r) { return r.ok ? r.json() : {}; })
+                .then(function(data) {
+                    if (starRateInputEl && data.star_price_rub != null && !isNaN(data.star_price_rub)) {
+                        starRateInputEl.value = data.star_price_rub;
+                        try { localStorage.setItem('jetstore_star_rate', String(data.star_price_rub)); } catch (e) {}
+                    }
+                    if (starBuyRateInputEl && data.star_buy_rate_rub != null && !isNaN(data.star_buy_rate_rub)) {
+                        starBuyRateInputEl.value = data.star_buy_rate_rub;
+                        try { localStorage.setItem('jetstore_star_buy_rate', String(data.star_buy_rate_rub)); } catch (e) {}
+                    }
+                })
+                .catch(function() {
+                    if (starRateInputEl) starRateInputEl.value = parseFloat(localStorage.getItem('jetstore_star_rate') || '1.37') || 1.37;
+                    if (starBuyRateInputEl) starBuyRateInputEl.value = parseFloat(localStorage.getItem('jetstore_star_buy_rate') || '0.65') || 0.65;
+                });
+        } else {
+            if (starRateInputEl) starRateInputEl.value = parseFloat(localStorage.getItem('jetstore_star_rate') || '1.37') || 1.37;
+            if (starBuyRateInputEl) starBuyRateInputEl.value = parseFloat(localStorage.getItem('jetstore_star_buy_rate') || '0.65') || 0.65;
+        }
+    }
     try {
         const buyRate = parseFloat(localStorage.getItem('jetstore_star_buy_rate') || '0.65');
         const buyRateDisplay = document.getElementById('starBuyRate');
