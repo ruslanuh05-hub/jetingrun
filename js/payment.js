@@ -44,6 +44,15 @@ function confirmPayment() {
             return;
         }
         checkPayload.transaction_id = data.transaction_id;
+    } else if (data.method === 'sbp' || data.method === 'card') {
+        // FreeKassa (СБП / карты): передаём order_id для проверки статуса
+        if (!data.order_id) {
+            if (statusEl) statusEl.textContent = 'Ожидание создания заказа...';
+            console.log('[Payment Check] order_id not found for FreeKassa, skipping check');
+            return;
+        }
+        checkPayload.order_id = data.order_id;
+        checkPayload.purchase = purchase; // Также передаём purchase для совместимости
     } else {
         // Для других методов (Fragment, TON) используем старую логику
         checkPayload.totalAmount = data.totalAmount;
@@ -76,8 +85,14 @@ function confirmPayment() {
             if (res.paid === true) {
                 // Оплата подтверждена - останавливаем polling
                 stopPaymentPolling();
-                if (statusEl) statusEl.textContent = res.delivered_by_fragment ? 'Оплата подтверждена.' : 'Оплата подтверждена. Выдача...';
-                console.log('[Payment Check] Payment confirmed, invoice_id:', res.invoice_id || data.invoice_id);
+                var statusText = 'Оплата подтверждена. Выдача...';
+                if (res.delivered_by_fragment === true) {
+                    statusText = 'Оплата подтверждена.';
+                } else if (res.delivered_by_freekassa === true) {
+                    statusText = 'Оплата подтверждена.';
+                }
+                if (statusEl) statusEl.textContent = statusText;
+                console.log('[Payment Check] Payment confirmed, method:', data.method, 'order_id:', res.order_id || data.order_id, 'invoice_id:', res.invoice_id || data.invoice_id);
                 if (typeof runDeliveryAfterPayment === 'function') {
                     runDeliveryAfterPayment(data, res);
                 }

@@ -34,6 +34,29 @@ function runDeliveryAfterPayment(data, checkResponse) {
         if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
         return;
     }
+    
+    // Оплата через FreeKassa: товар уже выдан по вебхуку от FreeKassa
+    if (checkResponse && checkResponse.delivered_by_freekassa === true) {
+        var optsDelivered = null;
+        if (purchaseType === 'stars') {
+            // Для звёзд: явно фиксируем, что они выданы
+            optsDelivered = { status: 'delivered' };
+        }
+        if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, optsDelivered);
+        
+        // Перезагружаем историю покупок, если мы на странице профиля
+        setTimeout(function() {
+            if (typeof window.loadPurchases === 'function') {
+                window.loadPurchases();
+            } else if (typeof loadPurchases === 'function') {
+                loadPurchases();
+            }
+        }, 500);
+        
+        if (typeof showStoreNotification === 'function') showStoreNotification('Товар выдан.', 'success');
+        if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
+        return;
+    }
 
     // Для CryptoBot и других методов: выдача выполняется на бэкенде через вебхуки
     // Клиент только показывает сообщение о том, что оплата подтверждена и товар будет выдан автоматически
