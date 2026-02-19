@@ -48,9 +48,68 @@ window.currentSupercellGame = null;
     }
 })();
 
+// Управление экраном загрузки
+function showLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const progressBar = document.getElementById('loadingProgressBar');
+    
+    if (!loadingScreen) return;
+    
+    // Проверяем, первый ли это вход
+    const isFirstVisit = !localStorage.getItem('jetstore_visited');
+    
+    if (isFirstVisit) {
+        loadingScreen.classList.remove('hidden');
+        
+        // Анимация прогресса загрузки
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15 + 5; // Случайный шаг от 5 до 20%
+            if (progress > 90) progress = 90; // Останавливаемся на 90%, остальное после загрузки
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+            }
+        }, 200);
+        
+        // Сохраняем интервал для остановки
+        window.loadingProgressInterval = interval;
+    } else {
+        // Если не первый визит, сразу скрываем
+        loadingScreen.classList.add('hidden');
+    }
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const progressBar = document.getElementById('loadingProgressBar');
+    
+    if (!loadingScreen) return;
+    
+    // Останавливаем анимацию прогресса
+    if (window.loadingProgressInterval) {
+        clearInterval(window.loadingProgressInterval);
+        window.loadingProgressInterval = null;
+    }
+    
+    // Завершаем прогресс до 100%
+    if (progressBar) {
+        progressBar.style.width = '100%';
+    }
+    
+    // Скрываем экран через небольшую задержку
+    setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        // Помечаем, что пользователь уже посещал приложение
+        localStorage.setItem('jetstore_visited', 'true');
+    }, 300);
+}
+
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Инициализация магазина...');
+    
+    // Показываем экран загрузки при первом входе
+    showLoadingScreen();
     
     // Инициализируем базу данных
     if (typeof window.Database !== 'undefined' && window.Database) {
@@ -127,6 +186,11 @@ document.addEventListener('DOMContentLoaded', function() {
     restorePendingPayment();
     
     console.log('Магазин инициализирован. Баланс RUB:', window.userData?.currencies?.RUB);
+    
+    // Скрываем экран загрузки после завершения инициализации
+    setTimeout(() => {
+        hideLoadingScreen();
+    }, 800);
 });
 
 // Инициализация пользователя
