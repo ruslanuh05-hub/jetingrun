@@ -39,7 +39,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding-top: 300px;
+            padding-top: 400px;
             padding-left: 24px;
             padding-right: 24px;
             padding-bottom: 24px;
@@ -55,7 +55,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding-top: 300px;
+            padding-top: 400px;
             opacity: 1;
             transition: opacity 0.5s ease;
         }
@@ -162,7 +162,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding-top: 300px;
+            padding-top: 400px;
             z-index: 999998;
             opacity: 1;
             transition: opacity 0.5s ease, visibility 0.5s ease;
@@ -5164,7 +5164,11 @@
                                     type="text"
                                     id="starsRecipient"
                                     class="store-input"
-                                    placeholder="@username получателя">
+                                    placeholder="@username получателя"
+                                    maxlength="32"
+                                    autocomplete="off"
+                                    pattern="[a-zA-Z0-9_@]*"
+                                    title="Только латиница, цифры и _">
                                 <div id="starsUserPreview" class="tg-user-chip" style="display:none;align-items:center;gap:10px;flex:1;min-width:0;">
                                     <img id="starsUserAvatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
                                     <span id="starsUserName" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -5215,7 +5219,7 @@
                         <div class="store-input-row">
                             <div class="store-input-wrapper" id="premiumRecipientWrapper">
                                 <i class="fas fa-user store-input-icon"></i>
-                                <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя">
+                                <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя" maxlength="32" autocomplete="off" pattern="[a-zA-Z0-9_@]*" title="Только латиница, цифры и _">
                                 <div id="premiumUserPreview" class="tg-user-chip" style="display:none;align-items:center;gap:10px;flex:1;min-width:0;">
                                     <img id="premiumUserAvatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
                                     <span id="premiumUserName" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -5334,7 +5338,7 @@
                             </div>
                             <div class="steam-topup-input-wrap">
                                 <i class="fas fa-user"></i>
-                                <input type="text" id="steamLogin" class="steam-topup-input" placeholder="login16">
+                                <input type="text" id="steamLogin" class="steam-topup-input" placeholder="login16" maxlength="32" autocomplete="off" pattern="[a-zA-Z0-9_]*" title="Только латиница, цифры и _">
                                 <button type="button" class="steam-topup-clear" onclick="clearSteamInput('steamLogin')">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -5351,7 +5355,7 @@
                             </div>
                             <div class="steam-topup-input-wrap">
                                 <span class="steam-currency-icon" id="steamCurrencyIcon">₽</span>
-                                <input type="number" id="steamAmount" class="steam-topup-input" placeholder="100" min="1">
+                                <input type="number" id="steamAmount" class="steam-topup-input" placeholder="100" min="50" max="500000" step="1">
                                 <button type="button" class="steam-topup-clear" onclick="clearSteamInput('steamAmount')">
                                     <i class="fas fa-times"></i>
                                 </button>

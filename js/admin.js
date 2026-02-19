@@ -105,29 +105,36 @@ function showAdminPanel() {
     }
 }
 
-// Вход в админку
+// Вход в админку — проверка пароля на бэкенде (ADMIN_PASSWORD в env)
 function login(password) {
     console.log('Попытка входа...');
-    console.log('Введен пароль:', password);
-    
-    // Проверяем доступ к Database
-    if (typeof window.Database === 'undefined') {
-        console.error('Database не загружен!');
-        showNotification('Ошибка: база данных не загружена', 'error');
+    if (!password || typeof password !== 'string') {
+        showNotification('Введите пароль', 'error');
         return;
     }
-    
-    console.log('Проверяем пароль...');
-    const isCorrect = (window.Database || {}).checkAdminPassword(password);
-    console.log('Пароль правильный?', isCorrect);
-    
-    if (isCorrect) {
-        localStorage.setItem('jetStoreAdminLoggedIn', 'true');
-        showAdminPanel();
-        showNotification('Успешный вход', 'success');
-    } else {
-        showNotification('Неверный пароль', 'error');
+    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) {
+        showNotification('API бота не настроен. Укажите JET_BOT_API_URL в config.js', 'error');
+        return;
     }
+    fetch(apiBase.replace(/\/$/, '') + '/api/admin/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: password })
+    })
+        .then(function(r) { return r.json().catch(function() { return { ok: false }; }); })
+        .then(function(res) {
+            if (res.ok === true) {
+                localStorage.setItem('jetStoreAdminLoggedIn', 'true');
+                showAdminPanel();
+                showNotification('Успешный вход', 'success');
+            } else {
+                showNotification(res.message || 'Неверный пароль', 'error');
+            }
+        })
+        .catch(function() {
+            showNotification('Ошибка связи с сервером', 'error');
+        });
 }
 
 // Выход из админки

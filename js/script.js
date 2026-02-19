@@ -1,6 +1,44 @@
 // script.js - Исправленный скрипт
 const tg = window.Telegram?.WebApp;
 
+// ============ ЗАЩИТА ОТ ХАКЕРОВ: валидация и санитизация ввода ============
+var VALIDATION_LIMITS = {
+    starsMin: 50,
+    starsMax: 50000,
+    steamMin: 50,
+    steamMax: 500000,
+    loginMaxLen: 32,
+    premiumMonths: [3, 6, 12]
+};
+
+function sanitizeLogin(val) {
+    if (val == null || typeof val !== 'string') return '';
+    var s = val.trim().replace(/^@/, '');
+    s = s.replace(/[^a-zA-Z0-9_]/g, '');
+    return s.slice(0, VALIDATION_LIMITS.loginMaxLen);
+}
+
+function validateStarsAmount(amount) {
+    var n = parseInt(amount, 10);
+    if (isNaN(n) || n < VALIDATION_LIMITS.starsMin) return { ok: false, msg: 'Минимум 50 звёзд' };
+    if (n > VALIDATION_LIMITS.starsMax) return { ok: false, msg: 'Максимум 50 000 звёзд за одну покупку' };
+    return { ok: true, value: n };
+}
+
+function validateSteamAmount(amount) {
+    var n = parseFloat(amount);
+    if (isNaN(n) || !isFinite(n)) return { ok: false, msg: 'Введите корректную сумму' };
+    if (n < VALIDATION_LIMITS.steamMin) return { ok: false, msg: 'Минимум 50 ₽ для Steam' };
+    if (n > VALIDATION_LIMITS.steamMax) return { ok: false, msg: 'Максимум 500 000 ₽' };
+    return { ok: true, value: n };
+}
+
+function validatePremiumMonths(months) {
+    var n = parseInt(months, 10);
+    if (VALIDATION_LIMITS.premiumMonths.indexOf(n) === -1) return { ok: false, msg: 'Выберите период: 3, 6 или 12 мес.' };
+    return { ok: true, value: n };
+}
+
 // Инициализация приложения
 if (tg) {
     tg.expand();
@@ -908,28 +946,29 @@ function updatePremiumButton() {
 
 // Покупка звёзд
 function proceedStarsPurchase() {
-    if (selectedStars.amount < 50) {
-        showStoreNotification('Минимум 50 звёзд', 'error');
-        return;
-    }
-    if (selectedStars.amount > 50000) {
-        showStoreNotification('Максимум 50 000 звёзд за одну покупку', 'error');
+    var v = validateStarsAmount(selectedStars.amount);
+    if (!v.ok) {
+        showStoreNotification(v.msg, 'error');
         return;
     }
     
-    // Получаем получателя из поля ввода
-    const recipientInput = document.getElementById('starsRecipient');
-    const recipient = recipientInput ? recipientInput.value.trim().replace(/^@/, '') : '';
+    // Санитизация получателя
+    var recipientInput = document.getElementById('starsRecipient');
+    var recipient = recipientInput ? sanitizeLogin(recipientInput.value) : '';
+    if (!recipient) {
+        showStoreNotification('Укажите получателя звёзд (@username)', 'error');
+        return;
+    }
     console.log('[proceedStarsPurchase] recipient из поля:', recipient, 'input value:', recipientInput ? recipientInput.value : 'input not found');
     
-    // Сохраняем данные покупки и открываем выбор способа оплаты
+    // Сохраняем данные покупки (recipient уже санитизирован)
     currentPurchase = {
         type: 'stars',
         amount: selectedStars.price,
         stars_amount: selectedStars.amount,
-        login: recipient || null,
+        login: recipient,
         productId: null,
-        productName: `Покупка ${selectedStars.amount} звёзд`
+        productName: 'Покупка ' + selectedStars.amount + ' звёзд'
     };
     console.log('[proceedStarsPurchase] currentPurchase:', currentPurchase);
     
@@ -938,14 +977,15 @@ function proceedStarsPurchase() {
 
 // Покупка премиума
 function proceedPremiumPurchase() {
-    if (selectedPremium.months <= 0) {
-        showStoreNotification('Выберите период премиума', 'error');
+    var pmCheck = validatePremiumMonths(selectedPremium.months);
+    if (!pmCheck.ok) {
+        showStoreNotification(pmCheck.msg, 'error');
         return;
     }
     
-    // Получаем получателя из поля ввода (если есть)
-    const recipientInput = document.getElementById('premiumRecipient') || document.getElementById('premiumPopupRecipient');
-    const recipient = recipientInput ? recipientInput.value.trim() : '';
+    // Санитизация получателя
+    var recipientInput = document.getElementById('premiumRecipient') || document.getElementById('premiumPopupRecipient');
+    var recipient = recipientInput ? sanitizeLogin(recipientInput.value) : '';
     
     // Сохраняем данные покупки и открываем выбор способа оплаты
     currentPurchase = {
@@ -2258,9 +2298,17 @@ function showSteamTopup() {
         if (window._steamAmountInputHandler) {
             amountInput.removeEventListener('input', window._steamAmountInputHandler);
         }
-        // Только обновляем отображение суммы к оплате, без жёсткого принуждения к 50 ₽,
-        // чтобы пользователь мог нормально редактировать поле.
+        // Обновляем отображение и ограничиваем ввод: 50..500000 ₽
         window._steamAmountInputHandler = function() {
+            var el = document.getElementById('steamAmount');
+            if (el) {
+                var v = parseFloat(el.value);
+                if (!isNaN(v) && v > VALIDATION_LIMITS.steamMax) {
+                    el.value = VALIDATION_LIMITS.steamMax;
+                } else if (!isNaN(v) && v > 0 && v < VALIDATION_LIMITS.steamMin) {
+                    el.value = '';
+                }
+            }
             updateSteamPayTotalDisplay();
         };
         amountInput.addEventListener('input', window._steamAmountInputHandler);
@@ -2447,24 +2495,27 @@ function showPaymentMethodSelection(purchaseType) {
     loadPlategaCommissionIfNeeded();
     // Сохраняем данные покупки
     if (purchaseType === 'steam') {
-        const login = document.getElementById('steamLogin')?.value.trim();
-        const amount = parseFloat(document.getElementById('steamAmount')?.value) || 0;
+        var steamLoginEl = document.getElementById('steamLogin');
+        var steamAmountEl = document.getElementById('steamAmount');
+        var loginVal = steamLoginEl ? sanitizeLogin(steamLoginEl.value) : '';
+        var amountVal = steamAmountEl ? parseFloat(steamAmountEl.value) : 0;
         
-        if (!login) {
+        if (!loginVal) {
             showStoreNotification('Введите логин Steam', 'error');
             return;
         }
         
-        // Дополнительная валидация: минимум 50 ₽ для пополнения Steam
-        if (amount < 50) {
-            showStoreNotification('Минимальная сумма пополнения Steam — 50 ₽', 'error');
+        var steamCheck = validateSteamAmount(amountVal);
+        if (!steamCheck.ok) {
+            showStoreNotification(steamCheck.msg, 'error');
             return;
         }
+        amountVal = steamCheck.value;
         
         currentPurchase = {
             type: 'steam',
-            amount: amount,
-            login: login,
+            amount: amountVal,
+            login: loginVal,
             productId: null,
             productName: 'Пополнение Steam',
             currency: currentSteamCurrency
@@ -3058,8 +3109,18 @@ function openPaymentPage() {
         }
         if (statusEl) statusEl.textContent = 'Создаём счёт CryptoBot...';
         if (primaryBtn) primaryBtn.disabled = true;
-        // Для безопасности фронт НЕ задаёт сумму и payload для CryptoBot.
-        // Он передаёт только описание покупки, а сервер сам считает цену.
+        // Безопасность: передаём ТОЛЬКО type + минимальные данные. Цена и payload — на бэке.
+        var p = data.purchase || {};
+        var purchaseMinimal = { type: p.type };
+        if (p.type === 'stars') {
+            purchaseMinimal.stars_amount = p.stars_amount;
+            purchaseMinimal.login = p.login;
+        } else if (p.type === 'premium') {
+            purchaseMinimal.months = p.months;
+        } else if (p.type === 'steam') {
+            purchaseMinimal.amount_steam = p.amount_steam != null ? p.amount_steam : p.amount;
+            purchaseMinimal.login = p.login;
+        }
         var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
         console.log('[CryptoBot] Отправка запроса на:', createUrl);
         
@@ -3076,8 +3137,8 @@ function openPaymentPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 context: 'purchase',
-                user_id: (window.userData && window.userData.id) || (window.userData && window.userData.user?.id) || 'unknown',
-                purchase: data.purchase || {}
+                user_id: (window.userData && window.userData.id) || (window.userData && window.userData.user && window.userData.user.id) || 'unknown',
+                purchase: purchaseMinimal
             })
         });
         
