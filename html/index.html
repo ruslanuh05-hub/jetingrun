@@ -27,9 +27,9 @@
         .tg-guard-overlay {
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle at top, rgba(0, 212, 255, 0.2), transparent 55%),
-                        #000000;
+            background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
             display: none;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 24px;
@@ -38,6 +38,58 @@
         .tg-guard-overlay.active {
             display: flex;
         }
+        
+        /* Загрузочный экран в tg-guard-overlay */
+        .tg-guard-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+        
+        .tg-guard-overlay.show-card .tg-guard-loading {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .tg-guard-loading-logo {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin-bottom: 32px;
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+        
+        .tg-guard-loading-text {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+        
+        .tg-guard-loading-progress-container {
+            width: 280px;
+            max-width: 80%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .tg-guard-loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff 0%, #00a4ff 50%, #0078ff 100%);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: progressShimmer 1.5s ease-in-out infinite;
+        }
+        
         .tg-guard-card {
             max-width: 360px;
             width: 100%;
@@ -48,6 +100,16 @@
             padding: 20px 18px 18px;
             color: #ffffff;
             text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            position: absolute;
+        }
+        
+        .tg-guard-overlay.show-card .tg-guard-card {
+            opacity: 1;
+            transform: translateY(0);
+            position: relative;
         }
         .tg-guard-title {
             font-size: 1.1rem;
@@ -4888,8 +4950,8 @@
     <body>
         <!-- Экран загрузки при первом входе -->
         <div id="loadingScreen" class="loading-screen">
-            <img src="../assets/logo_load.png" alt="JET" class="loading-logo" id="loadingLogo" 
-                 onerror="this.onerror=null; this.src='../assets/logo_load.jpg'; this.onerror=function(){this.style.display='none';}">
+            <img src="../assets/logo_load.jpg" alt="JET" class="loading-logo" id="loadingLogo" 
+                 onerror="this.onerror=null; this.src='../assets/logo_load.png'; this.onerror=function(){this.style.display='none';}">
             <div class="loading-text">Jet Store</div>
             <div class="loading-progress-container">
                 <div class="loading-progress-bar" id="loadingProgressBar"></div>
@@ -4898,6 +4960,17 @@
         
         <!-- Защита: нельзя открыть сайт вне Telegram WebApp -->
         <div id="tgGuardOverlay" class="tg-guard-overlay">
+            <!-- Загрузочный экран -->
+            <div class="tg-guard-loading">
+                <img src="../assets/logo_load.jpg" alt="JET" class="tg-guard-loading-logo" id="tgGuardLoadingLogo"
+                     onerror="this.onerror=null; this.src='../assets/logo_load.png'; this.onerror=function(){this.style.display='none';}">
+                <div class="tg-guard-loading-text">Jet Store</div>
+                <div class="tg-guard-loading-progress-container">
+                    <div class="tg-guard-loading-progress-bar" id="tgGuardLoadingProgressBar"></div>
+                </div>
+            </div>
+            
+            <!-- Карточка с сообщением -->
             <div class="tg-guard-card">
                 <div class="tg-guard-title">Открой через Telegram</div>
                 <div class="tg-guard-text">
@@ -6273,7 +6346,38 @@
                     // В проде (не localhost) требуем Telegram WebApp с пользователем
                     if (!isLocal && !hasUser) {
                         var ov = document.getElementById('tgGuardOverlay');
-                        if (ov) ov.classList.add('active');
+                        if (ov) {
+                            ov.classList.add('active');
+                            
+                            // Показываем загрузочный экран с анимацией прогресса
+                            var progressBar = document.getElementById('tgGuardLoadingProgressBar');
+                            if (progressBar) {
+                                var progress = 0;
+                                var interval = setInterval(function() {
+                                    progress += Math.random() * 15 + 5; // Случайный шаг от 5 до 20%
+                                    if (progress > 90) progress = 90; // Останавливаемся на 90%
+                                    progressBar.style.width = progress + '%';
+                                }, 200);
+                                
+                                // Через 2.5 секунды завершаем загрузку и показываем карточку
+                                setTimeout(function() {
+                                    clearInterval(interval);
+                                    if (progressBar) {
+                                        progressBar.style.width = '100%';
+                                    }
+                                    
+                                    // Показываем карточку через небольшую задержку
+                                    setTimeout(function() {
+                                        ov.classList.add('show-card');
+                                    }, 300);
+                                }, 2500);
+                            } else {
+                                // Если прогресс-бар не найден, просто показываем карточку через 1.5 секунды
+                                setTimeout(function() {
+                                    ov.classList.add('show-card');
+                                }, 1500);
+                            }
+                        }
                     }
                 } catch (e) {}
             })();
