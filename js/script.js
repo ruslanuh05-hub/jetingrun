@@ -3020,7 +3020,7 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
     window.paymentData = {
         method: method,
         // Для FreeKassa bonusPercent используется только для отображения в UI (комиссия FreeKassa добавляется на их стороне)
-        bonusPercent: isPlatega ? plategaCommissionPct : (isFreeKassa ? bonusPercent : bonusPercent),
+        bonusPercent: isPlatega ? plategaCommissionPct : bonusPercent,  // Для FreeKassa: 5 (sbp) или 6 (card)
         baseAmount: baseAmount,
         commission: commission,  // Для FreeKassa = 0, т.к. комиссия добавляется на стороне FreeKassa
         totalAmount: totalAmount,  // Для FreeKassa = baseAmount (без комиссии)
@@ -3081,13 +3081,15 @@ function showPaymentWaiting() {
         document.getElementById('paymentDetailAmount').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ₽';
     }
     var isFreeKassa = (data.method === 'sbp' || data.method === 'card');
-    if (isFreeKassa && data.bonusPercent) {
-        // Для FreeKassa показываем комиссию как информационную (добавится на стороне FreeKassa)
-        document.getElementById('paymentDetailCommissionLabel').textContent = 'Комиссия FreeKassa (' + data.bonusPercent + '%)';
-        var estimatedCommission = Math.round(data.baseAmount * data.bonusPercent / 100);
+    // Для FreeKassa всегда показываем комиссию (5% для СБП, 6% для карт)
+    if (isFreeKassa) {
+        var fkCommissionPct = data.method === 'sbp' ? 5 : 6;  // FreeKassa комиссии: СБП 5%, карты 6%
+        document.getElementById('paymentDetailCommissionLabel').textContent = 'Комиссия FreeKassa (' + fkCommissionPct + '%)';
+        var estimatedCommission = Math.round(data.baseAmount * fkCommissionPct / 100);
         document.getElementById('paymentDetailCommission').textContent = '~+' + estimatedCommission.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
         // Итого = базовая сумма (комиссия добавится на стороне FreeKassa)
-        document.getElementById('paymentDetailTotal').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽') + ' + комиссия';
+        var estimatedTotal = data.baseAmount + estimatedCommission;
+        document.getElementById('paymentDetailTotal').textContent = estimatedTotal.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
     } else {
         document.getElementById('paymentDetailCommissionLabel').textContent = 'Комиссия (' + (data.bonusPercent || 0) + '%)';
         document.getElementById('paymentDetailCommission').textContent = '+' + data.commission.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
