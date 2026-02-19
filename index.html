@@ -34,9 +34,15 @@
         .loading-logo {
             width: 120px;
             height: 120px;
+            min-width: 120px;
+            min-height: 120px;
             object-fit: contain;
             margin-bottom: 32px;
             animation: logoPulse 2s ease-in-out infinite;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            background: transparent;
         }
         
         @keyframes logoPulse {
@@ -150,7 +156,9 @@
     <!-- Экран загрузки -->
     <div class="loading-screen">
         <img src="assets/logo_load.jpg" alt="JET" class="loading-logo" id="loadingLogo"
-             onerror="this.onerror=null; this.src='assets/logo_load.png'; this.onerror=function(){this.style.display='none';}">
+             style="display: block; opacity: 1; visibility: visible;"
+             onload="console.log('Logo loaded successfully:', this.src); this.style.display='block'; this.style.opacity='1';"
+             onerror="console.error('Failed to load logo_load.jpg, trying png'); var img = this; img.onerror=null; img.src='assets/logo_load.png'; img.onerror=function(){console.error('Failed to load logo_load.png too'); var fallback = document.createElement('div'); fallback.className='loading-logo'; fallback.style.width='120px'; fallback.style.height='120px'; fallback.style.borderRadius='50%'; fallback.style.background='linear-gradient(135deg, #00d4ff 0%, #00a4ff 50%, #0078ff 100%)'; fallback.style.display='flex'; fallback.style.alignItems='center'; fallback.style.justifyContent='center'; fallback.style.color='#000'; fallback.style.fontSize='3rem'; fallback.style.fontWeight='bold'; fallback.textContent='JET'; img.parentNode.replaceChild(fallback, img);}">
         <div class="loading-text">Jet Store</div>
         <div class="loading-progress-container">
             <div class="loading-progress-bar" id="loadingProgressBar"></div>

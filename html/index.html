@@ -158,9 +158,15 @@
         .loading-logo {
             width: 120px;
             height: 120px;
+            min-width: 120px;
+            min-height: 120px;
             object-fit: contain;
             margin-bottom: 32px;
             animation: logoPulse 2s ease-in-out infinite;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            background: transparent;
         }
         
         @keyframes logoPulse {
@@ -4951,7 +4957,9 @@
         <!-- Экран загрузки при первом входе -->
         <div id="loadingScreen" class="loading-screen">
             <img src="../assets/logo_load.jpg" alt="JET" class="loading-logo" id="loadingLogo" 
-                 onerror="this.onerror=null; this.src='../assets/logo_load.png'; this.onerror=function(){this.style.display='none';}">
+                 style="display: block; opacity: 1; visibility: visible;"
+                 onload="console.log('Logo loaded:', this.src); this.style.display='block'; this.style.opacity='1';"
+                 onerror="console.error('Failed to load logo_load.jpg'); var img = this; img.onerror=null; img.src='../assets/logo_load.png'; img.onerror=function(){console.error('Failed to load logo_load.png, trying jet-logo.png'); img.onerror=null; img.src='../assets/jet-logo.png'; img.onerror=function(){console.error('All logos failed'); this.style.display='none';}}">
             <div class="loading-text">Jet Store</div>
             <div class="loading-progress-container">
                 <div class="loading-progress-bar" id="loadingProgressBar"></div>
@@ -4963,7 +4971,9 @@
             <!-- Загрузочный экран -->
             <div class="tg-guard-loading">
                 <img src="../assets/logo_load.jpg" alt="JET" class="tg-guard-loading-logo" id="tgGuardLoadingLogo"
-                     onerror="this.onerror=null; this.src='../assets/logo_load.png'; this.onerror=function(){this.style.display='none';}">
+                     style="display: block; opacity: 1; visibility: visible;"
+                     onload="console.log('TG Guard logo loaded:', this.src); this.style.display='block'; this.style.opacity='1';"
+                     onerror="console.error('Failed to load logo_load.jpg'); var img = this; img.onerror=null; img.src='../assets/logo_load.png'; img.onerror=function(){console.error('Failed to load logo_load.png, trying jet-logo.png'); img.onerror=null; img.src='../assets/jet-logo.png'; img.onerror=function(){console.error('All logos failed'); this.style.display='none';}}">
                 <div class="tg-guard-loading-text">Jet Store</div>
                 <div class="tg-guard-loading-progress-container">
                     <div class="tg-guard-loading-progress-bar" id="tgGuardLoadingProgressBar"></div>
