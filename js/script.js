@@ -2919,6 +2919,7 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
     
     var baseAmount, commission, totalAmount, purchase;
     var isPlatega = (method === 'platega');
+    var isFreeKassa = (method === 'sbp' || method === 'card');
     var plategaCommissionPct = 0;
     if (isPlatega && (plategaMethod === 2 || plategaMethod === 10)) {
         var c = window._plategaCommission || {};
@@ -2928,8 +2929,14 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
         var amountSteam = currentPurchase.amount;  // рубли на Steam (что вводил пользователь)
         var amountRub = Math.round(amountSteam * getSteamRate() * 100) / 100;  // базовая сумма по курсу
         baseAmount = amountRub;
-        commission = isPlatega ? Math.round(baseAmount * plategaCommissionPct / 100) : Math.round(baseAmount * (bonusPercent || 0) / 100);
-        totalAmount = baseAmount + commission;
+        // Для FreeKassa комиссия только для отображения — FreeKassa сама добавит комиссию при оплате
+        if (isFreeKassa) {
+            commission = 0;  // Не добавляем к сумме
+            totalAmount = baseAmount;  // Отправляем сумму без комиссии
+        } else {
+            commission = isPlatega ? Math.round(baseAmount * plategaCommissionPct / 100) : Math.round(baseAmount * (bonusPercent || 0) / 100);
+            totalAmount = baseAmount + commission;
+        }
         purchase = {
             type: 'steam',
             amount_steam: amountSteam,
@@ -2941,8 +2948,14 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
         };
     } else {
         baseAmount = currentPurchase.amount;
-        commission = isPlatega ? Math.round(baseAmount * plategaCommissionPct / 100) : Math.round(baseAmount * (bonusPercent || 0) / 100);
-        totalAmount = baseAmount + commission;
+        // Для FreeKassa комиссия только для отображения — FreeKassa сама добавит комиссию при оплате
+        if (isFreeKassa) {
+            commission = 0;  // Не добавляем к сумме
+            totalAmount = baseAmount;  // Отправляем сумму без комиссии
+        } else {
+            commission = isPlatega ? Math.round(baseAmount * plategaCommissionPct / 100) : Math.round(baseAmount * (bonusPercent || 0) / 100);
+            totalAmount = baseAmount + commission;
+        }
         purchase = currentPurchase;
     }
     
@@ -3006,10 +3019,11 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
     
     window.paymentData = {
         method: method,
-        bonusPercent: isPlatega ? plategaCommissionPct : bonusPercent,
+        // Для FreeKassa bonusPercent используется только для отображения в UI (комиссия FreeKassa добавляется на их стороне)
+        bonusPercent: isPlatega ? plategaCommissionPct : (isFreeKassa ? bonusPercent : bonusPercent),
         baseAmount: baseAmount,
-        commission: commission,
-        totalAmount: totalAmount,
+        commission: commission,  // Для FreeKassa = 0, т.к. комиссия добавляется на стороне FreeKassa
+        totalAmount: totalAmount,  // Для FreeKassa = baseAmount (без комиссии)
         purchase: purchase
     };
     if (method === 'platega' && (plategaMethod === 2 || plategaMethod === 10)) {
@@ -3054,14 +3068,31 @@ function showPaymentWaiting() {
             'Пополнение Steam для ' + (data.purchase.login || '') + ' на ' + (amountSteam.toLocaleString('ru-RU')) + ' ₽ (на кошелёк)';
         document.getElementById('paymentDetailAmount').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ₽';
                 } else {
+        var isFreeKassa = (data.method === 'sbp' || data.method === 'card');
         var methodLabel = methodNames[data.method] + (data.bonusPercent ? ` (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)` : '');
-        document.getElementById('paymentWaitingDescription').textContent =
-            'Оплатите ' + data.totalAmount.toLocaleString('ru-RU') + ' ₽ через ' + methodLabel;
+        // Для FreeKassa показываем, что комиссия будет добавлена на их стороне
+        if (isFreeKassa) {
+            document.getElementById('paymentWaitingDescription').textContent =
+                'Оплатите ' + data.baseAmount.toLocaleString('ru-RU') + ' ₽ через ' + methodLabel + ' (комиссия FreeKassa будет добавлена при оплате)';
+        } else {
+            document.getElementById('paymentWaitingDescription').textContent =
+                'Оплатите ' + data.totalAmount.toLocaleString('ru-RU') + ' ₽ через ' + methodLabel;
+        }
         document.getElementById('paymentDetailAmount').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ₽';
     }
-    document.getElementById('paymentDetailCommissionLabel').textContent = 'Комиссия (' + (data.bonusPercent || 0) + '%)';
-    document.getElementById('paymentDetailCommission').textContent = '+' + data.commission.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
-    document.getElementById('paymentDetailTotal').textContent = data.totalAmount.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
+    var isFreeKassa = (data.method === 'sbp' || data.method === 'card');
+    if (isFreeKassa && data.bonusPercent) {
+        // Для FreeKassa показываем комиссию как информационную (добавится на стороне FreeKassa)
+        document.getElementById('paymentDetailCommissionLabel').textContent = 'Комиссия FreeKassa (' + data.bonusPercent + '%)';
+        var estimatedCommission = Math.round(data.baseAmount * data.bonusPercent / 100);
+        document.getElementById('paymentDetailCommission').textContent = '~+' + estimatedCommission.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
+        // Итого = базовая сумма (комиссия добавится на стороне FreeKassa)
+        document.getElementById('paymentDetailTotal').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽') + ' + комиссия';
+    } else {
+        document.getElementById('paymentDetailCommissionLabel').textContent = 'Комиссия (' + (data.bonusPercent || 0) + '%)';
+        document.getElementById('paymentDetailCommission').textContent = '+' + data.commission.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
+        document.getElementById('paymentDetailTotal').textContent = data.totalAmount.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
+    }
     document.getElementById('paymentDetailMethod').textContent = methodNames[data.method] + (data.bonusPercent ? ' (' + (data.bonusPercent > 0 ? '+' : '') + data.bonusPercent + '%)' : '');
     
     popup.classList.add('active');
