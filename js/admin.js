@@ -828,6 +828,14 @@ function savePremiumPrices() {
     
     try {
         localStorage.setItem('jetstore_premium_prices', JSON.stringify(prices));
+        var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (apiBase) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/premium-prices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ premium_3: prices[3], premium_6: prices[6], premium_12: prices[12] })
+            }).then(function(r) { if (r.ok) console.log('Premium prices saved on server'); }).catch(function() {});
+        }
         showNotification('Цены на Premium сохранены', 'success');
         console.log('Цены на Premium сохранены:', prices);
     } catch (error) {
@@ -961,18 +969,31 @@ function loadSettings() {
         console.error('Ошибка загрузки цен на звёзды:', error);
     }
     
-    // Загружаем цены на Premium
-    try {
-        const premiumPrices = JSON.parse(localStorage.getItem('jetstore_premium_prices') || '{}');
-        const defaultPremiumPrices = { 3: 983, 6: 1311, 12: 2377 };
-        const finalPremiumPrices = { ...defaultPremiumPrices, ...premiumPrices };
-        
-        if (document.getElementById('premiumPrice3')) document.getElementById('premiumPrice3').value = finalPremiumPrices[3];
-        if (document.getElementById('premiumPrice6')) document.getElementById('premiumPrice6').value = finalPremiumPrices[6];
-        if (document.getElementById('premiumPrice12')) document.getElementById('premiumPrice12').value = finalPremiumPrices[12];
-    } catch (error) {
-        console.error('Ошибка загрузки цен на Premium:', error);
-    }
+    // Загружаем цены на Premium (с сервера или из localStorage)
+    (function loadPremiumPrices() {
+        var defaultPremiumPrices = { 3: 983, 6: 1311, 12: 2377 };
+        var apply = function(prices) {
+            var finalPrices = { ...defaultPremiumPrices, ...prices };
+            if (document.getElementById('premiumPrice3')) document.getElementById('premiumPrice3').value = finalPrices[3];
+            if (document.getElementById('premiumPrice6')) document.getElementById('premiumPrice6').value = finalPrices[6];
+            if (document.getElementById('premiumPrice12')) document.getElementById('premiumPrice12').value = finalPrices[12];
+        };
+        try {
+            var localPrices = JSON.parse(localStorage.getItem('jetstore_premium_prices') || '{}');
+            apply(localPrices);
+        } catch (e) {}
+        var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (apiBase) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/premium-prices', { method: 'GET', mode: 'cors' })
+                .then(function(r) { return r.ok ? r.json() : null; })
+                .then(function(data) {
+                    if (data && (data.premium_3 != null || data.premium_6 != null || data.premium_12 != null)) {
+                        apply({ 3: data.premium_3, 6: data.premium_6, 12: data.premium_12 });
+                    }
+                })
+                .catch(function() {});
+        }
+    })();
 }
 
 // Экспорт данных
