@@ -12,40 +12,63 @@
             box-sizing: border-box;
         }
         
-        html, body {
+        html {
             width: 100%;
             height: 100%;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
         }
         
         /* Экран загрузки */
         .loading-screen {
             position: fixed;
-            inset: 0;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
+            min-width: 100vw;
             min-height: 100vh;
+            margin: 0;
+            padding: 0;
             background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding-top: 300px;
+            padding-top: 5vh;
             z-index: 999999;
+            box-sizing: border-box;
         }
         
         .loading-logo {
-            width: 120px;
-            height: 120px;
-            min-width: 120px;
-            min-height: 120px;
+            width: min(85vw, 85vh);
+            height: min(85vw, 85vh);
+            max-width: 320px;
+            max-height: 320px;
             object-fit: contain;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             animation: logoPulse 2s ease-in-out infinite;
             display: block !important;
             opacity: 1 !important;
@@ -164,7 +187,7 @@
     <!-- Экран загрузки -->
     <div class="loading-screen">
         <img src="assets/logo_load.jpg" alt="JET" class="loading-logo" id="loadingLogo"
-             style="display: block; opacity: 1; visibility: visible; max-width: 120px; max-height: 120px;"
+             style="display: block; opacity: 1; visibility: visible;"
              onload="console.log('Logo loaded successfully:', this.src); this.style.display='block'; this.style.opacity='1';"
              onerror="console.error('Failed to load logo_load.jpg, trying jet-logo.png'); var img = this; img.onerror=null; img.src='assets/jet-logo.png'; img.onerror=function(){console.error('All logos failed, using fallback'); var fallback = document.createElement('div'); fallback.className='loading-logo'; fallback.style.width='120px'; fallback.style.height='120px'; fallback.style.borderRadius='50%'; fallback.style.background='linear-gradient(135deg, #00d4ff 0%, #00a4ff 50%, #0078ff 100%)'; fallback.style.display='flex'; fallback.style.alignItems='center'; fallback.style.justifyContent='center'; fallback.style.color='#000'; fallback.style.fontSize='3rem'; fallback.style.fontWeight='bold'; fallback.textContent='JET'; img.parentNode.replaceChild(fallback, img);}">
         <div class="loading-text">Jet Store</div>
