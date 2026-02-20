@@ -681,11 +681,28 @@ function saveCurrencyRates() {
         try { localStorage.setItem('jetstore_steam_rate', steamRate.toString()); } catch (e) {}
         var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (apiBase) {
+            console.log('Sending steam_rate_rub=' + steamRate + ' to ' + apiBase + '/api/steam-rate');
             fetch(apiBase.replace(/\/$/, '') + '/api/steam-rate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ steam_rate_rub: steamRate })
-            }).then(function(r) { if (r.ok) console.log('Steam rate saved on server'); }).catch(function() {});
+            })
+            .then(function(r) {
+                if (r.ok) {
+                    console.log('✓ Steam rate saved on server');
+                    return r.json();
+                } else {
+                    console.error('✗ Steam rate save failed:', r.status, r.statusText);
+                    return r.text().then(function(text) { console.error('Response:', text); });
+                }
+            })
+            .catch(function(err) {
+                console.error('✗ Steam rate save network error:', err);
+                showNotification('Ошибка отправки курса на сервер: ' + err.message, 'error');
+            });
+        } else {
+            console.error('✗ API base not configured! Cannot save steam rate to server.');
+            showNotification('API бота не настроен. Курс сохранён только локально.', 'warning');
         }
         var cryptobotUsdt = parseFloat(document.getElementById('cryptobotUsdtAmount')?.value) || 1;
         if (cryptobotUsdt < 0.1) cryptobotUsdt = 1;
@@ -738,11 +755,28 @@ function saveStarRate() {
         // Отправляем на бэкенд, чтобы расчёт сумм (CryptoBot, FreeKassa и т.д.) использовал новый курс
         var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (apiBase) {
+            console.log('Sending star_price_rub=' + starRate + ' to ' + apiBase + '/api/star-rate');
             fetch(apiBase.replace(/\/$/, '') + '/api/star-rate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ star_price_rub: starRate })
-            }).then(function(r) { if (r.ok) console.log('Star rate saved on server'); }).catch(function() {});
+            })
+            .then(function(r) {
+                if (r.ok) {
+                    console.log('✓ Star rate saved on server');
+                    return r.json();
+                } else {
+                    console.error('✗ Star rate save failed:', r.status, r.statusText);
+                    return r.text().then(function(text) { console.error('Response:', text); });
+                }
+            })
+            .catch(function(err) {
+                console.error('✗ Star rate save network error:', err);
+                showNotification('Ошибка отправки курса на сервер: ' + err.message, 'error');
+            });
+        } else {
+            console.error('✗ API base not configured! Cannot save star rate to server.');
+            showNotification('API бота не настроен. Курс сохранён только локально.', 'warning');
         }
     } catch (error) {
         console.error('Ошибка сохранения курса 1 звезды:', error);
@@ -767,11 +801,28 @@ function saveStarBuyRate() {
         // Отправляем на бэкенд
         var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (apiBase) {
+            console.log('Sending star_buy_rate_rub=' + buyRate + ' to ' + apiBase + '/api/star-rate');
             fetch(apiBase.replace(/\/$/, '') + '/api/star-rate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ star_buy_rate_rub: buyRate })
-            }).then(function(r) { if (r.ok) console.log('Star buy rate saved on server'); }).catch(function() {});
+            })
+            .then(function(r) {
+                if (r.ok) {
+                    console.log('✓ Star buy rate saved on server');
+                    return r.json();
+                } else {
+                    console.error('✗ Star buy rate save failed:', r.status, r.statusText);
+                    return r.text().then(function(text) { console.error('Response:', text); });
+                }
+            })
+            .catch(function(err) {
+                console.error('✗ Star buy rate save network error:', err);
+                showNotification('Ошибка отправки курса на сервер: ' + err.message, 'error');
+            });
+        } else {
+            console.error('✗ API base not configured! Cannot save star buy rate to server.');
+            showNotification('API бота не настроен. Курс сохранён только локально.', 'warning');
         }
     } catch (error) {
         console.error('Ошибка сохранения курса скупки 1 звезды:', error);
