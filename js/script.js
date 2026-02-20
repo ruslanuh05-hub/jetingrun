@@ -92,6 +92,16 @@ function showLoadingScreen() {
     const progressBar = document.getElementById('loadingProgressBar');
     
     if (!loadingScreen) return;
+
+    // Если мы пришли с premium.html для оплаты — не показываем splash/загрузку,
+    // чтобы не было "прыжка" на главный экран перед выбором способа оплаты.
+    try {
+        const params = new URLSearchParams(window.location.search || '');
+        if (params.get('pay') === 'premium') {
+            loadingScreen.classList.add('hidden');
+            return;
+        }
+    } catch (e) {}
     
     // Проверяем, первый ли это вход
     const isFirstVisit = !localStorage.getItem('jetstore_visited');
@@ -212,11 +222,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof history.replaceState === 'function') {
                 history.replaceState({}, '', window.location.pathname + (window.location.hash || ''));
             }
-            setTimeout(function() {
-                if (typeof showPaymentMethodSelection === 'function') {
-                    showPaymentMethodSelection('premium');
-                }
-            }, 300);
+            if (typeof showPaymentMethodSelection === 'function') {
+                showPaymentMethodSelection('premium');
+            }
         }
     }
     
