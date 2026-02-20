@@ -178,9 +178,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Настраиваем обработчики событий
     setupEventListeners();
-    
-    // Обновляем цены из админки
-    updatePricesDisplay();
+
+    // Подтягиваем актуальный курс звёзд с бэкенда (если доступен),
+    // чтобы цены и курс были одинаковыми на всех устройствах.
+    loadStarRateFromApi(function() {
+        // После загрузки курса обновляем цены
+        updatePricesDisplay();
+    });
     
     // Загружаем курс TON↔RUB (для активов, аренды)
     if (typeof window.fetchTonToRubRateFromApi === 'function') {
@@ -482,7 +486,7 @@ let selectedStars = { amount: 0, price: 0 };
 let selectedPremium = { months: 0, price: 0 };
 let selectedTon = 0;
 
-// Загрузка курса 1 звезды из localStorage
+// Загрузка курса 1 звезды из localStorage / API
 function getStarRate() {
     try {
         const rate = parseFloat(localStorage.getItem('jetstore_star_rate'));
@@ -490,6 +494,34 @@ function getStarRate() {
     } catch (error) {
         console.error('Ошибка загрузки курса 1 звезды:', error);
         return 1.37;
+    }
+}
+
+// Актуализация курса 1 звезды с бэкенда (/api/star-rate), чтобы все устройства
+// использовали общий курс из БД, а не только локальный кэш админки.
+function loadStarRateFromApi(callback) {
+    try {
+        const apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        if (!apiBase) {
+            if (typeof callback === 'function') callback();
+            return;
+        }
+        fetch(apiBase.replace(/\/$/, '') + '/api/star-rate', { method: 'GET', mode: 'cors' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(data) {
+                if (data && typeof data.star_price_rub === 'number' && data.star_price_rub > 0) {
+                    try { localStorage.setItem('jetstore_star_rate', String(data.star_price_rub)); } catch (e) {}
+                }
+                if (data && typeof data.star_buy_rate_rub === 'number' && data.star_buy_rate_rub > 0) {
+                    try { localStorage.setItem('jetstore_star_buy_rate', String(data.star_buy_rate_rub)); } catch (e) {}
+                }
+                if (typeof callback === 'function') callback();
+            })
+            .catch(function() {
+                if (typeof callback === 'function') callback();
+            });
+    } catch (e) {
+        if (typeof callback === 'function') callback();
     }
 }
 
@@ -529,12 +561,22 @@ function getUsdRate() {
 function getStarsPrices() {
     try {
         const prices = JSON.parse(localStorage.getItem('jetstore_stars_prices') || '{}');
+        const rate = getStarRate();
+        const calc = (amount, fallback) => {
+            const p = prices[amount];
+            if (typeof p === 'number' && p > 0) return p;
+            if (rate && !isNaN(rate) && rate > 0) {
+                // Базовая цена от курса: amount * star_rate, с округлением до ₽
+                return Math.round(amount * rate);
+            }
+            return fallback;
+        };
         return {
-            50: prices[50] || 69,
-            100: prices[100] || 137,
-            250: prices[250] || 343,
-            500: prices[500] || 685,
-            1000: prices[1000] || 1370
+            50: calc(50, 69),
+            100: calc(100, 137),
+            250: calc(250, 343),
+            500: calc(500, 685),
+            1000: calc(1000, 1370)
         };
     } catch (error) {
         console.error('Ошибка загрузки цен на звёзды:', error);
