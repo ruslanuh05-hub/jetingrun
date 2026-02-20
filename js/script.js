@@ -821,9 +821,23 @@ function loadRatingLeaderboard(period) {
                 ? '<span class="rating-medal ' + rankClass + '"><i class="fas fa-medal"></i><span class="rating-medal-num">' + rank + '</span></span>'
                 : '<span class="' + rankClass + '">#' + rank + '</span>';
             
-            let nameHtml = isHidden
-                ? '<i class="fas fa-lock rating-lock"></i>Скрыто'
-                : (item.username ? '@' + item.username : (item.firstName || 'Пользователь'));
+            let nameHtml;
+            if (isHidden) {
+                nameHtml = '<i class="fas fa-lock rating-lock"></i>Скрыто';
+            } else {
+                const username = (item.username || '').trim();
+                const firstName = (item.firstName || '').trim();
+                if (firstName && username) {
+                    // Показываем ник/имя как основное, username в скобках
+                    nameHtml = firstName + ' (@' + username + ')';
+                } else if (firstName) {
+                    nameHtml = firstName;
+                } else if (username) {
+                    nameHtml = '@' + username;
+                } else {
+                    nameHtml = 'Пользователь';
+                }
+            }
             
             const orders = item.ordersCount || 0;
             const ordersText = orders === 1 ? '1 заказ' : orders >= 2 && orders <= 4 ? orders + ' заказа' : orders + ' заказов';
