@@ -3356,17 +3356,20 @@ function openPaymentPage() {
         // Параметр i для FreeKassa: 44 — СБП (QR), 36 — карты РФ
         var fkI = data.method === 'sbp' ? 44 : 36;
         var createUrlFk = apiBaseFk.replace(/\/$/, '') + '/api/freekassa/create-order';
+        var requestBody = {
+            context: 'purchase',
+            user_id: (window.userData && window.userData.id) || (window.userData && window.userData.user && window.userData.user.id) || 'unknown',
+            purchase: data.purchase || {},
+            method: data.method,
+            i: fkI
+        };
+        console.log('[FreeKassa] Sending request to:', createUrlFk);
+        console.log('[FreeKassa] Request body:', requestBody);
         fetch(createUrlFk, {
             method: 'POST',
             mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                context: 'purchase',
-                user_id: (window.userData && window.userData.id) || (window.userData && window.userData.user && window.userData.user.id) || 'unknown',
-                purchase: data.purchase || {},
-                method: data.method,
-                i: fkI
-            })
+            body: JSON.stringify(requestBody)
         })
             .then(function(r) {
                 return r.text().then(function(t) {
@@ -3415,9 +3418,17 @@ function openPaymentPage() {
             })
             .catch(function(err) {
                 if (primaryBtn) primaryBtn.disabled = false;
-                if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
-                if (typeof showStoreNotification === 'function') showStoreNotification('Ошибка сети. Попробуйте позже.', 'error');
+                if (statusEl) statusEl.textContent = '';
+                var errMsg = 'Ошибка сети';
+                if (err && err.message) {
+                    errMsg += ': ' + err.message;
+                } else {
+                    errMsg += '. Не удалось подключиться к серверу.';
+                }
+                errMsg += ' Проверьте подключение к интернету и попробуйте позже.';
                 console.error('[FreeKassa] create-order network error:', err);
+                console.error('[FreeKassa] URL was:', createUrlFk);
+                if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
             });
         return;
     }
