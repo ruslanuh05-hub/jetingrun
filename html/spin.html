@@ -66,15 +66,17 @@
             flex-shrink: 0;
         }
         .spin-drum-arrow.left {
-            border-right: 20px solid #00d4ff;
+            border-right: 0;
+            border-left: 20px solid #00d4ff;
         }
         .spin-drum-arrow.right {
-            border-left: 20px solid #00d4ff;
+            border-left: 0;
+            border-right: 20px solid #00d4ff;
         }
         .spin-drum {
             position: relative;
-            max-width: 280px;
-            padding: 20px 18px;
+            max-width: 300px;
+            padding: 24px 20px;
             border-radius: 14px;
             background: 
                 radial-gradient(circle at 20% 30%, rgba(255,255,255,0.03) 0%, transparent 50%),
@@ -90,9 +92,9 @@
         .spin-tickets {
             display: flex;
             flex-direction: column;
-            gap: 18px;
-            height: 358px;
-            max-height: 358px;
+            gap: 22px;
+            height: 420px;
+            max-height: 420px;
             overflow-y: auto;
             overflow-x: hidden;
             scrollbar-width: none;
@@ -107,12 +109,12 @@
         }
         .spin-ticket {
             position: relative;
-            padding: 16px 20px 16px 22px;
+            padding: 22px 24px 22px 26px;
             border-radius: 0;
             display: flex;
             align-items: center;
-            gap: 14px;
-            min-width: 200px;
+            gap: 18px;
+            min-width: 220px;
             flex-shrink: 0;
             border: none;
             background: linear-gradient(145deg, #2a9d8f 0%, #238276 50%, #1e6b62 100%);
@@ -169,9 +171,9 @@
         }
         .spin-ticket.highlight.prize-high .spin-ticket-icon i { color: #fff; }
         .spin-ticket-icon {
-            width: 44px;
-            height: 44px;
-            min-width: 44px;
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
             border-radius: 50%;
             background: linear-gradient(145deg, #2a9d8f 0%, #238276 100%);
             display: flex;
@@ -183,7 +185,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         .spin-ticket-icon i { 
-            font-size: 1.1rem; 
+            font-size: 1.25rem; 
             color: #fff;
             font-weight: 700;
         }
@@ -199,13 +201,13 @@
             z-index: 2;
         }
         .spin-ticket-value { 
-            font-size: 1.5rem; 
+            font-size: 1.75rem; 
             font-weight: 900; 
             color: #1a2535;
             line-height: 1.1;
         }
         .spin-ticket-currency { 
-            font-size: 0.8rem; 
+            font-size: 0.9rem; 
             color: rgba(26,37,53,0.8); 
             font-weight: 600;
             text-transform: capitalize;
@@ -370,7 +372,6 @@
                 <i class="fas fa-chevron-left"></i>
                 <span>Назад</span>
             </a>
-            <h1 class="spin-title">🎡 Рулетка</h1>
             <div style="width: 60px;"></div>
         </header>
         
