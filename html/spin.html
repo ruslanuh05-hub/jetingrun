@@ -90,8 +90,16 @@
         .spin-tickets {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            overflow: hidden;
+            gap: 12px;
+            max-height: 240px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .spin-tickets::-webkit-scrollbar {
+            display: none;
+        };
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
