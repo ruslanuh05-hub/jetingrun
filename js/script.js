@@ -205,9 +205,33 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePricesDisplay();
     }, 2000);
     
-    // Переход с premium.html по кнопке «Оплатить»: открыть выбор способа оплаты
+    // Переход с spin.html по кнопке «Купить»: открыть выбор способа оплаты
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('pay') === 'premium') {
+    if (urlParams.get('pay') === 'spin') {
+        const currency = urlParams.get('currency') || 'RUB';
+        let spinData = {};
+        try {
+            spinData = JSON.parse(sessionStorage.getItem('spin_pay_data') || '{}');
+        } catch (e) {}
+        const purchase = spinData.purchase || {};
+        const amount = currency === 'RUB' ? 100 : 1.5;
+        currentPurchase = {
+            type: 'spin',
+            amount: amount,
+            amount_rub: currency === 'RUB' ? 100 : 0,
+            amount_usdt: currency === 'USDT' ? 1.5 : 0,
+            productName: '1 спин рулетки',
+            currency: currency
+        };
+        if (typeof history.replaceState === 'function') {
+            history.replaceState({}, '', window.location.pathname + (window.location.hash || ''));
+        }
+        if (typeof showPaymentMethodSelection === 'function') {
+            showPaymentMethodSelection('spin');
+        }
+    }
+    // Переход с premium.html по кнопке «Оплатить»: открыть выбор способа оплаты
+    else if (urlParams.get('pay') === 'premium') {
         const months = sessionStorage.getItem('premium_pay_months');
         const recipient = sessionStorage.getItem('premium_pay_recipient') || '';
         const amount = sessionStorage.getItem('premium_pay_amount');
@@ -2608,7 +2632,25 @@ function showPaymentMethodSelection(purchaseType) {
             gameCategory: 'ton',
             supercellGame: null
         };
-    } else if (purchaseType === 'game') {
+    } else if (purchaseType === 'spin') {
+        previousView = { type: 'spin', gameCategory: null, supercellGame: null };
+        // Для спина: показываем только подходящие способы оплаты (RUB → FreeKassa, USDT → CryptoBot)
+        var rubSection = document.querySelector('#paymentMethodPopup .payment-category:first-of-type');
+        var cryptoSection = document.querySelector('#paymentMethodPopup .payment-category:last-of-type');
+        if (rubSection && cryptoSection && currentPurchase) {
+            var cur = currentPurchase.currency || 'RUB';
+            rubSection.style.display = cur === 'RUB' ? '' : 'none';
+            cryptoSection.style.display = cur === 'USDT' ? '' : 'none';
+        }
+    } else if (purchaseType !== 'spin') {
+        // Сбрасываем скрытие для других типов покупок
+        var rubSection = document.querySelector('#paymentMethodPopup .payment-category:first-of-type');
+        var cryptoSection = document.querySelector('#paymentMethodPopup .payment-category:last-of-type');
+        if (rubSection) rubSection.style.display = '';
+        if (cryptoSection) cryptoSection.style.display = '';
+    }
+    
+    if (purchaseType === 'game') {
         // Определяем, из какого окна пришли (обычные игры или supercell)
         // Проверяем, открыто ли окно с играми
         const gameProductsPopup = document.getElementById('gameProductsPopup');
@@ -2674,6 +2716,11 @@ function closePaymentMethodPopup(skipReturnToPrevious) {
         } else if (typeof showSupercellGames === 'function') {
             showSupercellGames();
         }
+    } else if (previousView.type === 'spin') {
+        var spinUrl = 'spin.html';
+        if (window.location.pathname.indexOf('/html/') < 0) spinUrl = 'html/spin.html';
+        window.location.href = spinUrl;
+        return;
     } else if (previousView.type === 'game') {
         // Возвращаем в окно продуктов игры
         if (previousView.gameCategory && typeof showGameProducts === 'function') {
@@ -3119,7 +3166,15 @@ function showPaymentWaiting() {
         document.getElementById('paymentWaitingDescription').textContent =
             'Пополнение Steam для ' + (data.purchase.login || '') + ' на ' + (amountSteam.toLocaleString('ru-RU')) + ' ₽ (на кошелёк)';
         document.getElementById('paymentDetailAmount').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ₽';
-                } else {
+    } else if (data.purchase?.type === 'spin') {
+        var spinCur = data.purchase.currency || 'RUB';
+        var spinAmt = spinCur === 'RUB' ? data.baseAmount : data.baseAmount;
+        var spinSym = spinCur === 'RUB' ? ' ₽' : ' USDT';
+        var methodLabel = (data.method === 'sbp' || data.method === 'card') ? (methodNames[data.method] + (data.bonusPercent ? ' (' + data.bonusPercent + '%)' : '')) : methodNames[data.method];
+        document.getElementById('paymentWaitingDescription').textContent =
+            '1 спин рулетки — оплатите ' + spinAmt.toLocaleString('ru-RU') + spinSym + ' через ' + methodLabel;
+        document.getElementById('paymentDetailAmount').textContent = spinAmt.toLocaleString('ru-RU') + spinSym;
+    } else {
         var isFreeKassa = (data.method === 'sbp' || data.method === 'card');
         var methodLabel = methodNames[data.method] + (data.bonusPercent ? ` (${data.bonusPercent > 0 ? '+' : ''}${data.bonusPercent}%)` : '');
         // Для FreeKassa показываем, что комиссия будет добавлена на их стороне
@@ -3133,19 +3188,22 @@ function showPaymentWaiting() {
         document.getElementById('paymentDetailAmount').textContent = data.baseAmount.toLocaleString('ru-RU') + ' ₽';
     }
     var isFreeKassa = (data.method === 'sbp' || data.method === 'card');
+    var isSpin = data.purchase?.type === 'spin';
+    var spinCurSym = isSpin && (data.purchase?.currency || 'RUB') === 'USDT' ? ' USDT' : '₽';
     // Для FreeKassa всегда показываем комиссию (5% для СБП, 6% для карт)
     if (isFreeKassa) {
         var fkCommissionPct = data.method === 'sbp' ? 5 : 6;  // FreeKassa комиссии: СБП 5%, карты 6%
         document.getElementById('paymentDetailCommissionLabel').textContent = 'Комиссия FreeKassa (' + fkCommissionPct + '%)';
         var estimatedCommission = Math.round(data.baseAmount * fkCommissionPct / 100);
-        document.getElementById('paymentDetailCommission').textContent = '~+' + estimatedCommission.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
+        document.getElementById('paymentDetailCommission').textContent = '~+' + estimatedCommission.toLocaleString('ru-RU') + ' ' + (isSpin ? spinCurSym : (data.purchase?.type === 'steam' ? curSym : '₽'));
         // Итого = базовая сумма (комиссия добавится на стороне FreeKassa)
         var estimatedTotal = data.baseAmount + estimatedCommission;
-        document.getElementById('paymentDetailTotal').textContent = estimatedTotal.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
+        document.getElementById('paymentDetailTotal').textContent = estimatedTotal.toLocaleString('ru-RU') + ' ' + (isSpin ? spinCurSym : (data.purchase?.type === 'steam' ? curSym : '₽'));
     } else {
         document.getElementById('paymentDetailCommissionLabel').textContent = 'Комиссия (' + (data.bonusPercent || 0) + '%)';
-        document.getElementById('paymentDetailCommission').textContent = '+' + data.commission.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
-        document.getElementById('paymentDetailTotal').textContent = data.totalAmount.toLocaleString('ru-RU') + ' ' + (data.purchase?.type === 'steam' ? curSym : '₽');
+        var commSym = (data.purchase?.type === 'spin' && data.purchase?.currency === 'USDT') ? ' USDT' : (data.purchase?.type === 'steam' ? curSym : '₽');
+        document.getElementById('paymentDetailCommission').textContent = '+' + data.commission.toLocaleString('ru-RU') + ' ' + commSym;
+        document.getElementById('paymentDetailTotal').textContent = data.totalAmount.toLocaleString('ru-RU') + ' ' + commSym;
     }
     document.getElementById('paymentDetailMethod').textContent = methodNames[data.method] + (data.bonusPercent ? ' (' + (data.bonusPercent > 0 ? '+' : '') + data.bonusPercent + '%)' : '');
     
@@ -3213,6 +3271,8 @@ function openPaymentPage() {
         } else if (p.type === 'steam') {
             purchaseMinimal.amount_steam = p.amount_steam != null ? p.amount_steam : p.amount;
             purchaseMinimal.login = p.login;
+        } else if (p.type === 'spin') {
+            purchaseMinimal.amount_usdt = 1.5;
         }
         var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
         console.log('[CryptoBot] Отправка запроса на:', createUrl);
@@ -3960,8 +4020,7 @@ window.openPaymentPage = openPaymentPage;
 
 // Открыть рулетку
 function openRoulette() {
-    if (typeof showStoreNotification === 'function') {
-        showStoreNotification('Рулетка скоро будет доступна!', 'info');
-    }
+    var spinUrl = (window.location.pathname.indexOf('/html/') >= 0) ? 'spin.html' : 'html/spin.html';
+    window.location.href = spinUrl;
 }
 window.openRoulette = openRoulette;

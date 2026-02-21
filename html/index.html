@@ -168,8 +168,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end;
-            padding-bottom: 48px;
+            justify-content: center;
             z-index: 999998;
             opacity: 1;
             transition: opacity 0.5s ease, visibility 0.5s ease;
@@ -222,6 +221,20 @@
             text-shadow: 0 1px 4px rgba(0,0,0,0.8);
         }
         
+        .loading-title {
+            position: relative;
+            z-index: 1;
+            color: #ffffff;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
         .loading-progress-container {
             position: relative;
             z-index: 1;
@@ -232,6 +245,7 @@
             border-radius: 2px;
             overflow: hidden;
             position: relative;
+            margin-top: 20px;
         }
         
         .loading-progress-bar {
@@ -5000,6 +5014,7 @@
                  style="display: block; opacity: 1; visibility: visible;"
                  onload="console.log('Logo loaded:', this.src); this.style.display='block'; this.style.opacity='1';"
                  onerror="console.error('Failed to load logo_load.png, trying jet-logo.png'); var img = this; img.onerror=null; img.src='../assets/jet-logo.png'; img.onerror=function(){console.error('All logos failed'); this.style.display='none';}">
+            <h1 class="loading-title">JET STORE</h1>
             <div class="loading-progress-container">
                 <div class="loading-progress-bar" id="loadingProgressBar"></div>
             </div>

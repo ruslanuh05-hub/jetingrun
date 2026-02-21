@@ -68,6 +68,26 @@ function runDeliveryAfterPayment(data, checkResponse) {
         message += 'Premium будет активирован автоматически после обработки на сервере.';
     } else if (purchaseType === 'steam') {
         message += 'Пополнение Steam будет выполнено автоматически после обработки на сервере.';
+    } else if (purchaseType === 'spin') {
+        // Спин: добавляем в localStorage и перенаправляем на рулетку
+        try {
+            var tg = window.Telegram && window.Telegram.WebApp;
+            var uid = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id)
+                ? String(tg.initDataUnsafe.user.id) : (window.userData && window.userData.id ? String(window.userData.id) : 'guest');
+            var key = 'jetstore_spins_' + uid;
+            var cur = parseInt(localStorage.getItem(key) || '0', 10) || 0;
+            localStorage.setItem(key, String(cur + 1));
+            sessionStorage.setItem('jetstore_spin_added', '1');
+            message = 'Спин добавлен!';
+            if (typeof showStoreNotification === 'function') showStoreNotification(message, 'success');
+            if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
+            var spinUrl = (window.location.pathname.indexOf('/html/') >= 0) ? 'spin.html' : 'html/spin.html';
+            setTimeout(function() { window.location.href = spinUrl; }, 800);
+            return;
+        } catch (e) {
+            console.warn('[runDeliveryAfterPayment] spin add error:', e);
+            message += 'Спин будет добавлен. Перезайдите на страницу рулетки.';
+        }
     } else {
         message += 'Товар будет выдан автоматически после обработки на сервере.';
     }
