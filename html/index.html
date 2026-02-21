@@ -89,19 +89,20 @@
         .tg-guard-loading-progress-container {
             position: relative;
             z-index: 1;
-            width: 280px;
-            max-width: 80%;
-            height: 4px;
+            width: 160px;
+            max-width: 50%;
+            height: 12px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
+            border-radius: 6px;
             overflow: hidden;
             position: relative;
+            margin-bottom: 120px;
         }
         
         .tg-guard-loading-progress-bar {
             height: 100%;
             background: linear-gradient(90deg, #00d4ff 0%, #00a4ff 50%, #0078ff 100%);
-            border-radius: 2px;
+            border-radius: 6px;
             width: 0%;
             transition: width 0.3s ease;
             animation: progressShimmer 1.5s ease-in-out infinite;
@@ -221,37 +222,23 @@
             text-shadow: 0 1px 4px rgba(0,0,0,0.8);
         }
         
-        .loading-title {
-            position: relative;
-            z-index: 1;
-            color: #ffffff;
-            font-size: 2rem;
-            font-weight: 800;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            text-align: center;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0, 212, 255, 0.3);
-        }
-        
         .loading-progress-container {
             position: relative;
             z-index: 1;
-            width: 280px;
-            max-width: 80%;
-            height: 4px;
+            width: 160px;
+            max-width: 50%;
+            height: 12px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
+            border-radius: 6px;
             overflow: hidden;
             position: relative;
-            margin-top: 20px;
+            margin-top: -120px;
         }
         
         .loading-progress-bar {
             height: 100%;
             background: linear-gradient(90deg, #00d4ff 0%, #00a4ff 50%, #0078ff 100%);
-            border-radius: 2px;
+            border-radius: 6px;
             width: 0%;
             transition: width 0.3s ease;
             animation: progressShimmer 1.5s ease-in-out infinite;
@@ -5014,7 +5001,6 @@
                  style="display: block; opacity: 1; visibility: visible;"
                  onload="console.log('Logo loaded:', this.src); this.style.display='block'; this.style.opacity='1';"
                  onerror="console.error('Failed to load logo_load.png, trying jet-logo.png'); var img = this; img.onerror=null; img.src='../assets/jet-logo.png'; img.onerror=function(){console.error('All logos failed'); this.style.display='none';}">
-            <h1 class="loading-title">JET STORE</h1>
             <div class="loading-progress-container">
                 <div class="loading-progress-bar" id="loadingProgressBar"></div>
             </div>

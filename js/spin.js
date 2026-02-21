@@ -116,7 +116,9 @@
         };
         sessionStorage.setItem('spin_pay_data', JSON.stringify({ currency: 'RUB', userId: userId, purchase: purchase }));
         sessionStorage.setItem('spin_return_url', window.location.href);
-        var payUrl = (apiBase.replace(/\/$/, '') + '/html/index.html?pay=spin&currency=RUB').replace(/([^:]\/)\/+/g, '$1');
+        var path = (window.location.pathname || '').replace(/spin\.html.*$/, 'index.html');
+        if (!path || path === (window.location.pathname || '')) path = 'index.html';
+        var payUrl = window.location.origin + (path.startsWith('/') ? path : '/' + path) + '?pay=spin&currency=RUB';
         window.location.href = payUrl;
     }
 
@@ -139,7 +141,9 @@
         };
         sessionStorage.setItem('spin_pay_data', JSON.stringify({ currency: 'USDT', userId: userId, purchase: purchase }));
         sessionStorage.setItem('spin_return_url', window.location.href);
-        var payUrl = (apiBase.replace(/\/$/, '') + '/html/index.html?pay=spin&currency=USDT').replace(/([^:]\/)\/+/g, '$1');
+        var path = (window.location.pathname || '').replace(/spin\.html.*$/, 'index.html');
+        if (!path || path === (window.location.pathname || '')) path = 'index.html';
+        var payUrl = window.location.origin + (path.startsWith('/') ? path : '/' + path) + '?pay=spin&currency=USDT';
         window.location.href = payUrl;
     }
 
@@ -202,18 +206,14 @@
         var spinBtn = document.getElementById('spinBtn');
         if (spinBtn) spinBtn.addEventListener('click', doSpin);
 
-        document.getElementById('scrollUpBtn').addEventListener('click', function() {
-            var c = document.getElementById('spinTickets');
-            if (c) c.scrollBy({ top: -80, behavior: 'smooth' });
-        });
-        document.getElementById('scrollDownBtn').addEventListener('click', function() {
-            var c = document.getElementById('spinTickets');
-            if (c) c.scrollBy({ top: 80, behavior: 'smooth' });
-        });
-
         document.getElementById('resultCloseBtn').addEventListener('click', function() {
             document.getElementById('resultOverlay').classList.remove('show');
         });
+
+        var drum = document.querySelector('.spin-drum');
+        if (drum) {
+            drum.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
+        }
 
         updateUI();
 

@@ -3363,13 +3363,16 @@ function openPaymentPage() {
                     }
                 } else {
                     var errMsg = res.message || res.error || 'Ошибка создания счёта CryptoBot';
-                    if (res.details && typeof res.details === 'object') {
-                        if (res.details.name) errMsg += ' (' + res.details.name + ')';
-                        else if (typeof res.details === 'string') errMsg += ': ' + res.details;
+                    if (res.details) {
+                        if (typeof res.details === 'string') errMsg += ': ' + res.details;
+                        else if (typeof res.details === 'object' && res.details.name) errMsg += ' (' + res.details.name + ')';
+                    }
+                    if (res.details === 'Not Found' || (errMsg + '').indexOf('Not Found') >= 0) {
+                        errMsg = 'Сервер API не найден. Проверьте, что бот запущен и JET_BOT_API_URL в config.js указывает на корректный URL.';
                     }
                     console.error('[CryptoBot] Ошибка от сервера. Полный ответ:', JSON.stringify(res, null, 2), 'URL:', createUrl, 'Status:', result.status);
                     if (typeof showStoreNotification === 'function') {
-                        showStoreNotification(errMsg + ' (откройте консоль F12 для деталей)', 'error');
+                        showStoreNotification(errMsg, 'error');
                     }
                 }
             })
@@ -3498,6 +3501,7 @@ function openPaymentPage() {
                 if (!result.ok) {
                     var errMsg = (result.json && (result.json.message || result.json.error)) || result.text || ('Ошибка ' + result.status);
                     if (result.json && result.json.error === 'not_configured') errMsg = 'FreeKassa не настроена (заданы ли FREEKASSA_SHOP_ID, FREEKASSA_API_KEY и FREEKASSA_SECRET2 на сервере?).';
+                    else if ((result.json && result.json.details === 'Not Found') || (errMsg + '').indexOf('Not Found') >= 0) errMsg = 'Сервер API не найден. Проверьте JET_BOT_API_URL в config.js и что бот запущен на Railway.';
                     if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
                     console.error('[FreeKassa] create-order failed:', result.status, result.json || result.text);
                     return;
