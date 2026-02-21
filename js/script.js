@@ -825,8 +825,8 @@ function loadRatingLeaderboard(period) {
             if (isHidden) {
                 nameHtml = '<i class="fas fa-lock rating-lock"></i>Скрыто';
             } else {
-                const username = (item.username || '').trim();
-                nameHtml = username ? ('@' + username) : 'Пользователь';
+                const firstName = (item.firstName || '').trim();
+                nameHtml = firstName || 'Пользователь';
             }
             
             const orders = item.ordersCount || 0;
