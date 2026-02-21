@@ -826,17 +826,7 @@ function loadRatingLeaderboard(period) {
                 nameHtml = '<i class="fas fa-lock rating-lock"></i>Скрыто';
             } else {
                 const username = (item.username || '').trim();
-                const firstName = (item.firstName || '').trim();
-                if (firstName && username) {
-                    // Показываем ник/имя как основное, username в скобках
-                    nameHtml = firstName + ' (@' + username + ')';
-                } else if (firstName) {
-                    nameHtml = firstName;
-                } else if (username) {
-                    nameHtml = '@' + username;
-                } else {
-                    nameHtml = 'Пользователь';
-                }
+                nameHtml = username ? ('@' + username) : 'Пользователь';
             }
             
             const orders = item.ordersCount || 0;
