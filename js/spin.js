@@ -62,11 +62,13 @@
         var container = document.getElementById('spinTickets');
         if (!container) return;
         var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
-        var suffix = currentCurrency === 'RUB' ? ' ₽' : ' USDT';
+        var currencyLabel = currentCurrency === 'RUB' ? 'Рубли' : 'Tether';
+        var highThreshold = currentCurrency === 'RUB' ? 500 : 25;
         container.innerHTML = prizes.map(function(v, i) {
-            return '<div class="spin-ticket" data-index="' + i + '" data-value="' + v + '">' +
-                '<i class="fas fa-gift spin-ticket-icon"></i>' +
-                '<div><div class="spin-ticket-value">' + v + '</div><div class="spin-ticket-currency">' + (currentCurrency === 'RUB' ? 'Рубли' : 'Tether') + '</div></div>' +
+            var highClass = v >= highThreshold ? ' prize-high' : '';
+            return '<div class="spin-ticket' + highClass + '" data-index="' + i + '" data-value="' + v + '">' +
+                '<div class="spin-ticket-icon"><i class="fas fa-gem"></i></div>' +
+                '<div class="spin-ticket-content"><div class="spin-ticket-value">' + v + '</div><div class="spin-ticket-currency">' + currencyLabel + '</div></div>' +
                 '</div>';
         }).join('');
     }

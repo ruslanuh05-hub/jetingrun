@@ -50,38 +50,47 @@
             overflow-y: auto;
         }
         
-        /* Барабан рулетки — фиксированный, без прокрутки */
+        /* Барабан рулетки — как на скрине: билеты с серратированными краями */
         .spin-wheel-area {
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
             margin: 20px 0 24px;
+        }
+        .spin-drum-arrow {
+            width: 0;
+            height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            flex-shrink: 0;
+        }
+        .spin-drum-arrow.left {
+            border-right: 16px solid #00d4ff;
+        }
+        .spin-drum-arrow.right {
+            border-left: 16px solid #00d4ff;
         }
         .spin-drum {
             position: relative;
-            max-width: 320px;
-            padding: 20px 24px;
-            border-radius: 20px;
-            background: linear-gradient(145deg, rgba(5, 12, 22, 0.98) 0%, rgba(0, 20, 40, 0.95) 50%, rgba(2, 8, 18, 0.98) 100%);
-            border: 2px solid rgba(0, 212, 255, 0.4);
+            max-width: 240px;
+            padding: 18px 14px;
+            border-radius: 14px;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.02) 0%, transparent 50%),
+                repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(255,255,255,0.02) 3px, rgba(255,255,255,0.02) 4px),
+                repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.015) 3px, rgba(255,255,255,0.015) 4px),
+                linear-gradient(180deg, #1a2535 0%, #0f1620 50%, #151d2a 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
             box-shadow: 
-                inset 0 2px 20px rgba(0, 0, 0, 0.6),
-                inset 0 -1px 0 rgba(0, 212, 255, 0.15),
-                0 8px 32px rgba(0, 0, 0, 0.5),
-                0 0 0 1px rgba(0, 212, 255, 0.2);
-        }
-        .spin-drum::before {
-            content: '';
-            position: absolute;
-            inset: 4px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, transparent 0%, rgba(0, 212, 255, 0.03) 50%, transparent 100%);
-            pointer-events: none;
+                inset 0 0 40px rgba(0, 0, 0, 0.6),
+                0 4px 20px rgba(0, 0, 0, 0.4);
         }
         .spin-tickets {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
             overflow: hidden;
             touch-action: none;
             user-select: none;
@@ -89,26 +98,100 @@
             pointer-events: none;
         }
         .spin-ticket {
-            padding: 12px 14px;
-            border-radius: 10px;
+            position: relative;
+            padding: 12px 16px 12px 18px;
+            border-radius: 0;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            border: 1px solid rgba(0, 212, 255, 0.25);
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 128, 200, 0.06) 100%);
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            gap: 12px;
+            min-width: 180px;
+            border: none;
+            background: linear-gradient(145deg, #2a9d8f 0%, #238276 50%, #1e6b62 100%);
+            box-shadow: 
+                0 2px 0 rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                0 4px 12px rgba(0,0,0,0.3);
             transition: all 0.3s ease;
+            clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+        }
+        .spin-ticket::before,
+        .spin-ticket::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            background: inherit;
+            z-index: 1;
+        }
+        .spin-ticket::before {
+            left: 0;
+            clip-path: polygon(0 0, 100% 8px, 100% 16px, 0 24px, 0 32px, 100% 40px, 100% 48px, 0 56px, 0 64px, 100% 72px, 100% 80px, 0 88px, 0 96px, 100% 100%, 100% 0);
+        }
+        .spin-ticket::after {
+            right: 0;
+            left: auto;
+            clip-path: polygon(0 8px, 100% 0, 100% 100%, 0 100%, 0 88px, 100% 80px, 100% 72px, 0 64px, 0 56px, 100% 48px, 100% 40px, 0 32px, 0 24px, 100% 16px, 100% 8px);
+        }
+        .spin-ticket.prize-high {
+            background: linear-gradient(145deg, #e91e8c 0%, #c2185b 50%, #ad1457 100%);
+            box-shadow: 
+                0 2px 0 rgba(0,0,0,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                0 4px 16px rgba(233,30,140,0.4);
         }
         .spin-ticket.highlight {
-            border-color: #00d4ff;
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(0, 128, 200, 0.2) 100%);
-            box-shadow: 0 0 24px rgba(0, 212, 255, 0.5), inset 0 0 20px rgba(0, 212, 255, 0.15);
-            transform: scale(1.02);
+            background: linear-gradient(145deg, #00d4ff 0%, #00a4cc 50%, #0088aa 100%);
+            box-shadow: 
+                0 0 24px rgba(0, 212, 255, 0.6),
+                inset 0 1px 0 rgba(255,255,255,0.4),
+                0 4px 20px rgba(0, 212, 255, 0.5);
+            transform: scale(1.03);
         }
-        .spin-ticket-icon { font-size: 1.25rem; color: #00d4ff; flex-shrink: 0; }
-        .spin-ticket-value { font-size: 1.15rem; font-weight: 800; color: #fff; }
-        .spin-ticket-currency { font-size: 0.75rem; color: rgba(255,255,255,0.75); }
+        .spin-ticket.highlight .spin-ticket-icon i { color: #0088aa; }
+        .spin-ticket.highlight.prize-high {
+            background: linear-gradient(145deg, #ff6b9d 0%, #e91e8c 50%, #c2185b 100%);
+        }
+        .spin-ticket.highlight.prize-high .spin-ticket-icon i { color: #ad1457; }
+        .spin-ticket-icon {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .spin-ticket-icon i { 
+            font-size: 1rem; 
+            color: #238276;
+            font-weight: 600;
+        }
+        .spin-ticket.prize-high .spin-ticket-icon i { color: #c2185b; }
+        .spin-ticket-content { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 3px;
+            position: relative;
+            z-index: 2;
+        }
+        .spin-ticket-value { 
+            font-size: 1.35rem; 
+            font-weight: 900; 
+            color: #1a2535;
+            line-height: 1.1;
+        }
+        .spin-ticket-currency { 
+            font-size: 0.75rem; 
+            color: rgba(26,37,53,0.75); 
+            font-weight: 600;
+            text-transform: capitalize;
+        }
         
         .spin-currency-section {
             background: rgba(0, 212, 255, 0.08);
@@ -277,11 +360,13 @@
             <p class="spin-entrance spin-entrance-2" style="text-align: center; color: rgba(255,255,255,0.7); margin-bottom: 16px;">Выберите приз и крутите!</p>
             
             <div class="spin-wheel-area spin-entrance spin-entrance-3">
+                <div class="spin-drum-arrow left"></div>
                 <div class="spin-drum">
                     <div class="spin-tickets" id="spinTickets">
                         <!-- Билеты заполняются через JS -->
                     </div>
                 </div>
+                <div class="spin-drum-arrow right"></div>
             </div>
             
             <div class="spin-spins-count spin-entrance spin-entrance-4">

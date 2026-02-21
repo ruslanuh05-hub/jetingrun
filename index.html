@@ -107,19 +107,20 @@
         .loading-progress-container {
             position: relative;
             z-index: 1;
-            width: 280px;
-            max-width: 80%;
-            height: 4px;
+            width: 160px;
+            max-width: 50%;
+            height: 12px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
+            border-radius: 6px;
             overflow: hidden;
             position: relative;
+            margin-bottom: 120px;
         }
         
         .loading-progress-bar {
             height: 100%;
             background: linear-gradient(90deg, #00d4ff 0%, #00a4ff 50%, #0078ff 100%);
-            border-radius: 2px;
+            border-radius: 6px;
             width: 0%;
             transition: width 0.3s ease;
             animation: progressShimmer 1.5s ease-in-out infinite;
