@@ -239,49 +239,92 @@ function loadInitialData() {
 // Обновление статистики: с сервера (GET /api/admin/stats) или из локальной Database
 function refreshStatistics() {
     const block = document.getElementById('statBlock');
-    if (!block) return;
+    if (!block) {
+        console.error('[refreshStatistics] statBlock не найден');
+        return;
+    }
     block.textContent = 'Загрузка...';
     var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var pwd = '';
-    try { pwd = sessionStorage.getItem('jetStoreAdminPassword') || ''; } catch (e) {}
+    try { pwd = sessionStorage.getItem('jetStoreAdminPassword') || ''; } catch (e) {
+        console.warn('[refreshStatistics] Ошибка чтения пароля из sessionStorage:', e);
+    }
+    
+    console.log('[refreshStatistics] apiBase:', apiBase ? apiBase.substring(0, 30) + '...' : 'не задан');
+    console.log('[refreshStatistics] пароль:', pwd ? 'есть (' + pwd.length + ' символов)' : 'отсутствует');
+    
     if (apiBase && pwd) {
-        fetch(apiBase.replace(/\/$/, '') + '/api/admin/stats', {
+        const url = apiBase.replace(/\/$/, '') + '/api/admin/stats';
+        console.log('[refreshStatistics] Запрос к:', url);
+        fetch(url, {
             method: 'GET',
             headers: { 'Authorization': 'Bearer ' + pwd }
         })
             .then(function(r) {
-                if (r.ok) return r.json();
-                if (r.status === 401) return null;
-                return r.json().catch(function() { return null; });
+                console.log('[refreshStatistics] Ответ сервера: status=', r.status, 'ok=', r.ok);
+                if (r.ok) {
+                    return r.json().then(function(data) {
+                        console.log('[refreshStatistics] Данные получены:', data);
+                        return data;
+                    });
+                }
+                if (r.status === 401) {
+                    console.error('[refreshStatistics] Ошибка авторизации (401). Проверьте пароль.');
+                    return null;
+                }
+                return r.text().then(function(text) {
+                    console.error('[refreshStatistics] Ошибка сервера:', r.status, text);
+                    return null;
+                });
             })
             .then(function(data) {
                 if (data && typeof data.totalSales !== 'undefined') {
+                    console.log('[refreshStatistics] Отображаем данные с сервера');
                     renderStatsBlock(block, data);
                     return;
                 }
-                try { if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
-                    renderStatsBlock(block, (window.Database || {}).getStatistics());
-                    return;
-                } } catch (e) {}
-                block.textContent = 'Данные недоступны';
+                console.warn('[refreshStatistics] Данные с сервера некорректны, пробуем локальную Database');
+                try { 
+                    if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
+                        var localStats = (window.Database || {}).getStatistics();
+                        console.log('[refreshStatistics] Используем локальную статистику:', localStats);
+                        renderStatsBlock(block, localStats);
+                        return;
+                    } 
+                } catch (e) {
+                    console.error('[refreshStatistics] Ошибка получения локальной статистики:', e);
+                }
+                block.textContent = 'Данные недоступны. Проверьте ответ сервера в консоли.';
             })
-            .catch(function() {
-                try { if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
-                    renderStatsBlock(block, (window.Database || {}).getStatistics());
-                    return;
-                } } catch (e) {}
-                block.textContent = 'Ошибка загрузки. Проверьте API и пароль.';
+            .catch(function(err) {
+                console.error('[refreshStatistics] Ошибка сети:', err);
+                try { 
+                    if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
+                        var localStats = (window.Database || {}).getStatistics();
+                        console.log('[refreshStatistics] Используем локальную статистику (fallback):', localStats);
+                        renderStatsBlock(block, localStats);
+                        return;
+                    } 
+                } catch (e) {
+                    console.error('[refreshStatistics] Ошибка получения локальной статистики:', e);
+                }
+                block.textContent = 'Ошибка загрузки: ' + (err.message || 'Проверьте API и пароль. Откройте консоль (F12) для деталей.');
             });
         return;
     }
+    
+    console.warn('[refreshStatistics] API или пароль не настроены. apiBase:', apiBase, 'pwd:', pwd ? 'есть' : 'нет');
     try {
         if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
             var s = (window.Database || {}).getStatistics();
+            console.log('[refreshStatistics] Используем локальную статистику (без API):', s);
             renderStatsBlock(block, s);
             return;
         }
-    } catch (e) {}
-    block.textContent = 'Данные недоступны. Войдите в админку и нажмите «Обновить».';
+    } catch (e) {
+        console.error('[refreshStatistics] Ошибка получения локальной статистики:', e);
+    }
+    block.textContent = 'Данные недоступны. Настройте API (js/config.js) и войдите в админку.';
 }
 
 function renderStatsBlock(block, s) {
@@ -1185,6 +1228,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Даем немного времени на загрузку всех скриптов
     setTimeout(initAdmin, 100);
+    
+    // Обработчик кнопки "Обновить" статистику (на случай, если onclick не сработает)
+    setTimeout(function() {
+        const refreshBtn = document.querySelector('button[onclick*="refreshStatistics"]');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function(e) {
+                console.log('[Кнопка Обновить] Клик зарегистрирован');
+                if (typeof refreshStatistics === 'function') {
+                    refreshStatistics();
+                } else if (typeof window.refreshStatistics === 'function') {
+                    window.refreshStatistics();
+                } else {
+                    console.error('[Кнопка Обновить] Функция refreshStatistics не найдена');
+                }
+            });
+        }
+    }, 200);
 });
 
 // Управление товарами Supercell
