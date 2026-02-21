@@ -88,12 +88,12 @@
 
         var buyBtn = document.getElementById('buySpinBtn');
         if (buyBtn) {
-            buyBtn.textContent = currentCurrency === 'RUB' ? 'Купить за ' + SPIN_PRICE_RUB + ' ₽' : 'Купить за ' + SPIN_PRICE_USDT + ' USDT';
+            buyBtn.textContent = currentCurrency === 'RUB' ? 'Крутить за ' + SPIN_PRICE_RUB + ' ₽' : 'Крутить за ' + SPIN_PRICE_USDT + ' USDT';
         }
 
         var spinBtn = document.getElementById('spinBtn');
         if (spinBtn) {
-            spinBtn.style.display = spinsCount > 0 ? 'block' : 'none';
+            spinBtn.textContent = 'Авто-спин';
             spinBtn.disabled = isSpinning || spinsCount <= 0;
         }
     }

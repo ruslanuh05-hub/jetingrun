@@ -13,42 +13,59 @@
             overflow-x: hidden;
             max-width: 100vw;
             min-height: 100vh;
-            background: linear-gradient(180deg, #0a0a0a 0%, #0d1215 30%, #0a0e12 70%, #0a0a0a 100%);
+            background: #1a1d24;
             color: #fff;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        
+        .spin-body {
+            flex: 1;
+            padding: 20px 16px max(140px, calc(120px + env(safe-area-inset-bottom)));
+            overflow-y: auto;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.03) 0%, transparent 25%),
+                radial-gradient(circle at 90% 80%, rgba(255,255,255,0.02) 0%, transparent 25%),
+                repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(255,255,255,0.02) 24px, rgba(255,255,255,0.02) 25px),
+                repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(255,255,255,0.015) 24px, rgba(255,255,255,0.015) 25px);
+        }
         .spin-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px max(16px, env(safe-area-inset-left)) 14px max(16px, env(safe-area-inset-right));
-            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.12), transparent 55%), rgba(3, 5, 12, 0.96);
+            padding: 14px max(16px, env(safe-area-inset-left)) 12px max(16px, env(safe-area-inset-right));
+            background: rgba(28, 31, 38, 0.98);
             flex-shrink: 0;
         }
         .spin-back-btn {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 14px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.14);
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
             color: #fff;
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
-            transition: all 0.2s ease;
+            transition: opacity 0.2s ease;
         }
-        .spin-back-btn:hover { background: rgba(0, 212, 255, 0.18); border-color: rgba(0, 212, 255, 0.5); }
-        .spin-title { font-size: 1.25rem; font-weight: 800; letter-spacing: 0.4px; }
-        
-        .spin-body {
+        .spin-back-btn:hover { opacity: 0.85; }
+        .spin-header-center {
             flex: 1;
-            padding: 20px 16px max(120px, calc(100px + env(safe-area-inset-bottom)));
-            overflow-y: auto;
+            text-align: center;
+            min-width: 0;
         }
+        .spin-header-title { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.3px; }
+        .spin-header-subtitle { font-size: 0.75rem; color: rgba(255,255,255,0.7); margin-top: 2px; }
+        .spin-header-right {
+            width: 60px;
+            min-width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .spin-header-right i { font-size: 1.1rem; color: rgba(255,255,255,0.9); cursor: pointer; }
         
         /* Барабан рулетки — как на скрине: билеты с серратированными краями */
         .spin-wheel-area {
@@ -66,28 +83,20 @@
             flex-shrink: 0;
         }
         .spin-drum-arrow.left {
-            border-right: 0;
-            border-left: 20px solid #00d4ff;
-        }
-        .spin-drum-arrow.right {
             border-left: 0;
             border-right: 20px solid #00d4ff;
+        }
+        .spin-drum-arrow.right {
+            border-right: 0;
+            border-left: 20px solid #00d4ff;
         }
         .spin-drum {
             position: relative;
             max-width: 300px;
             padding: 24px 20px;
-            border-radius: 14px;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.03) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.02) 0%, transparent 50%),
-                repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(255,255,255,0.02) 3px, rgba(255,255,255,0.02) 4px),
-                repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.015) 3px, rgba(255,255,255,0.015) 4px),
-                linear-gradient(180deg, #1a2535 0%, #0f1620 50%, #151d2a 100%);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            box-shadow: 
-                inset 0 0 40px rgba(0, 0, 0, 0.6),
-                0 4px 20px rgba(0, 0, 0, 0.4);
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
         }
         .spin-tickets {
             display: flex;
@@ -110,20 +119,20 @@
         .spin-ticket {
             position: relative;
             padding: 22px 24px 22px 26px;
-            border-radius: 0;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             gap: 18px;
             min-width: 220px;
             flex-shrink: 0;
             border: none;
-            background: linear-gradient(145deg, #2a9d8f 0%, #238276 50%, #1e6b62 100%);
+            background: linear-gradient(145deg, #26a69a 0%, #1e8b82 50%, #197068 100%);
             box-shadow: 
-                0 2px 0 rgba(0,0,0,0.2),
-                inset 0 1px 0 rgba(255,255,255,0.25),
-                0 4px 12px rgba(0,0,0,0.3);
+                0 3px 0 rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                0 6px 16px rgba(0,0,0,0.25);
             transition: all 0.3s ease;
-            clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+            clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
         }
         .spin-ticket::before,
         .spin-ticket::after {
@@ -203,22 +212,22 @@
         .spin-ticket-value { 
             font-size: 1.75rem; 
             font-weight: 900; 
-            color: #1a2535;
+            color: #fff;
             line-height: 1.1;
         }
         .spin-ticket-currency { 
             font-size: 0.9rem; 
-            color: rgba(26,37,53,0.8); 
+            color: rgba(255,255,255,0.9); 
             font-weight: 600;
             text-transform: capitalize;
         }
         
         .spin-currency-section {
-            background: rgba(0, 212, 255, 0.08);
-            border: 1px solid rgba(0, 212, 255, 0.25);
-            border-radius: 16px;
-            padding: 16px 20px;
-            margin-bottom: 20px;
+            background: rgba(28, 31, 38, 0.95);
+            border: none;
+            border-radius: 0;
+            padding: 18px 20px 20px;
+            margin-bottom: 0;
         }
         .spin-currency-row {
             display: flex;
@@ -231,17 +240,28 @@
             align-items: center;
             gap: 10px;
         }
-        .spin-currency-info i { font-size: 1.3rem; color: #00d4ff; }
+        .spin-currency-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #26a69a 0%, #00897b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1rem;
+        }
         .spin-currency-name { font-weight: 700; font-size: 1.1rem; }
         .spin-currency-change {
-            color: #00d4ff;
-            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
             cursor: pointer;
-            text-decoration: underline;
+            display: block;
+            margin-top: 2px;
         }
         .spin-balance { text-align: right; }
         .spin-balance-val { font-size: 1.2rem; font-weight: 800; }
-        .spin-balance-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); }
+        .spin-balance-label { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
         
         .spin-tabs {
             display: flex;
@@ -266,45 +286,46 @@
             color: #fff;
         }
         
-        .spin-buy-btn {
-            width: 100%;
-            padding: 18px 24px;
-            border-radius: 14px;
-            border: none;
-            background: linear-gradient(135deg, #00d4ff 0%, #00a4ff 50%, #0078ff 100%);
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
-            transition: all 0.25s ease;
+        .spin-buttons-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
         }
-        .spin-buy-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(0, 212, 255, 0.5); }
-        .spin-buy-btn:active { transform: translateY(0); }
-        .spin-buy-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        
         .spin-spin-btn {
-            width: 100%;
-            padding: 18px 24px;
-            margin-bottom: 12px;
-            border-radius: 14px;
+            flex: 1;
+            padding: 16px 20px;
+            margin-bottom: 0;
+            border-radius: 12px;
             border: none;
-            background: linear-gradient(135deg, #00a4ff 0%, #0078ff 100%);
+            background: linear-gradient(135deg, #37474f 0%, #263238 100%);
             color: #fff;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0, 120, 255, 0.4);
             transition: all 0.25s ease;
         }
-        .spin-spin-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(0, 120, 255, 0.5); }
-        .spin-spin-btn:active { transform: translateY(0); }
-        .spin-spin-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        
+        .spin-spin-btn:hover:not(:disabled) { opacity: 0.9; }
+        .spin-spin-btn:active { transform: scale(0.98); }
+        .spin-spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .spin-buy-btn {
+            flex: 1;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #00d4ff 0%, #00a4ff 50%, #0088cc 100%);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .spin-buy-btn:hover { transform: translateY(-1px); }
+        .spin-buy-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .spin-spins-count {
             text-align: center;
-            margin: 16px 0;
-            font-size: 1.2rem;
+            margin: 12px 0;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.7);
         }
         .spin-spins-count strong { color: #00d4ff; }
         
@@ -372,13 +393,15 @@
                 <i class="fas fa-chevron-left"></i>
                 <span>Назад</span>
             </a>
-            <div style="width: 60px;"></div>
+            <div class="spin-header-center">
+                <div class="spin-header-title">JET Store</div>
+                <div class="spin-header-subtitle">мини-приложение</div>
+            </div>
+            <div class="spin-header-right"><i class="fas fa-ellipsis-v"></i></div>
         </header>
         
         <div class="spin-body">
-            <p class="spin-entrance spin-entrance-2" style="text-align: center; color: rgba(255,255,255,0.7); margin-bottom: 16px;">Выберите приз и крутите!</p>
-            
-            <div class="spin-wheel-area spin-entrance spin-entrance-3">
+            <div class="spin-wheel-area spin-entrance spin-entrance-2">
                 <div class="spin-drum-arrow left"></div>
                 <div class="spin-drum">
                     <div class="spin-tickets" id="spinTickets">
@@ -388,17 +411,17 @@
                 <div class="spin-drum-arrow right"></div>
             </div>
             
-            <div class="spin-spins-count spin-entrance spin-entrance-4">
+            <div class="spin-spins-count spin-entrance spin-entrance-3">
                 У вас: <strong id="spinsCount">0</strong> спин(ов)
             </div>
             
-            <div class="spin-currency-section spin-entrance spin-entrance-5">
+            <div class="spin-currency-section spin-entrance spin-entrance-4">
                 <div class="spin-currency-row">
                     <div class="spin-currency-info">
-                        <i class="fas fa-wallet"></i>
+                        <div class="spin-currency-icon"><i class="fas fa-gem"></i></div>
                         <div>
                             <span class="spin-currency-name" id="currencyName">Рубли</span>
-                            <span class="spin-currency-change" id="changeCurrencyBtn">Изменить валюту &gt;</span>
+                            <span class="spin-currency-change" id="changeCurrencyBtn">Изменить монету &gt;</span>
                         </div>
                     </div>
                     <div class="spin-balance">
@@ -412,8 +435,10 @@
                     <button class="spin-tab" data-currency="USDT">💎 USDT</button>
                 </div>
                 
-                <button class="spin-spin-btn" id="spinBtn" style="display: none;">🎡 Крутить</button>
-                <button class="spin-buy-btn" id="buySpinBtn">Купить за 100 ₽</button>
+                <div class="spin-buttons-row spin-entrance spin-entrance-5">
+                    <button class="spin-spin-btn" id="spinBtn">Авто-спин</button>
+                    <button class="spin-buy-btn" id="buySpinBtn">Крутить за 100 ₽</button>
+                </div>
             </div>
         </div>
     </div>
