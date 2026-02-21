@@ -61,20 +61,20 @@
         .spin-drum-arrow {
             width: 0;
             height: 0;
-            border-top: 20px solid transparent;
-            border-bottom: 20px solid transparent;
+            border-top: 24px solid transparent;
+            border-bottom: 24px solid transparent;
             flex-shrink: 0;
         }
         .spin-drum-arrow.left {
-            border-right: 16px solid #00d4ff;
+            border-right: 20px solid #00d4ff;
         }
         .spin-drum-arrow.right {
-            border-left: 16px solid #00d4ff;
+            border-left: 20px solid #00d4ff;
         }
         .spin-drum {
             position: relative;
-            max-width: 240px;
-            padding: 18px 14px;
+            max-width: 280px;
+            padding: 20px 18px;
             border-radius: 14px;
             background: 
                 radial-gradient(circle at 20% 30%, rgba(255,255,255,0.03) 0%, transparent 50%),
@@ -90,29 +90,30 @@
         .spin-tickets {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            max-height: 240px;
+            gap: 18px;
+            height: 358px;
+            max-height: 358px;
             overflow-y: auto;
             overflow-x: hidden;
             scrollbar-width: none;
             -ms-overflow-style: none;
-        }
-        .spin-tickets::-webkit-scrollbar {
-            display: none;
-        };
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
             pointer-events: none;
         }
+        .spin-tickets::-webkit-scrollbar {
+            display: none;
+        }
         .spin-ticket {
             position: relative;
-            padding: 12px 16px 12px 18px;
+            padding: 16px 20px 16px 22px;
             border-radius: 0;
             display: flex;
             align-items: center;
-            gap: 12px;
-            min-width: 180px;
+            gap: 14px;
+            min-width: 200px;
+            flex-shrink: 0;
             border: none;
             background: linear-gradient(145deg, #2a9d8f 0%, #238276 50%, #1e6b62 100%);
             box-shadow: 
@@ -156,47 +157,56 @@
                 0 4px 20px rgba(0, 212, 255, 0.5);
             transform: scale(1.03);
         }
-        .spin-ticket.highlight .spin-ticket-icon i { color: #0088aa; }
+        .spin-ticket.highlight .spin-ticket-icon {
+            background: linear-gradient(145deg, #0088aa 0%, #006688 100%);
+        }
+        .spin-ticket.highlight .spin-ticket-icon i { color: #fff; }
         .spin-ticket.highlight.prize-high {
             background: linear-gradient(145deg, #ff6b9d 0%, #e91e8c 50%, #c2185b 100%);
         }
-        .spin-ticket.highlight.prize-high .spin-ticket-icon i { color: #ad1457; }
+        .spin-ticket.highlight.prize-high .spin-ticket-icon {
+            background: linear-gradient(145deg, #ad1457 0%, #880e4f 100%);
+        }
+        .spin-ticket.highlight.prize-high .spin-ticket-icon i { color: #fff; }
         .spin-ticket-icon {
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.98);
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #2a9d8f 0%, #238276 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
             position: relative;
             z-index: 2;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         .spin-ticket-icon i { 
-            font-size: 1rem; 
-            color: #238276;
-            font-weight: 600;
+            font-size: 1.1rem; 
+            color: #fff;
+            font-weight: 700;
         }
-        .spin-ticket.prize-high .spin-ticket-icon i { color: #c2185b; }
+        .spin-ticket.prize-high .spin-ticket-icon {
+            background: linear-gradient(145deg, #c2185b 0%, #ad1457 100%);
+        }
+        .spin-ticket.prize-high .spin-ticket-icon i { color: #fff; }
         .spin-ticket-content { 
             display: flex; 
             flex-direction: column; 
-            gap: 3px;
+            gap: 4px;
             position: relative;
             z-index: 2;
         }
         .spin-ticket-value { 
-            font-size: 1.35rem; 
+            font-size: 1.5rem; 
             font-weight: 900; 
             color: #1a2535;
             line-height: 1.1;
         }
         .spin-ticket-currency { 
-            font-size: 0.75rem; 
-            color: rgba(26,37,53,0.75); 
+            font-size: 0.8rem; 
+            color: rgba(26,37,53,0.8); 
             font-weight: 600;
             text-transform: capitalize;
         }
