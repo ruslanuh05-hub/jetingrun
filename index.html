@@ -53,7 +53,7 @@
             height: 100dvh;
             margin: 0;
             padding: 0;
-            background: #0a0a0a url('assets/logo_load.jpg') center/cover no-repeat;
+            background: #0a0a0a url('assets/logo_load.png') center/cover no-repeat;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -196,10 +196,10 @@
 <body>
     <!-- Экран загрузки -->
     <div class="loading-screen">
-        <img src="assets/logo_load.jpg" alt="JET" class="loading-logo" id="loadingLogo"
+        <img src="assets/logo_load.png" alt="JET" class="loading-logo" id="loadingLogo"
              style="display: block; opacity: 1; visibility: visible;"
              onload="console.log('Logo loaded successfully:', this.src); this.style.display='block'; this.style.opacity='1';"
-             onerror="console.error('Failed to load logo_load.jpg, trying jet-logo.png'); var img = this; img.onerror=null; img.src='assets/jet-logo.png'; img.onerror=function(){console.error('All logos failed, using fallback'); var fallback = document.createElement('div'); fallback.className='loading-logo'; fallback.style.width='120px'; fallback.style.height='120px'; fallback.style.borderRadius='50%'; fallback.style.background='linear-gradient(135deg, #00d4ff 0%, #00a4ff 50%, #0078ff 100%)'; fallback.style.display='flex'; fallback.style.alignItems='center'; fallback.style.justifyContent='center'; fallback.style.color='#000'; fallback.style.fontSize='3rem'; fallback.style.fontWeight='bold'; fallback.textContent='JET'; img.parentNode.replaceChild(fallback, img);}">
+             onerror="console.error('Failed to load logo_load.png, trying jet-logo.png'); var img = this; img.onerror=null; img.src='assets/jet-logo.png'; img.onerror=function(){console.error('All logos failed, using fallback'); var fallback = document.createElement('div'); fallback.className='loading-logo'; fallback.style.width='120px'; fallback.style.height='120px'; fallback.style.borderRadius='50%'; fallback.style.background='linear-gradient(135deg, #00d4ff 0%, #00a4ff 50%, #0078ff 100%)'; fallback.style.display='flex'; fallback.style.alignItems='center'; fallback.style.justifyContent='center'; fallback.style.color='#000'; fallback.style.fontSize='3rem'; fallback.style.fontWeight='bold'; fallback.textContent='JET'; img.parentNode.replaceChild(fallback, img);}">
         <div class="loading-progress-container">
             <div class="loading-progress-bar" id="loadingProgressBar"></div>
         </div>
