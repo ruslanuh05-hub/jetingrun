@@ -2836,6 +2836,29 @@
                 font-size: 0.95rem;
             }
         }
+        
+        /* Анимации для уведомлений */
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
     </style>
     <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>

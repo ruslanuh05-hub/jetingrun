@@ -101,7 +101,7 @@
         .spin-tickets {
             display: flex;
             flex-direction: column;
-            gap: 22px;
+            gap: 36px;
             height: 420px;
             max-height: 420px;
             overflow-y: auto;
@@ -293,13 +293,13 @@
         }
         .spin-spin-btn {
             flex: 1;
-            padding: 16px 20px;
+            padding: 10px 14px;
             margin-bottom: 0;
-            border-radius: 12px;
+            border-radius: 10px;
             border: none;
             background: linear-gradient(135deg, #37474f 0%, #263238 100%);
             color: #fff;
-            font-size: 1rem;
+            font-size: 0.875rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.25s ease;
@@ -309,12 +309,12 @@
         .spin-spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .spin-buy-btn {
             flex: 1;
-            padding: 16px 20px;
-            border-radius: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
             border: none;
             background: linear-gradient(135deg, #00d4ff 0%, #00a4ff 50%, #0088cc 100%);
             color: #fff;
-            font-size: 1rem;
+            font-size: 0.875rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.25s ease;
@@ -375,6 +375,28 @@
         .spin-entrance-5 { animation-delay: 0.33s; }
         .spin-entrance-6 { animation-delay: 0.40s; }
         .spin-entrance-7 { animation-delay: 0.47s; }
+        /* Анимации для уведомлений */
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
+        
         @keyframes spinPageAssemble {
             from {
                 opacity: 0;
@@ -394,10 +416,7 @@
                 <i class="fas fa-chevron-left"></i>
                 <span>Назад</span>
             </a>
-            <div class="spin-header-center">
-                <div class="spin-header-title">JET Store</div>
-                <div class="spin-header-subtitle">мини-приложение</div>
-            </div>
+            <div class="spin-header-center"></div>
             <div class="spin-header-right"><i class="fas fa-ellipsis-v"></i></div>
         </header>
         

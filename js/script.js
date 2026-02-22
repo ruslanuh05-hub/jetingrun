@@ -1307,11 +1307,11 @@ function showStoreNotification(message, type = 'info') {
         color: white;
         padding: 16px;
         border-radius: 12px;
-        z-index: 10000;
+        z-index: 99999;
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         text-align: center;
         font-weight: 600;
-        animation: slideDown 0.3s ease;
+        animation: slideDown 0.4s ease-out;
     `;
     notification.textContent = message;
     

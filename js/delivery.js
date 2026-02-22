@@ -99,9 +99,20 @@ function runDeliveryAfterPayment(data, checkResponse) {
                 }
             }
             if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, { status: 'delivered' });
-            if (typeof showStoreNotification === 'function') showStoreNotification('Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽', 'success');
-            if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
             syncBalanceFromApiAfterDelivery();
+            var amountMsg = 'Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽';
+            if (typeof showStoreNotification === 'function') {
+                showStoreNotification(amountMsg, 'success');
+            } else if (typeof showNotification === 'function') {
+                showNotification(amountMsg, 'success');
+            } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
+                window.Telegram.WebApp.showPopup({ title: 'Успешно', message: amountMsg });
+            }
+            setTimeout(function() {
+                if (typeof closePaymentWaiting === 'function') {
+                    closePaymentWaiting();
+                }
+            }, 500);
             return;
         }
         var optsDelivered = null;
@@ -171,9 +182,19 @@ function runDeliveryAfterPayment(data, checkResponse) {
         }
         message = 'Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽';
         if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, { status: 'delivered' });
-        if (typeof showStoreNotification === 'function') showStoreNotification(message, 'success');
-        if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
         syncBalanceFromApiAfterDelivery();
+        if (typeof showStoreNotification === 'function') {
+            showStoreNotification(message, 'success');
+        } else if (typeof showNotification === 'function') {
+            showNotification(message, 'success');
+        } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
+            window.Telegram.WebApp.showPopup({ title: 'Успешно', message: message });
+        }
+        setTimeout(function() {
+            if (typeof closePaymentWaiting === 'function') {
+                closePaymentWaiting();
+            }
+        }, 500);
         return;
     } else {
         message += 'Товар будет выдан автоматически после обработки на сервере.';

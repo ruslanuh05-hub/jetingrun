@@ -253,8 +253,8 @@
         redirectToPaySpin('USDT');
     }
 
-    function easeOutCubic(t) {
-        return 1 - Math.pow(1 - t, 3);
+    function easeOutExpo(t) {
+        return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
     }
 
     function animateDrumScroll(container, targetScroll, durationMs, onComplete) {
@@ -264,7 +264,7 @@
             if (!startTime) startTime = timestamp;
             var elapsed = timestamp - startTime;
             var progress = Math.min(elapsed / durationMs, 1);
-            var eased = easeOutCubic(progress);
+            var eased = easeOutExpo(progress);
             container.scrollTop = startScroll + (targetScroll - startScroll) * eased;
             if (progress < 1) {
                 requestAnimationFrame(step);
@@ -275,41 +275,80 @@
         requestAnimationFrame(step);
     }
 
+    function getCenterTicket(container, tickets) {
+        if (!container || !tickets || tickets.length === 0) return null;
+        var containerRect = container.getBoundingClientRect();
+        var containerCenterY = containerRect.top + (containerRect.height / 2);
+        var closestTicket = null;
+        var closestDistance = Infinity;
+        for (var i = 0; i < tickets.length; i++) {
+            var ticket = tickets[i];
+            var ticketRect = ticket.getBoundingClientRect();
+            var ticketCenterY = ticketRect.top + (ticketRect.height / 2);
+            var distance = Math.abs(ticketCenterY - containerCenterY);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestTicket = ticket;
+            }
+        }
+        return closestTicket;
+    }
+
     function doSpin() {
         if (isSpinning || spinsCount <= 0) return;
         isSpinning = true;
         var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
         var idx = Math.floor(Math.random() * prizes.length);
-        var won = prizes[idx];
+        var targetWon = prizes[idx];
 
         var tickets = document.querySelectorAll('.spin-ticket');
         var container = document.getElementById('spinTickets');
         tickets.forEach(function(t) { t.classList.remove('highlight'); });
-        var ticket = tickets[idx];
+        var targetTicket = tickets[idx];
 
-        if (container && ticket) {
+        if (container && targetTicket && tickets.length > 0) {
             var containerHeight = container.clientHeight;
-            var ticketHeight = ticket.offsetHeight;
-            var gap = 22;
+            var ticketHeight = targetTicket.offsetHeight;
+            var gap = 36;
             var ticketWithGap = ticketHeight + gap;
             var totalHeight = ticketWithGap * tickets.length;
-            var laps = 2 + Math.floor(Math.random() * 2);
+            var laps = 3 + Math.floor(Math.random() * 2);
             var offsetToWin = idx * ticketWithGap;
             var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
             var targetScroll = laps * totalHeight + offsetToWin - centerOffset;
             targetScroll = Math.max(0, targetScroll);
             container.scrollTop = 0;
-            var durationMs = 3500;
+            var durationMs = 6000;
             animateDrumScroll(container, targetScroll, durationMs, function() {
-                ticket.classList.add('highlight');
-                finishSpin();
+                setTimeout(function() {
+                    var actualCenterTicket = getCenterTicket(container, tickets);
+                    var won = targetWon;
+                    if (actualCenterTicket) {
+                        var actualIdx = parseInt(actualCenterTicket.getAttribute('data-index') || '-1', 10);
+                        if (actualIdx >= 0 && actualIdx < prizes.length) {
+                            won = prizes[actualIdx];
+                            var ticketRect = actualCenterTicket.getBoundingClientRect();
+                            var containerRect = container.getBoundingClientRect();
+                            var currentCenterY = containerRect.top + (containerRect.height / 2);
+                            var ticketCenterY = ticketRect.top + (ticketRect.height / 2);
+                            var offset = ticketCenterY - currentCenterY;
+                            if (Math.abs(offset) > 5) {
+                                container.scrollTop += offset;
+                            }
+                        }
+                        actualCenterTicket.classList.add('highlight');
+                    } else if (targetTicket) {
+                        targetTicket.classList.add('highlight');
+                    }
+                    finishSpin(won);
+                }, 100);
             });
         } else {
-            if (ticket) ticket.classList.add('highlight');
-            setTimeout(finishSpin, 500);
+            if (targetTicket) targetTicket.classList.add('highlight');
+            setTimeout(function() { finishSpin(targetWon); }, 500);
         }
 
-        function finishSpin() {
+        function finishSpin(won) {
             spinsCount = Math.max(0, spinsCount - 1);
             saveSpins(spinsCount);
             var countEl = document.getElementById('spinsCount');
