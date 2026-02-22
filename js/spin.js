@@ -276,11 +276,11 @@
     function easeOutCustom(t) {
         if (t <= 0) return 0;
         if (t >= 1) return 1;
-        if (t < 0.92) {
-            return t * 0.99;
+        if (t < 0.97) {
+            return t * 0.998;
         } else {
-            var slow = (t - 0.92) / 0.08;
-            return 0.9108 + (1 - Math.pow(1 - slow, 5)) * 0.0892;
+            var slow = (t - 0.97) / 0.03;
+            return 0.96806 + (1 - Math.pow(1 - slow, 8)) * 0.03194;
         }
     }
 
@@ -346,14 +346,18 @@
         }
 
         var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
-        var randomPrizeIdx = Math.floor(Math.random() * prizes.length);
+        var randomValue = Math.random();
+        var randomPrizeIdx = Math.floor(randomValue * prizes.length);
+        if (randomPrizeIdx >= prizes.length) randomPrizeIdx = prizes.length - 1;
         var targetWon = prizes[randomPrizeIdx];
         
         var targetTicket = null;
         var idx = -1;
+        var targetWonStr = targetWon.toString();
         for (var i = 0; i < tickets.length; i++) {
-            var ticketValue = parseFloat(tickets[i].getAttribute('data-value')) || 0;
-            if (Math.abs(ticketValue - targetWon) < 0.01) {
+            var ticketValueStr = tickets[i].getAttribute('data-value');
+            var ticketValue = parseFloat(ticketValueStr) || 0;
+            if (ticketValueStr === targetWonStr || Math.abs(ticketValue - targetWon) < 0.001) {
                 targetTicket = tickets[i];
                 idx = i;
                 break;
@@ -383,7 +387,6 @@
                 var actualCenterTicket = getCenterTicket(container, tickets);
                 var won = targetWon;
                 if (actualCenterTicket) {
-                    won = parseFloat(actualCenterTicket.getAttribute('data-value')) || targetWon;
                     var ticketRect = actualCenterTicket.getBoundingClientRect();
                     var containerRect = container.getBoundingClientRect();
                     var currentCenterY = containerRect.top + (containerRect.height / 2);
