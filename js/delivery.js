@@ -2,6 +2,45 @@
 // ВАЖНО: выдача товаров (звёзды, премиум, Steam) теперь выполняется ТОЛЬКО на бэкенде через вебхуки
 // Клиент только проверяет статус оплаты и показывает уведомление пользователю.
 
+// После пополнения баланса — синхронизация с сервером (источник истины — БД)
+function syncBalanceFromApiAfterDelivery() {
+    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var initData = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) ? window.Telegram.WebApp.initData : '';
+    if (!apiBase || !initData) {
+        if (typeof window.updateBalanceDisplay === 'function') window.updateBalanceDisplay();
+        return;
+    }
+    fetch(apiBase.replace(/\/$/, '') + '/api/balance', {
+        method: 'GET',
+        headers: { 'X-Telegram-Init-Data': initData }
+    }).then(function(r) { return r.ok ? r.json() : null; }).then(function(d) {
+        if (d && typeof d.balance_rub === 'number') {
+            var rub = d.balance_rub;
+            try {
+                var balanceKey = 'jetstore_balance_fixed';
+                var cur = JSON.parse(localStorage.getItem(balanceKey) || '{}');
+                cur.RUB = rub;
+                cur.lastUpdate = Date.now();
+                localStorage.setItem(balanceKey, JSON.stringify(cur));
+            } catch (e) {}
+            if (window.userData) {
+                if (!window.userData.currencies) window.userData.currencies = {};
+                window.userData.currencies.RUB = rub;
+            }
+            var headerBalanceEl = document.getElementById('headerBalance');
+            if (headerBalanceEl) headerBalanceEl.textContent = rub.toFixed(2) + ' ₽';
+            var profileBalanceEl = document.getElementById('profileBalance');
+            if (profileBalanceEl) profileBalanceEl.textContent = rub.toFixed(2) + ' ₽';
+            if (window.Database && typeof window.Database.saveBalanceFixed === 'function') {
+                window.Database.saveBalanceFixed('RUB', rub);
+            }
+        }
+        if (typeof window.updateBalanceDisplay === 'function') window.updateBalanceDisplay();
+    }).catch(function() {
+        if (typeof window.updateBalanceDisplay === 'function') window.updateBalanceDisplay();
+    });
+}
+
 // Выдача товара после подтверждённой оплаты
 function runDeliveryAfterPayment(data, checkResponse) {
     // Останавливаем polling, так как оплата подтверждена
@@ -62,7 +101,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
             if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, { status: 'delivered' });
             if (typeof showStoreNotification === 'function') showStoreNotification('Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽', 'success');
             if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
-            if (typeof window.updateBalanceDisplay === 'function') window.updateBalanceDisplay();
+            syncBalanceFromApiAfterDelivery();
             return;
         }
         var optsDelivered = null;
@@ -134,7 +173,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
         if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, { status: 'delivered' });
         if (typeof showStoreNotification === 'function') showStoreNotification(message, 'success');
         if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
-        if (typeof window.updateBalanceDisplay === 'function') window.updateBalanceDisplay();
+        syncBalanceFromApiAfterDelivery();
         return;
     } else {
         message += 'Товар будет выдан автоматически после обработки на сервере.';

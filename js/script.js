@@ -3165,6 +3165,9 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
         totalAmount: totalAmount,  // Для FreeKassa = baseAmount (без комиссии)
         purchase: purchase
     };
+    if (purchase.order_id) {
+        window.paymentData.order_id = purchase.order_id;
+    }
     if (method === 'platega' && (plategaMethod === 2 || plategaMethod === 10)) {
         window.paymentData.platega_method = plategaMethod;
     }
@@ -3172,6 +3175,13 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
     console.log('[selectPaymentMethod] window.paymentData.purchase:', window.paymentData.purchase);
     
     showPaymentWaiting();
+    
+    // Для FreeKassa и Platega сразу создаём заказ и открываем страницу оплаты, чтобы проверка оплаты могла стартовать
+    if (method === 'sbp' || method === 'card' || method === 'platega') {
+        setTimeout(function() {
+            if (typeof openPaymentPage === 'function') openPaymentPage();
+        }, 100);
+    }
 }
 
 // Показать экран ожидания оплаты

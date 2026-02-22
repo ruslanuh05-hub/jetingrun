@@ -45,13 +45,14 @@ function confirmPayment() {
         }
         checkPayload.transaction_id = data.transaction_id;
     } else if (data.method === 'sbp' || data.method === 'card') {
-        // FreeKassa: передаём ТОЛЬКО order_id
-        if (!data.order_id) {
+        // FreeKassa: передаём order_id (из paymentData или из purchase)
+        var orderId = data.order_id || (data.purchase && data.purchase.order_id);
+        if (!orderId) {
             if (statusEl) statusEl.textContent = 'Ожидание создания заказа...';
             console.log('[Payment Check] order_id not found for FreeKassa, skipping check');
             return;
         }
-        checkPayload.order_id = data.order_id;
+        checkPayload.order_id = orderId;
     } else {
         // Для других методов (Fragment, TON) используем старую логику
         checkPayload.totalAmount = data.totalAmount;
