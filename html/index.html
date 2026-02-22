@@ -3875,6 +3875,12 @@
         #paymentWaitingPopup .supercell-popup-content {
             background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
         }
+        /* Убрать кнопку «Назад» из окна выбора способа оплаты и окна оплаты */
+        #paymentMethodPopup .steam-back-btn,
+        #paymentMethodPopup .payment-back-btn,
+        #paymentWaitingPopup .steam-back-btn {
+            display: none !important;
+        }
         
         .supercell-games-list {
             display: grid;
@@ -5539,18 +5545,13 @@
         <div id="paymentMethodPopup" class="popup">
             <div class="popup-content supercell-popup-content">
                 <div class="steam-popup-header">
-                    <button class="steam-back-btn" onclick="closePaymentMethodPopup()">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
+                    <div style="width: 40px; min-width: 40px; flex-shrink: 0;"></div>
                     <h2 class="steam-popup-title">Выбор способа оплаты</h2>
                     <div style="width: 40px;"></div>
                 </div>
                 
                 <div class="steam-popup-body payment-method-body" style="padding: 16px;">
-                    <button class="payment-back-btn" onclick="closePaymentMethodPopup()" style="margin-bottom:12px;">
-                        <i class="fas fa-chevron-left"></i> Назад
-                    </button>
-                    <!-- СБП (Platega) -->
+                    <!-- СБП и карты (FreeKassa) -->
                     <div class="payment-category">
                         <h3 class="payment-category-title">СБП и карты (FreeKassa)</h3>
                         <div class="payment-methods-list payment-methods-compact">
@@ -5598,9 +5599,7 @@
         <div id="paymentWaitingPopup" class="popup">
             <div class="popup-content supercell-popup-content">
                 <div class="steam-popup-header">
-                    <button class="steam-back-btn" onclick="closePaymentWaiting()">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
+                    <div style="width: 40px; min-width: 40px; flex-shrink: 0;"></div>
                     <h2 class="steam-popup-title" id="paymentWaitingTitle">Ожидание оплаты</h2>
                     <div style="width: 40px;"></div>
                 </div>

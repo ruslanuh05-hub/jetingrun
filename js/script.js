@@ -2659,6 +2659,9 @@ function showPaymentMethodSelection(purchaseType) {
             cryptoSection.style.display = cur === 'USDT' ? '' : 'none';
         }
     } else if (purchaseType === 'balance') {
+        if (window.currentPurchase && window.currentPurchase.type === 'balance') {
+            currentPurchase = window.currentPurchase;
+        }
         previousView = { type: 'profile', gameCategory: null, supercellGame: null };
         // Пополнение баланса: те же способы оплаты, что и везде (рубли + крипто)
         var rubSection = document.querySelector('#paymentMethodPopup .payment-category:first-of-type');
@@ -3042,6 +3045,11 @@ window.closeIdeaCooldownModal = closeIdeaCooldownModal;
 // plategaMethod: 2 = СБП, 10 = Карты (для Platega)
 // Для FreeKassa через методы 'sbp' / 'card' третий параметр используется как значение i (44 = СБП (QR), 36 = карты РФ)
 function selectPaymentMethod(method, bonusPercent, plategaMethod) {
+    // Синхронизация с window.currentPurchase (например, при пополнении баланса из профиля)
+    if (window.currentPurchase && window.currentPurchase.type) {
+        currentPurchase = window.currentPurchase;
+    }
+    
     closePaymentMethodPopup(true);  // Не возвращаться назад — идём к оплате
     
     var baseAmount, commission, totalAmount, purchase;
@@ -3075,6 +3083,9 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
         };
     } else {
         baseAmount = currentPurchase.amount;
+        if (currentPurchase.type === 'balance') {
+            baseAmount = parseFloat(currentPurchase.amount) || 0;
+        }
         // Для FreeKassa комиссия только для отображения — FreeKassa сама добавит комиссию при оплате
         if (isFreeKassa) {
             commission = 0;  // Не добавляем к сумме
@@ -3084,6 +3095,7 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
             totalAmount = baseAmount + commission;
         }
         purchase = currentPurchase;
+        if (purchase.type === 'balance') purchase.amount = baseAmount;
     }
     
     // Дополняем purchase username / first_name из Telegram WebApp / userData,
@@ -3168,6 +3180,12 @@ function showPaymentWaiting() {
     if (!popup || !window.paymentData) return;
     
     const data = window.paymentData;
+    // Для пополнения баланса: если baseAmount не передан/0, берём из purchase.amount
+    if (data.purchase && data.purchase.type === 'balance' && (data.baseAmount == null || data.baseAmount === 0) && data.purchase.amount > 0) {
+        data.baseAmount = parseFloat(data.purchase.amount) || 0;
+        data.commission = (data.method === 'sbp' || data.method === 'card') ? 0 : (data.commission || 0);
+        data.totalAmount = (data.method === 'sbp' || data.method === 'card') ? data.baseAmount : (data.baseAmount + (data.commission || 0));
+    }
     const methodNames = {
         'sbp': 'СБП (FreeKassa)',
         'card': 'Карта (FreeKassa)',

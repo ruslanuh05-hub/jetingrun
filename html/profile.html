@@ -2355,6 +2355,31 @@
             border-color: rgba(0, 212, 255, 0.35) !important;
             color: #00d4ff !important;
         }
+        /* Пресеты сумм: нормализованный вывод для телефонов */
+        .steam-topup-presets {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px !important;
+            margin-top: 12px !important;
+        }
+        @media (min-width: 400px) {
+            .steam-topup-presets {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+        .steam-topup-presets .steam-topup-preset {
+            min-height: 48px;
+            min-width: 0;
+            padding: 10px 8px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: clamp(0.85rem, 2.5vw, 0.95rem) !important;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
         .steam-topup-btn.payment:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 28px rgba(0, 212, 255, 0.5) !important;
@@ -2616,6 +2641,12 @@
         #paymentMethodPopup .supercell-popup-content,
         #paymentWaitingPopup .supercell-popup-content {
             background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
+        }
+        /* Убрать кнопку «Назад» из окна выбора способа оплаты и окна оплаты */
+        #paymentMethodPopup .steam-back-btn,
+        #paymentMethodPopup .payment-back-btn,
+        #paymentWaitingPopup .steam-back-btn {
+            display: none !important;
         }
         
         /* Мобильная оптимизация для окон оплаты */
@@ -3042,12 +3073,12 @@
                                 <i class="fas fa-times" style="font-size: 0.85rem;"></i>
                             </button>
                         </div>
-                        <div class="steam-topup-presets" style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
-                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(100)" style="flex: 1; min-width: 60px; padding: 10px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">100</button>
-                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(500)" style="flex: 1; min-width: 60px; padding: 10px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">500</button>
-                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(1000)" style="flex: 1; min-width: 60px; padding: 10px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">1 000</button>
-                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(2000)" style="flex: 1; min-width: 60px; padding: 10px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">2 000</button>
-                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(5000)" style="flex: 1; min-width: 60px; padding: 10px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">5 000</button>
+                        <div class="steam-topup-presets">
+                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(100)">100</button>
+                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(500)">500</button>
+                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(1000)">1 000</button>
+                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(2000)">2 000</button>
+                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(5000)">5 000</button>
                         </div>
                     </div>
                 </div>
@@ -3074,17 +3105,12 @@
     <div id="paymentMethodPopup" class="popup">
         <div class="popup-content supercell-popup-content" style="background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);">
             <div class="steam-popup-header">
-                <button class="steam-back-btn" onclick="closePaymentMethodPopup()">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
+                <div style="width: 40px; min-width: 40px; flex-shrink: 0;"></div>
                 <h2 class="steam-popup-title">Выбор способа оплаты</h2>
                 <div style="width: 40px;"></div>
             </div>
             
             <div class="steam-popup-body payment-method-body" style="padding: 16px;">
-                <button class="payment-back-btn" onclick="closePaymentMethodPopup()" style="margin-bottom:12px;">
-                    <i class="fas fa-chevron-left"></i> Назад
-                </button>
                 <!-- СБП и карты (FreeKassa) -->
                 <div class="payment-category">
                     <h3 class="payment-category-title">СБП и карты (FreeKassa)</h3>
@@ -3133,9 +3159,7 @@
     <div id="paymentWaitingPopup" class="popup">
         <div class="popup-content supercell-popup-content" style="background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);">
             <div class="steam-popup-header">
-                <button class="steam-back-btn" onclick="closePaymentWaiting()">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
+                <div style="width: 40px; min-width: 40px; flex-shrink: 0;"></div>
                 <h2 class="steam-popup-title" id="paymentWaitingTitle">Ожидание оплаты</h2>
                 <div style="width: 40px;"></div>
             </div>
