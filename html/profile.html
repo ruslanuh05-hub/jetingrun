@@ -2345,6 +2345,31 @@
             opacity: 1;
             transform: translateY(0);
         }
+        /* Стили для окна пополнения баланса (hover эффекты) */
+        .steam-topup-back:hover {
+            background: rgba(0, 212, 255, 0.2) !important;
+            border-color: rgba(0, 212, 255, 0.4) !important;
+        }
+        .steam-topup-preset:hover {
+            background: rgba(0, 212, 255, 0.15) !important;
+            border-color: rgba(0, 212, 255, 0.35) !important;
+            color: #00d4ff !important;
+        }
+        .steam-topup-btn.payment:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(0, 212, 255, 0.5) !important;
+        }
+        .steam-topup-btn.payment:active {
+            transform: translateY(0);
+        }
+        .steam-topup-input-wrap:focus-within {
+            border-color: rgba(0, 212, 255, 0.5) !important;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1) !important;
+        }
+        .steam-topup-clear:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
     </style>
     <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>
@@ -2587,55 +2612,62 @@
         </div>
     </div>
     
-    <!-- Попап для пополнения баланса -->
-    <div id="depositPopup" class="popup">
-        <div class="popup-content">
-            <div class="popup-header">
-                <h3>Пополнение баланса</h3>
-                <button class="close-btn" onclick="closeDepositPopup()">×</button>
+    <!-- Окно пополнения баланса (в стиле Steam) -->
+    <div id="balanceTopupPopup" class="popup" style="padding: 0; align-items: stretch; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px);">
+        <div class="steam-topup-window" style="background: linear-gradient(165deg, rgba(15, 20, 25, 0.95) 0%, rgba(27, 40, 56, 0.95) 50%, rgba(15, 20, 25, 0.95) 100%); border-radius: 0; width: 100%; max-width: 480px; margin: auto; max-height: 95vh; overflow-y: auto; box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.15), 0 25px 60px rgba(0, 0, 0, 0.5); position: relative;">
+            <div class="steam-topup-header" style="position: relative; padding: 20px 20px 24px; display: flex; align-items: center; justify-content: space-between; z-index: 1;">
+                <button class="steam-topup-back" onclick="closeBalanceTopup()" style="width: 44px; height: 44px; border-radius: 14px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s ease;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="steam-topup-logo" style="display: flex; align-items: center; gap: 10px;">
+                    <div class="steam-topup-logo-icon" style="width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #26a69a 0%, #00897b 100%); border: 1px solid rgba(0, 212, 255, 0.3); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #00d4ff;">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <span class="steam-topup-logo-text" style="font-size: 1.35rem; font-weight: 700; color: #fff; letter-spacing: -0.02em;">
+                        Пополнение <span style="color: #00d4ff;">баланса</span>
+                    </span>
+                </div>
+                <div style="width: 44px;"></div>
             </div>
-            <div class="popup-body">
-                <p class="deposit-subtitle">Выберите способ оплаты</p>
-                <div class="payment-methods">
-                    <button class="payment-method-btn sbp" onclick="closeDepositPopup(); showSbpDeposit();">
-                        <div class="payment-icon sbp">
-                            <img src="../assets/sbp-icon.png" alt="СБП">
+            
+            <div class="steam-topup-form" style="position: relative; padding: 0 20px 100px 20px; z-index: 1;">
+                <div class="steam-topup-card" style="background: rgba(23, 26, 33, 0.8); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 24px; margin-bottom: 20px;">
+                    <div class="steam-topup-input-group" style="margin-bottom: 24px;">
+                        <div class="steam-topup-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span style="color: rgba(255, 255, 255, 0.85); font-size: 0.95rem; font-weight: 600;">Сумма пополнения</span>
+                            <span class="steam-topup-hint" style="color: rgba(255, 255, 255, 0.4); font-size: 0.8rem;">минимум 100 ₽</span>
                         </div>
-                        <span class="payment-name">СБП / Банковские карты</span>
+                        <div class="steam-topup-input-wrap" style="display: flex; align-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 0 16px; height: 56px; transition: all 0.25s ease;">
+                            <span class="steam-currency-icon" style="color: rgba(255, 255, 255, 0.45); margin-right: 12px; font-size: 1.1rem; font-weight: 600;">₽</span>
+                            <input type="number" id="balanceAmount" class="steam-topup-input" placeholder="1000" min="100" max="1000000" step="1" style="flex: 1; background: transparent; border: none; outline: none; color: #fff; font-size: 1.1rem; font-weight: 600; padding: 0;">
+                            <button type="button" class="steam-topup-clear" onclick="clearBalanceInput()" style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255, 255, 255, 0.08); border: none; color: rgba(255, 255, 255, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 8px; transition: all 0.2s ease;">
+                                <i class="fas fa-times" style="font-size: 0.85rem;"></i>
+                            </button>
+                        </div>
+                        <div class="steam-topup-presets" style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(100)" style="flex: 1; min-width: 60px; padding: 10px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">100</button>
+                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(500)" style="flex: 1; min-width: 60px; padding: 10px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">500</button>
+                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(1000)" style="flex: 1; min-width: 60px; padding: 10px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">1 000</button>
+                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(2000)" style="flex: 1; min-width: 60px; padding: 10px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">2 000</button>
+                            <button type="button" class="steam-topup-preset" onclick="setBalanceAmount(5000)" style="flex: 1; min-width: 60px; padding: 10px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">5 000</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="steam-topup-actions" style="flex-shrink: 0;">
+                    <button type="button" class="steam-topup-btn payment" onclick="proceedBalanceTopup()" style="width: 100%; padding: 18px 24px; border-radius: 16px; background: linear-gradient(135deg, #00d4ff 0%, #00a4ff 50%, #0088cc 100%); border: none; color: #fff; font-size: 1.1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4); transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fas fa-credit-card"></i>
+                        Выбрать способ оплаты
                     </button>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Попап для СБП пополнения -->
-    <div id="sbpDepositPopup" class="popup">
-        <div class="popup-content">
-            <div class="popup-header">
-                <h3>Пополнение через СБП</h3>
-                <button class="close-btn" onclick="closeSbpPopup()">×</button>
-            </div>
-            <div class="popup-body">
-                <div class="usdt-input-section sbp-amount-section">
-                    <div class="sbp-amount-label-row">
-                        <label class="usdt-label" for="sbpAmount">Сумма пополнения</label>
-                        <span class="sbp-info-icon" id="sbpInfoIcon" title="Что это за сумма?" aria-label="Подсказка" onclick="var t=document.getElementById('sbpInfoTooltip');t.classList.toggle('visible');event.stopPropagation();"><i class="fas fa-info-circle"></i></span>
-                        <div class="sbp-info-tooltip" id="sbpInfoTooltip" onclick="event.stopPropagation()">
-                            Сумма, которую вы хотите зачислить на баланс. С этой суммы удерживается комиссия 10%. Минимальная сумма: 100 ₽. На баланс поступит сумма минус комиссия.
-                        </div>
-                    </div>
-                    <div class="usdt-input-wrapper">
-                        <input type="number" id="sbpAmount" placeholder="1000" min="100" oninput="updateSbpAmount()">
-                        <span class="usdt-currency">₽</span>
-                    </div>
+                
+                <div class="steam-topup-legal" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: rgba(255, 255, 255, 0.4); font-size: 0.75rem; line-height: 1.5;">
+                    Нажимая «выбрать способ оплаты», вы соглашаетесь с 
+                    <a href="https://telegra.ph/Dogovor-Oferty-02-11-4" target="_blank" rel="noopener noreferrer" style="color: rgba(0, 212, 255, 0.8); text-decoration: none;">офертой</a>, 
+                    <a href="https://telegra.ph/Politika-konfidecialnosti-02-11" target="_blank" rel="noopener noreferrer" style="color: rgba(0, 212, 255, 0.8); text-decoration: none;">политикой конфиденциальности</a> 
+                    и даёте 
+                    <a href="https://telegra.ph/Politika-konfidecialnosti-02-11" target="_blank" rel="noopener noreferrer" style="color: rgba(0, 212, 255, 0.8); text-decoration: none;">согласие на обработку данных</a>.
                 </div>
-            </div>
-            <div class="popup-footer">
-                <button class="btn-secondary" onclick="closeSbpPopup()">Отмена</button>
-                <button class="btn-primary" onclick="processSbpDeposit()">
-                    <i class="fas fa-mobile-alt"></i>
-                    Пополнить баланс
-                </button>
             </div>
         </div>
     </div>
@@ -2660,6 +2692,16 @@
                 document.addEventListener('focusin', function(e) {
                     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
                         setTimeout(fixNavPosition, 100);
+                    }
+                });
+                
+                // Закрытие окна пополнения баланса при клике вне его
+                document.addEventListener('click', function(e) {
+                    const balancePopup = document.getElementById('balanceTopupPopup');
+                    if (balancePopup && balancePopup.classList.contains('active')) {
+                        if (e.target === balancePopup) {
+                            if (typeof closeBalanceTopup === 'function') closeBalanceTopup();
+                        }
                     }
                 });
                 

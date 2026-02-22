@@ -582,22 +582,85 @@ function updateUsdtRateDisplay() {
     }
 }
 
-// ==================== ПОПАП ПОПОЛНЕНИЯ ====================
-// Показать попап пополнения
+// ==================== ПОПАП ПОПОЛНЕНИЯ БАЛАНСА (в стиле Steam) ====================
+// Показать окно пополнения баланса
 function showDepositPopup() {
-    const popup = document.getElementById('depositPopup');
+    const popup = document.getElementById('balanceTopupPopup');
     if (popup) {
+        document.body.classList.add('steam-popup-open');
         popup.classList.add('active');
-        updateUsdtRateDisplay();
+        const amountInput = document.getElementById('balanceAmount');
+        if (amountInput) {
+            amountInput.value = '';
+            setTimeout(function() { amountInput.focus(); }, 150);
+        }
     }
 }
 
-// Закрыть попап пополнения
+// Закрыть окно пополнения баланса
 function closeDepositPopup() {
-    const popup = document.getElementById('depositPopup');
+    closeBalanceTopup();
+}
+
+function closeBalanceTopup() {
+    const popup = document.getElementById('balanceTopupPopup');
     if (popup) {
         popup.classList.remove('active');
+        document.body.classList.remove('steam-popup-open');
     }
+}
+
+function clearBalanceInput() {
+    const input = document.getElementById('balanceAmount');
+    if (input) {
+        input.value = '';
+        input.focus();
+    }
+}
+
+function setBalanceAmount(amount) {
+    const el = document.getElementById('balanceAmount');
+    if (el) {
+        el.value = amount;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+}
+
+function proceedBalanceTopup() {
+    const input = document.getElementById('balanceAmount');
+    const amount = parseFloat(input?.value) || 0;
+    
+    if (amount <= 0) {
+        showNotification('Введите сумму больше 0', 'error');
+        return;
+    }
+    if (amount < 100) {
+        showNotification('Минимальная сумма пополнения: 100 ₽', 'error');
+        return;
+    }
+    if (amount > 1000000) {
+        showNotification('Максимальная сумма: 1 000 000 ₽', 'error');
+        return;
+    }
+    
+    closeBalanceTopup();
+    
+    // Сохраняем данные покупки и открываем выбор способа оплаты
+    if (typeof window.currentPurchase === 'undefined') window.currentPurchase = {};
+    window.currentPurchase = {
+        type: 'balance',
+        amount: amount,
+        currency: 'RUB',
+        productName: 'Пополнение баланса'
+    };
+    
+    if (typeof window.previousView === 'undefined') window.previousView = {};
+    window.previousView = { type: 'profile', gameCategory: null, supercellGame: null };
+    
+    // Переход на главную с параметрами пополнения баланса — откроется выбор способа оплаты
+    var path = window.location.pathname || '';
+    var indexPath = path.indexOf('html') >= 0 ? path.replace(/\/html\/.*$/, '/index.html') : path.replace(/[^/]*$/, '') + 'index.html';
+    window.location.href = window.location.origin + indexPath + '?pay=balance&amount=' + encodeURIComponent(amount);
 }
 
 // Показать сообщение о недоступности метода оплаты
@@ -1696,6 +1759,10 @@ window.updateStats = updateStats;
 window.changeCurrency = changeCurrency;
 window.showDepositPopup = showDepositPopup;
 window.closeDepositPopup = closeDepositPopup;
+window.closeBalanceTopup = closeBalanceTopup;
+window.clearBalanceInput = clearBalanceInput;
+window.setBalanceAmount = setBalanceAmount;
+window.proceedBalanceTopup = proceedBalanceTopup;
 window.showPaymentUnavailable = showPaymentUnavailable;
 window.showUsdtDeposit = showUsdtDeposit;
 window.closeUsdtPopup = closeUsdtPopup;
