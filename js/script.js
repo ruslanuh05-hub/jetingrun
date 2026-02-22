@@ -2660,11 +2660,11 @@ function showPaymentMethodSelection(purchaseType) {
         }
     } else if (purchaseType === 'balance') {
         previousView = { type: 'profile', gameCategory: null, supercellGame: null };
-        // Пополнение баланса: только рубли (СБП/карта)
+        // Пополнение баланса: те же способы оплаты, что и везде (рубли + крипто)
         var rubSection = document.querySelector('#paymentMethodPopup .payment-category:first-of-type');
         var cryptoSection = document.querySelector('#paymentMethodPopup .payment-category:last-of-type');
         if (rubSection) rubSection.style.display = '';
-        if (cryptoSection) cryptoSection.style.display = 'none';
+        if (cryptoSection) cryptoSection.style.display = '';
     } else if (purchaseType !== 'spin') {
         // Сбрасываем скрытие для других типов покупок
         var rubSection = document.querySelector('#paymentMethodPopup .payment-category:first-of-type');
@@ -3290,19 +3290,34 @@ function openPaymentPage() {
         if (primaryBtn) primaryBtn.disabled = true;
         // Безопасность: передаём ТОЛЬКО type + минимальные данные. Цена и payload — на бэке.
         var p = data.purchase || {};
-        var purchaseMinimal = { type: p.type };
-        if (p.type === 'stars') {
-            purchaseMinimal.stars_amount = p.stars_amount;
-            purchaseMinimal.login = p.login;
-        } else if (p.type === 'premium') {
-            purchaseMinimal.months = p.months;
-        } else if (p.type === 'steam') {
-            purchaseMinimal.amount_steam = p.amount_steam != null ? p.amount_steam : p.amount;
-            purchaseMinimal.login = p.login;
-        } else if (p.type === 'spin') {
-            purchaseMinimal.amount_usdt = 1.5;
-        }
+        var userId = (window.userData && window.userData.id) || (window.userData && window.userData.user && window.userData.user.id) || 'unknown';
         var createUrl = apiBase.replace(/\/$/, '') + '/api/cryptobot/create-invoice';
+        var bodyPayload;
+        if (p.type === 'balance') {
+            bodyPayload = {
+                context: 'deposit',
+                user_id: userId,
+                amount: parseFloat(p.amount) || 0
+            };
+        } else {
+            var purchaseMinimal = { type: p.type };
+            if (p.type === 'stars') {
+                purchaseMinimal.stars_amount = p.stars_amount;
+                purchaseMinimal.login = p.login;
+            } else if (p.type === 'premium') {
+                purchaseMinimal.months = p.months;
+            } else if (p.type === 'steam') {
+                purchaseMinimal.amount_steam = p.amount_steam != null ? p.amount_steam : p.amount;
+                purchaseMinimal.login = p.login;
+            } else if (p.type === 'spin') {
+                purchaseMinimal.amount_usdt = 1.5;
+            }
+            bodyPayload = {
+                context: 'purchase',
+                user_id: userId,
+                purchase: purchaseMinimal
+            };
+        }
         console.log('[CryptoBot] Отправка запроса на:', createUrl);
         
         // Таймаут для fetch (30 секунд)
@@ -3316,11 +3331,7 @@ function openPaymentPage() {
             method: 'POST',
             mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                context: 'purchase',
-                user_id: (window.userData && window.userData.id) || (window.userData && window.userData.user && window.userData.user.id) || 'unknown',
-                purchase: purchaseMinimal
-            })
+            body: JSON.stringify(bodyPayload)
         });
         
         Promise.race([fetchPromise, timeoutPromise])

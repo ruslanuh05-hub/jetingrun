@@ -2369,7 +2369,7 @@
             </div>
             <button class="topup-btn-header" onclick="showDepositPopup()">
                 <i class="fas fa-plus" style="color: #00d4ff;"></i>
-                <span id="headerBalance">Скоро</span>
+                <span id="headerBalance">0 ₽</span>
             </button>
         </header>
         
@@ -3517,12 +3517,24 @@
             }
         }
         
-        // Обновление баланса в шапке (скрыт, показываем «Скоро»)
+        // Обновление баланса в шапке (синхрон с updateBalanceDisplay из profile.js)
         function updateHeaderBalance() {
-            const headerBalanceEl = document.getElementById('headerBalance');
-            if (headerBalanceEl) {
-                headerBalanceEl.textContent = 'Скоро';
+            var headerBalanceEl = document.getElementById('headerBalance');
+            if (!headerBalanceEl) return;
+            if (typeof updateBalanceDisplay === 'function') {
+                updateBalanceDisplay();
+                return;
             }
+            var rub = 0;
+            if (window.userData && window.userData.currencies && window.userData.currencies.RUB != null) {
+                rub = parseFloat(window.userData.currencies.RUB) || 0;
+            } else {
+                try {
+                    var d = JSON.parse(localStorage.getItem('jetstore_balance_fixed') || '{}');
+                    rub = parseFloat(d.RUB) || 0;
+                } catch (e) {}
+            }
+            headerBalanceEl.textContent = rub.toFixed(2) + ' ₽';
         }
         
         // Обновление статистики для нового дизайна

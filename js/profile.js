@@ -365,50 +365,56 @@ function updateProfileDisplay() {
     updateBalanceDisplay();
 }
 
-// Обновление отображения баланса
+// Обновление отображения баланса (приоритет: API с проверкой Telegram, затем localStorage)
 function updateBalanceDisplay() {
-    console.log('Обновление отображения баланса...');
-    
-    // КРИТИЧЕСКИ ВАЖНО: Загружаем баланс из фиксированного ключа перед отображением
-    const db = window.Database || Database;
+    function applyBalance(rub) {
+        rub = (rub != null) ? (typeof rub === 'number' ? rub : parseFloat(rub) || 0) : 0;
+        if (!userData.currencies) userData.currencies = {};
+        userData.currencies.RUB = rub;
+        if (window.userData) {
+            if (!window.userData.currencies) window.userData.currencies = {};
+            window.userData.currencies.RUB = rub;
+        }
+        var balanceElement = document.getElementById('profileBalance');
+        if (balanceElement) balanceElement.textContent = rub.toFixed(2) + ' ₽';
+        var headerBalanceEl = document.getElementById('headerBalance');
+        if (headerBalanceEl) headerBalanceEl.textContent = rub.toFixed(2) + ' ₽';
+    }
+    loadBalanceFromStorage(applyBalance);
+    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var initData = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) ? window.Telegram.WebApp.initData : '';
+    if (apiBase && initData) {
+        fetch(apiBase.replace(/\/$/, '') + '/api/balance', {
+            method: 'GET',
+            headers: { 'X-Telegram-Init-Data': initData }
+        }).then(function(r) { return r.ok ? r.json() : null; }).then(function(d) {
+            if (d && typeof d.balance_rub === 'number') {
+                applyBalance(d.balance_rub);
+                try {
+                    var balanceKey = 'jetstore_balance_fixed';
+                    var cur = JSON.parse(localStorage.getItem(balanceKey) || '{}');
+                    cur.RUB = d.balance_rub;
+                    cur.lastUpdate = Date.now();
+                    localStorage.setItem(balanceKey, JSON.stringify(cur));
+                } catch (e) {}
+            }
+        }).catch(function() {});
+    }
+}
+
+function loadBalanceFromStorage(applyBalance) {
+    var db = window.Database || (typeof Database !== 'undefined' ? Database : null);
+    var rub = 0;
     if (db && typeof db.getBalanceFixed === 'function') {
-        const savedBalance = db.getBalanceFixed('RUB');
-        if (savedBalance !== undefined && savedBalance !== null && savedBalance !== userData.currencies.RUB) {
-            userData.currencies.RUB = savedBalance;
-            if (window.userData) {
-                window.userData.currencies.RUB = savedBalance;
-            }
-            console.log('✅ Баланс обновлен из фиксированного ключа:', savedBalance);
-        }
+        rub = db.getBalanceFixed('RUB') || 0;
     } else {
-        // Прямая загрузка из localStorage
         try {
-            const balanceKey = 'jetstore_balance_fixed';
-            const balanceData = JSON.parse(localStorage.getItem(balanceKey) || '{}');
-            if (balanceData.RUB !== undefined && balanceData.RUB !== userData.currencies.RUB) {
-                userData.currencies.RUB = balanceData.RUB;
-                if (window.userData) {
-                    window.userData.currencies.RUB = balanceData.RUB;
-                }
-                console.log('✅ Баланс обновлен напрямую из localStorage:', balanceData.RUB);
-            }
-        } catch (e) {
-            console.warn('⚠️ Ошибка прямой загрузки баланса:', e);
-        }
+            var balanceKey = 'jetstore_balance_fixed';
+            var balanceData = JSON.parse(localStorage.getItem(balanceKey) || '{}');
+            rub = balanceData.RUB != null ? parseFloat(balanceData.RUB) || 0 : 0;
+        } catch (e) {}
     }
-    
-    // Показываем реальный баланс
-    const balanceElement = document.getElementById('profileBalance');
-    if (balanceElement) {
-        const rub = (userData.currencies && userData.currencies.RUB != null) ? userData.currencies.RUB : 0;
-        balanceElement.textContent = (typeof rub === 'number' ? rub : parseFloat(rub) || 0).toFixed(2) + ' ₽';
-    }
-    
-    const headerBalanceEl = document.getElementById('headerBalance');
-    if (headerBalanceEl) {
-        const rub = (userData.currencies && userData.currencies.RUB != null) ? userData.currencies.RUB : 0;
-        headerBalanceEl.textContent = (typeof rub === 'number' ? rub : parseFloat(rub) || 0).toFixed(2) + ' ₽';
-    }
+    if (applyBalance) applyBalance(rub);
 }
 
 // Получение символа валюты

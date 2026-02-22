@@ -124,7 +124,56 @@
         } catch (e) {}
     }
 
+    function syncBalanceFromApi(cb) {
+        var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var initData = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) ? window.Telegram.WebApp.initData : '';
+        if (!apiBase || !initData) { if (cb) cb(); return; }
+        fetch(apiBase.replace(/\/$/, '') + '/api/balance', {
+            method: 'GET',
+            headers: { 'X-Telegram-Init-Data': initData }
+        }).then(function(r) { return r.ok ? r.json() : null; }).then(function(d) {
+            if (d && (typeof d.balance_rub === 'number' || typeof d.balance_usdt === 'number')) {
+                try {
+                    var key = 'jetstore_balance_fixed';
+                    var cur = JSON.parse(localStorage.getItem(key) || '{}');
+                    if (typeof d.balance_rub === 'number') cur.RUB = d.balance_rub;
+                    if (typeof d.balance_usdt === 'number') cur.USDT = d.balance_usdt;
+                    cur.lastUpdate = Date.now();
+                    localStorage.setItem(key, JSON.stringify(cur));
+                } catch (e) {}
+            }
+            if (cb) cb();
+        }).catch(function() { if (cb) cb(); });
+    }
+
     function buyWithRubles() {
+        var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var initData = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) ? window.Telegram.WebApp.initData : '';
+        if (apiBase && initData) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/balance/deduct', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData },
+                body: JSON.stringify({ type: 'spin', currency: 'RUB' })
+            }).then(function(r) { return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d || {} }; }).catch(function() { return { ok: false, status: r.status, data: {} }; }); }).then(function(res) {
+                if (res.ok && res.data && res.data.success) {
+                    if (typeof res.data.balance_rub === 'number') setBalanceRub(res.data.balance_rub);
+                    saveSpins(loadSpins() + 1);
+                    updateUI();
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
+                        window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
+                    } else { alert('Спин куплен за счёт баланса. Крутите!'); }
+                    return;
+                }
+                if (res.status === 400 && (res.data && res.data.error === 'insufficient_funds')) {
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
+                        window.Telegram.WebApp.showAlert('Недостаточно средств на балансе. Пополните баланс или оплатите спин.');
+                    } else { alert('Недостаточно средств на балансе.'); }
+                    return;
+                }
+                redirectToPaySpin('RUB');
+            }).catch(function() { redirectToPaySpin('RUB'); });
+            return;
+        }
         var balance = getBalanceRub();
         if (balance >= SPIN_PRICE_RUB) {
             setBalanceRub(balance - SPIN_PRICE_RUB);
@@ -132,37 +181,59 @@
             updateUI();
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
                 window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
-            } else {
-                alert('Спин куплен за счёт баланса. Крутите!');
-            }
+            } else { alert('Спин куплен за счёт баланса. Крутите!'); }
             return;
         }
-        var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (!apiBase) {
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
                 window.Telegram.WebApp.showAlert('API бота не настроен. Укажите URL в настройках.');
-            } else {
-                alert('API бота не настроен.');
-            }
+            } else { alert('API бота не настроен.'); }
             return;
         }
+        redirectToPaySpin('RUB');
+    }
+
+    function redirectToPaySpin(currency) {
         var userId = (window.userData && window.userData.id) ? String(window.userData.id) : (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.id) ? String(window.Telegram.WebApp.initDataUnsafe.user.id) : 'unknown';
-        var purchase = {
-            type: 'spin',
-            amount: SPIN_PRICE_RUB,
-            amount_rub: SPIN_PRICE_RUB,
-            productName: '1 спин рулетки',
-            order_id: '#' + Date.now().toString(36).toUpperCase()
-        };
-        sessionStorage.setItem('spin_pay_data', JSON.stringify({ currency: 'RUB', userId: userId, purchase: purchase }));
+        var purchase = currency === 'RUB'
+            ? { type: 'spin', amount: SPIN_PRICE_RUB, amount_rub: SPIN_PRICE_RUB, productName: '1 спин рулетки', order_id: '#' + Date.now().toString(36).toUpperCase() }
+            : { type: 'spin', amount: SPIN_PRICE_USDT, amount_usdt: SPIN_PRICE_USDT, productName: '1 спин рулетки' };
+        sessionStorage.setItem('spin_pay_data', JSON.stringify({ currency: currency, userId: userId, purchase: purchase }));
         sessionStorage.setItem('spin_return_url', window.location.href);
         var path = (window.location.pathname || '').replace(/spin\.html.*$/, 'index.html');
         if (!path || path === (window.location.pathname || '')) path = 'index.html';
-        var payUrl = window.location.origin + (path.startsWith('/') ? path : '/' + path) + '?pay=spin&currency=RUB';
+        var payUrl = window.location.origin + (path.startsWith('/') ? path : '/' + path) + '?pay=spin&currency=' + currency;
         window.location.href = payUrl;
     }
 
     function buyWithUsdt() {
+        var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var initData = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) ? window.Telegram.WebApp.initData : '';
+        if (apiBase && initData) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/balance/deduct', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData },
+                body: JSON.stringify({ type: 'spin', currency: 'USDT' })
+            }).then(function(r) { return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d || {} }; }).catch(function() { return { ok: false, status: r.status, data: {} }; }); }).then(function(res) {
+                if (res.ok && res.data && res.data.success) {
+                    if (typeof res.data.balance_usdt === 'number') setBalanceUsdt(res.data.balance_usdt);
+                    saveSpins(loadSpins() + 1);
+                    updateUI();
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
+                        window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
+                    } else { alert('Спин куплен за счёт баланса. Крутите!'); }
+                    return;
+                }
+                if (res.status === 400 && (res.data && res.data.error === 'insufficient_funds')) {
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
+                        window.Telegram.WebApp.showAlert('Недостаточно средств на балансе. Пополните баланс или оплатите спин.');
+                    } else { alert('Недостаточно средств на балансе.'); }
+                    return;
+                }
+                redirectToPaySpin('USDT');
+            }).catch(function() { redirectToPaySpin('USDT'); });
+            return;
+        }
         var balance = getBalanceUsdt();
         if (balance >= SPIN_PRICE_USDT) {
             setBalanceUsdt(balance - SPIN_PRICE_USDT);
@@ -170,33 +241,16 @@
             updateUI();
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
                 window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
-            } else {
-                alert('Спин куплен за счёт баланса. Крутите!');
-            }
+            } else { alert('Спин куплен за счёт баланса. Крутите!'); }
             return;
         }
-        var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (!apiBase) {
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
                 window.Telegram.WebApp.showAlert('API бота не настроен.');
-            } else {
-                alert('API бота не настроен.');
-            }
+            } else { alert('API бота не настроен.'); }
             return;
         }
-        var userId = (window.userData && window.userData.id) ? String(window.userData.id) : (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.id) ? String(window.Telegram.WebApp.initDataUnsafe.user.id) : 'unknown';
-        var purchase = {
-            type: 'spin',
-            amount: SPIN_PRICE_USDT,
-            amount_usdt: SPIN_PRICE_USDT,
-            productName: '1 спин рулетки'
-        };
-        sessionStorage.setItem('spin_pay_data', JSON.stringify({ currency: 'USDT', userId: userId, purchase: purchase }));
-        sessionStorage.setItem('spin_return_url', window.location.href);
-        var path = (window.location.pathname || '').replace(/spin\.html.*$/, 'index.html');
-        if (!path || path === (window.location.pathname || '')) path = 'index.html';
-        var payUrl = window.location.origin + (path.startsWith('/') ? path : '/' + path) + '?pay=spin&currency=USDT';
-        window.location.href = payUrl;
+        redirectToPaySpin('USDT');
     }
 
     function doSpin() {
@@ -268,6 +322,7 @@
         }
 
         updateUI();
+        syncBalanceFromApi(updateUI);
 
         var checkReturn = function() {
             var added = sessionStorage.getItem('jetstore_spin_added');

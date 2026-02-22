@@ -114,6 +114,28 @@ function runDeliveryAfterPayment(data, checkResponse) {
             console.warn('[runDeliveryAfterPayment] spin add error:', e);
             message += 'Спин будет добавлен. Перезайдите на страницу рулетки.';
         }
+    } else if (purchaseType === 'balance') {
+        var amount = parseFloat((data.purchase && data.purchase.amount) || 0) || 0;
+        if (amount > 0) {
+            try {
+                var balanceKey = 'jetstore_balance_fixed';
+                var balanceData = JSON.parse(localStorage.getItem(balanceKey) || '{}');
+                var cur = parseFloat(balanceData.RUB) || 0;
+                balanceData.RUB = cur + amount;
+                balanceData.lastUpdate = Date.now();
+                localStorage.setItem(balanceKey, JSON.stringify(balanceData));
+                if (window.userData) {
+                    if (!window.userData.currencies) window.userData.currencies = {};
+                    window.userData.currencies.RUB = (window.userData.currencies.RUB || 0) + amount;
+                }
+            } catch (e) { console.warn('[runDeliveryAfterPayment] balance sync error:', e); }
+        }
+        message = 'Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽';
+        if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, { status: 'delivered' });
+        if (typeof showStoreNotification === 'function') showStoreNotification(message, 'success');
+        if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
+        if (typeof window.updateBalanceDisplay === 'function') window.updateBalanceDisplay();
+        return;
     } else {
         message += 'Товар будет выдан автоматически после обработки на сервере.';
     }
