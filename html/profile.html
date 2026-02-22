@@ -2370,6 +2370,404 @@
             background: rgba(255, 255, 255, 0.15) !important;
             color: rgba(255, 255, 255, 0.8) !important;
         }
+        /* Стили для окна выбора способа оплаты и ожидания оплаты */
+        .payment-back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .payment-back-btn:hover { background: rgba(255,255,255,0.12); }
+        .payment-method-item-compact {
+            padding: 10px 12px !important;
+            min-height: auto !important;
+        }
+        .payment-method-icon-compact {
+            width: 36px !important;
+            height: 36px !important;
+            min-width: 36px !important;
+            border-radius: 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 0.9rem !important;
+        }
+        .payment-category {
+            margin-bottom: 30px;
+        }
+        
+        .payment-method-body {
+            max-height: calc(90vh - 80px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .payment-waiting-body {
+            max-height: calc(90vh - 80px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .payment-category-title {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        
+        .payment-methods-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .payment-method-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(10, 10, 10, 0.9) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .payment-method-item:hover {
+            border-color: rgba(0, 212, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+        }
+        
+        .payment-method-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        
+        .payment-method-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .payment-method-name {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .payment-method-bonus {
+            background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+        
+        /* Экран ожидания оплаты */
+        .payment-waiting-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: rgba(0, 212, 255, 0.8);
+            animation: hourglassSpin 2s ease-in-out infinite;
+        }
+        
+        @keyframes hourglassSpin {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            50% {
+                transform: rotate(180deg);
+            }
+        }
+        
+        .payment-waiting-title {
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .payment-waiting-description {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        
+        .payment-waiting-details {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .payment-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .payment-detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .payment-detail-row.total {
+            border-top: 2px solid rgba(0, 212, 255, 0.3);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            margin: 10px 0;
+            padding: 15px 0;
+        }
+        
+        .payment-detail-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .payment-detail-value {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .payment-detail-row.total .payment-detail-value {
+            font-size: 1.2rem;
+            color: #00d4ff;
+        }
+        
+        .payment-detail-value.status {
+            color: #00d4ff;
+        }
+        
+        .payment-waiting-btn {
+            width: 100%;
+            padding: 18px;
+            border-radius: 14px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+        }
+        
+        .payment-waiting-btn.primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .payment-waiting-btn.primary:hover {
+            box-shadow: 0 6px 30px rgba(76, 175, 80, 0.6);
+            transform: translateY(-2px);
+        }
+        .payment-waiting-btn.confirm {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: #fff;
+            margin-top: 10px;
+        }
+        .payment-waiting-btn.confirm:hover {
+            box-shadow: 0 6px 30px rgba(33, 150, 243, 0.5);
+            transform: translateY(-2px);
+        }
+        .payment-waiting-btn.secondary {
+            background: transparent;
+            color: rgba(0, 212, 255, 0.9);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        
+        .payment-waiting-btn.secondary:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+        
+        .payment-waiting-hint {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            margin: 15px 0;
+        }
+        
+        /* Окна оплаты — тёмный фон */
+        #paymentMethodPopup .supercell-popup-content,
+        #paymentWaitingPopup .supercell-popup-content {
+            background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
+        }
+        
+        /* Мобильная оптимизация для окон оплаты */
+        @media (max-width: 480px) {
+            .payment-category {
+                margin-bottom: 20px;
+            }
+            
+            .payment-category-title {
+                font-size: 0.8rem;
+                margin-bottom: 12px;
+            }
+            
+            .payment-method-item {
+                padding: 14px 12px;
+                gap: 12px;
+            }
+            
+            .payment-method-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 1.3rem;
+            }
+            
+            .payment-method-name {
+                font-size: 0.95rem;
+            }
+            
+            .payment-method-bonus {
+                font-size: 0.75rem;
+                padding: 3px 10px;
+                border-radius: 10px;
+            }
+            
+            .payment-method-body {
+                padding: 15px !important;
+            }
+            
+            .payment-waiting-icon {
+                width: 100px;
+                height: 100px;
+                font-size: 3.5rem;
+            }
+            
+            .payment-waiting-title {
+                font-size: 1.5rem;
+                margin-bottom: 12px;
+            }
+            
+            .payment-waiting-description {
+                font-size: 1rem;
+                margin-bottom: 25px;
+                padding: 0 10px;
+            }
+            
+            .payment-waiting-details {
+                padding: 16px;
+                margin-bottom: 20px;
+                border-radius: 14px;
+            }
+            
+            .payment-detail-row {
+                padding: 10px 0;
+            }
+            
+            .payment-detail-label {
+                font-size: 0.9rem;
+            }
+            
+            .payment-detail-value {
+                font-size: 0.95rem;
+            }
+            
+            .payment-detail-row.total .payment-detail-value {
+                font-size: 1.1rem;
+            }
+            
+            .payment-waiting-btn {
+                padding: 16px;
+                font-size: 1rem;
+                margin-bottom: 10px;
+            }
+            
+            .payment-waiting-hint {
+                font-size: 0.85rem;
+                margin: 12px 0;
+            }
+            
+            .payment-waiting-body {
+                padding: 25px 15px !important;
+            }
+            
+            .payment-method-body {
+                padding: 15px !important;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .payment-category {
+                margin-bottom: 18px;
+            }
+            
+            .payment-category-title {
+                font-size: 0.75rem;
+                margin-bottom: 10px;
+            }
+            
+            .payment-method-item {
+                padding: 12px 10px;
+                gap: 10px;
+            }
+            
+            .payment-method-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+            
+            .payment-method-name {
+                font-size: 0.9rem;
+            }
+            
+            .payment-method-bonus {
+                font-size: 0.7rem;
+                padding: 2px 8px;
+            }
+            
+            .payment-waiting-icon {
+                width: 90px;
+                height: 90px;
+                font-size: 3rem;
+            }
+            
+            .payment-waiting-title {
+                font-size: 1.3rem;
+                margin-bottom: 10px;
+            }
+            
+            .payment-waiting-description {
+                font-size: 0.95rem;
+                margin-bottom: 20px;
+            }
+            
+            .payment-waiting-details {
+                padding: 14px;
+            }
+            
+            .payment-waiting-btn {
+                padding: 14px;
+                font-size: 0.95rem;
+            }
+        }
     </style>
     <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>
@@ -2672,9 +3070,120 @@
         </div>
     </div>
     
+    <!-- Окно выбора способа оплаты -->
+    <div id="paymentMethodPopup" class="popup">
+        <div class="popup-content supercell-popup-content" style="background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);">
+            <div class="steam-popup-header">
+                <button class="steam-back-btn" onclick="closePaymentMethodPopup()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h2 class="steam-popup-title">Выбор способа оплаты</h2>
+                <div style="width: 40px;"></div>
+            </div>
+            
+            <div class="steam-popup-body payment-method-body" style="padding: 16px;">
+                <button class="payment-back-btn" onclick="closePaymentMethodPopup()" style="margin-bottom:12px;">
+                    <i class="fas fa-chevron-left"></i> Назад
+                </button>
+                <!-- СБП и карты (FreeKassa) -->
+                <div class="payment-category">
+                    <h3 class="payment-category-title">СБП и карты (FreeKassa)</h3>
+                    <div class="payment-methods-list payment-methods-compact">
+                        <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('sbp', 5, 44)">
+                            <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #00a86b 0%, #008f5a 100%);">
+                                <i class="fas fa-mobile-alt" style="color: #fff;"></i>
+                            </div>
+                            <div class="payment-method-info">
+                                <span class="payment-method-name">СБП (FreeKassa)</span>
+                                <span class="payment-method-bonus" style="background: rgba(0,168,107,0.5); color: #fff;">+5%</span>
+                            </div>
+                        </button>
+                        <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('card', 6, 36)">
+                            <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #00d4ff 0%, #40e0d0 100%);">
+                                <i class="fas fa-credit-card" style="color: #fff;"></i>
+                            </div>
+                            <div class="payment-method-info">
+                                <span class="payment-method-name">Карты (FreeKassa)</span>
+                                <span class="payment-method-bonus" style="background: rgba(0,212,255,0.5); color: #fff;">+6%</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Криптовалюта -->
+                <div class="payment-category">
+                    <h3 class="payment-category-title">Криптовалюта</h3>
+                    <div class="payment-methods-list payment-methods-compact">
+                        <button class="payment-method-item payment-method-item-compact" onclick="selectPaymentMethod('cryptobot', 4)">
+                            <div class="payment-method-icon-compact" style="background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);">
+                                <i class="fas fa-robot" style="color: #fff;"></i>
+                            </div>
+                            <div class="payment-method-info">
+                                <span class="payment-method-name">CryptoBot</span>
+                                <span class="payment-method-bonus">+4%</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Экран ожидания оплаты -->
+    <div id="paymentWaitingPopup" class="popup">
+        <div class="popup-content supercell-popup-content" style="background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);">
+            <div class="steam-popup-header">
+                <button class="steam-back-btn" onclick="closePaymentWaiting()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h2 class="steam-popup-title" id="paymentWaitingTitle">Ожидание оплаты</h2>
+                <div style="width: 40px;"></div>
+            </div>
+            
+            <div class="steam-popup-body payment-waiting-body" style="padding: 40px 20px; text-align: center;">
+                <div class="payment-waiting-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <h3 class="payment-waiting-title">Ожидание оплаты</h3>
+                <p class="payment-waiting-description" id="paymentWaitingDescription">Оплатите 0 ₽ через СБП (+10%)</p>
+                
+                <div class="payment-waiting-details">
+                    <div class="payment-detail-row">
+                        <span class="payment-detail-label">Сумма пополнения</span>
+                        <span class="payment-detail-value" id="paymentDetailAmount">0 ₽</span>
+                    </div>
+                    <div class="payment-detail-row">
+                        <span class="payment-detail-label" id="paymentDetailCommissionLabel">Комиссия (10%)</span>
+                        <span class="payment-detail-value" id="paymentDetailCommission">+0 ₽</span>
+                    </div>
+                    <div class="payment-detail-row total">
+                        <span class="payment-detail-label">К оплате</span>
+                        <span class="payment-detail-value" id="paymentDetailTotal">0 ₽</span>
+                    </div>
+                    <div class="payment-detail-row">
+                        <span class="payment-detail-label">Метод</span>
+                        <span class="payment-detail-value" id="paymentDetailMethod">СБП (+10%)</span>
+                    </div>
+                    <div class="payment-detail-row">
+                        <span class="payment-detail-label">Статус</span>
+                        <span class="payment-detail-value status" id="paymentDetailStatus">Ожидание...</span>
+                    </div>
+                </div>
+                
+                <button class="payment-waiting-btn primary" id="paymentWaitingPrimaryBtn" onclick="openPaymentPage()">
+                    Перейти на страницу оплаты
+                </button>
+                <p class="payment-waiting-hint">После оплаты статус обновится автоматически. Пожалуйста, подождите...</p>
+                <button class="payment-waiting-btn secondary" onclick="closePaymentWaiting()">
+                    Вернуться к покупкам
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="../js/config.js"></script>
     <script src="../js/database.js"></script>
+    <script src="../js/script.js"></script>
     <script>
         // Фиксация нижней навигации при открытии клавиатуры
         (function() {

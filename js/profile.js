@@ -645,7 +645,7 @@ function proceedBalanceTopup() {
     
     closeBalanceTopup();
     
-    // Сохраняем данные покупки и открываем выбор способа оплаты
+    // Сохраняем данные покупки и открываем выбор способа оплаты напрямую
     if (typeof window.currentPurchase === 'undefined') window.currentPurchase = {};
     window.currentPurchase = {
         type: 'balance',
@@ -657,10 +657,15 @@ function proceedBalanceTopup() {
     if (typeof window.previousView === 'undefined') window.previousView = {};
     window.previousView = { type: 'profile', gameCategory: null, supercellGame: null };
     
-    // Переход на главную с параметрами пополнения баланса — откроется выбор способа оплаты
-    var path = window.location.pathname || '';
-    var indexPath = path.indexOf('html') >= 0 ? path.replace(/\/html\/.*$/, '/index.html') : path.replace(/[^/]*$/, '') + 'index.html';
-    window.location.href = window.location.origin + indexPath + '?pay=balance&amount=' + encodeURIComponent(amount);
+    // Открываем окно выбора способа оплаты напрямую (как в звёздах, премиуме, Steam)
+    if (typeof showPaymentMethodSelection === 'function') {
+        showPaymentMethodSelection('balance');
+    } else {
+        // Fallback: переход на главную, если функция недоступна
+        var path = window.location.pathname || '';
+        var indexPath = path.indexOf('html') >= 0 ? path.replace(/\/html\/.*$/, '/index.html') : path.replace(/[^/]*$/, '') + 'index.html';
+        window.location.href = window.location.origin + indexPath + '?pay=balance&amount=' + encodeURIComponent(amount);
+    }
 }
 
 // Показать сообщение о недоступности метода оплаты
