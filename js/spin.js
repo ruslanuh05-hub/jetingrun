@@ -276,13 +276,11 @@
     function easeOutCustom(t) {
         if (t <= 0) return 0;
         if (t >= 1) return 1;
-        if (t < 0.2) {
-            return t * 0.8;
-        } else if (t < 0.6) {
-            return 0.16 + (t - 0.2) * 0.5;
+        if (t < 0.92) {
+            return t * 0.99;
         } else {
-            var slow = (t - 0.6) / 0.4;
-            return 0.36 + (1 - Math.pow(1 - slow, 4)) * 0.64;
+            var slow = (t - 0.92) / 0.08;
+            return 0.9108 + (1 - Math.pow(1 - slow, 5)) * 0.0892;
         }
     }
 
@@ -290,8 +288,7 @@
         var startScroll = container.scrollTop;
         var startTime = Date.now();
         var distance = targetScroll - startScroll;
-        var intervalMs = 16;
-        var timer = null;
+        var animationId = null;
         
         function update() {
             var now = Date.now();
@@ -302,14 +299,17 @@
             container.scrollTop = startScroll + distance * eased;
             
             if (progress >= 1) {
-                if (timer) clearInterval(timer);
+                if (animationId !== null) {
+                    cancelAnimationFrame(animationId);
+                }
                 container.scrollTop = targetScroll;
                 if (onComplete) onComplete();
+            } else {
+                animationId = requestAnimationFrame(update);
             }
         }
         
-        timer = setInterval(update, intervalMs);
-        update();
+        animationId = requestAnimationFrame(update);
     }
 
     function getCenterTicket(container, tickets) {
@@ -345,9 +345,26 @@
             return;
         }
 
-        var idx = Math.floor(Math.random() * tickets.length);
-        var targetTicket = tickets[idx];
-        var targetWon = parseFloat(targetTicket.getAttribute('data-value')) || 0;
+        var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
+        var randomPrizeIdx = Math.floor(Math.random() * prizes.length);
+        var targetWon = prizes[randomPrizeIdx];
+        
+        var targetTicket = null;
+        var idx = -1;
+        for (var i = 0; i < tickets.length; i++) {
+            var ticketValue = parseFloat(tickets[i].getAttribute('data-value')) || 0;
+            if (Math.abs(ticketValue - targetWon) < 0.01) {
+                targetTicket = tickets[i];
+                idx = i;
+                break;
+            }
+        }
+        
+        if (!targetTicket || idx < 0) {
+            idx = Math.floor(Math.random() * tickets.length);
+            targetTicket = tickets[idx];
+            targetWon = parseFloat(targetTicket.getAttribute('data-value')) || 0;
+        }
 
         var containerHeight = container.clientHeight;
         var ticketHeight = targetTicket.offsetHeight;
