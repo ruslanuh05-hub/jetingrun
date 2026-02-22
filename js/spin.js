@@ -265,24 +265,51 @@
         redirectToPaySpin('USDT');
     }
 
-    function easeOutExpo(t) {
-        return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    function easeOutQuart(t) {
+        return 1 - Math.pow(1 - t, 4);
+    }
+
+    function easeOutCustom(t) {
+        if (t <= 0) return 0;
+        if (t >= 1) return 1;
+        if (t < 0.2) {
+            return t * 0.8;
+        } else if (t < 0.6) {
+            return 0.16 + (t - 0.2) * 0.5;
+        } else {
+            var slow = (t - 0.6) / 0.4;
+            return 0.36 + (1 - Math.pow(1 - slow, 4)) * 0.64;
+        }
     }
 
     function animateDrumScroll(container, targetScroll, durationMs, onComplete) {
         var startScroll = container.scrollTop;
         var startTime = Date.now();
-        var interval = 50;
-        var timer = setInterval(function() {
-            var elapsed = Date.now() - startTime;
+        var distance = targetScroll - startScroll;
+        var intervalMs = 16;
+        var timer = null;
+        
+        function update() {
+            var now = Date.now();
+            var elapsed = now - startTime;
             var progress = Math.min(elapsed / durationMs, 1);
-            var eased = easeOutExpo(progress);
-            container.scrollTop = startScroll + (targetScroll - startScroll) * eased;
+            
+            var eased = easeOutCustom(progress);
+            container.scrollTop = startScroll + distance * eased;
+            
             if (progress >= 1) {
-                clearInterval(timer);
+                if (timer) clearInterval(timer);
+                container.scrollTop = targetScroll;
                 if (onComplete) onComplete();
             }
-        }, interval);
+        }
+        
+        timer = setInterval(update, intervalMs);
+        update();
     }
 
     function getCenterTicket(container, tickets) {
