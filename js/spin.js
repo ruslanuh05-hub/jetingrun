@@ -69,6 +69,11 @@
         return a;
     }
 
+    function pickRandomPrize(prizes) {
+        var shuffled = shuffleArray(prizes.slice());
+        return shuffled[0];
+    }
+
     function renderTickets() {
         var container = document.getElementById('spinTickets');
         if (!container) return;
@@ -276,40 +281,29 @@
     function easeOutCustom(t) {
         if (t <= 0) return 0;
         if (t >= 1) return 1;
-        if (t < 0.97) {
-            return t * 0.998;
-        } else {
-            var slow = (t - 0.97) / 0.03;
-            return 0.96806 + (1 - Math.pow(1 - slow, 8)) * 0.03194;
+        if (t < 0.98) {
+            return t;
         }
+        var slow = (t - 0.98) / 0.02;
+        return 0.98 + (1 - Math.pow(1 - slow, 4)) * 0.02;
     }
 
     function animateDrumScroll(container, targetScroll, durationMs, onComplete) {
         var startScroll = container.scrollTop;
         var startTime = Date.now();
         var distance = targetScroll - startScroll;
-        var animationId = null;
-        
-        function update() {
-            var now = Date.now();
-            var elapsed = now - startTime;
+        var interval = 25;
+        var timer = setInterval(function() {
+            var elapsed = Date.now() - startTime;
             var progress = Math.min(elapsed / durationMs, 1);
-            
             var eased = easeOutCustom(progress);
             container.scrollTop = startScroll + distance * eased;
-            
             if (progress >= 1) {
-                if (animationId !== null) {
-                    cancelAnimationFrame(animationId);
-                }
+                clearInterval(timer);
                 container.scrollTop = targetScroll;
                 if (onComplete) onComplete();
-            } else {
-                animationId = requestAnimationFrame(update);
             }
-        }
-        
-        animationId = requestAnimationFrame(update);
+        }, interval);
     }
 
     function getCenterTicket(container, tickets) {
@@ -346,18 +340,13 @@
         }
 
         var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
-        var randomValue = Math.random();
-        var randomPrizeIdx = Math.floor(randomValue * prizes.length);
-        if (randomPrizeIdx >= prizes.length) randomPrizeIdx = prizes.length - 1;
-        var targetWon = prizes[randomPrizeIdx];
+        var targetWon = pickRandomPrize(prizes);
         
         var targetTicket = null;
         var idx = -1;
-        var targetWonStr = targetWon.toString();
         for (var i = 0; i < tickets.length; i++) {
-            var ticketValueStr = tickets[i].getAttribute('data-value');
-            var ticketValue = parseFloat(ticketValueStr) || 0;
-            if (ticketValueStr === targetWonStr || Math.abs(ticketValue - targetWon) < 0.001) {
+            var ticketValue = parseFloat(tickets[i].getAttribute('data-value'));
+            if (ticketValue === targetWon) {
                 targetTicket = tickets[i];
                 idx = i;
                 break;
