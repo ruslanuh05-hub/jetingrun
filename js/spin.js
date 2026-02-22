@@ -286,19 +286,29 @@
         var startScroll = container.scrollTop;
         var startTime = Date.now();
         var distance = targetScroll - startScroll;
-        function step() {
-            var elapsed = Date.now() - startTime;
+        var lastUpdate = startTime;
+        var frameTime = 16;
+        var timer = null;
+        
+        function update() {
+            var now = Date.now();
+            var elapsed = now - startTime;
             var progress = Math.min(elapsed / durationMs, 1);
-            var eased = easeOutLinear(progress);
-            container.scrollTop = startScroll + distance * eased;
+            
             if (progress >= 1) {
+                if (timer) clearInterval(timer);
                 container.scrollTop = targetScroll;
                 if (onComplete) onComplete();
                 return;
             }
-            requestAnimationFrame(step);
+            
+            var eased = easeOutLinear(progress);
+            container.scrollTop = startScroll + distance * eased;
+            lastUpdate = now;
         }
-        requestAnimationFrame(step);
+        
+        timer = setInterval(update, frameTime);
+        update();
     }
 
     function getCenterTicket(container, tickets) {
@@ -368,24 +378,33 @@
         var durationMs = 6000;
         animateDrumScroll(container, targetScroll, durationMs, function() {
             setTimeout(function() {
-                var actualCenterTicket = getCenterTicket(container, tickets);
-                var won = targetWon;
-                if (actualCenterTicket) {
-                    won = parseFloat(actualCenterTicket.getAttribute('data-value')) || targetWon;
-                    var ticketRect = actualCenterTicket.getBoundingClientRect();
-                    var containerRect = container.getBoundingClientRect();
-                    var currentCenterY = containerRect.top + (containerRect.height / 2);
-                    var ticketCenterY = ticketRect.top + (ticketRect.height / 2);
-                    var offset = ticketCenterY - currentCenterY;
-                    if (Math.abs(offset) > 5) {
-                        container.scrollTop += offset;
+                var containerHeight = container.clientHeight;
+                var ticketHeight = targetTicket.offsetHeight;
+                var gap = 36;
+                var ticketWithGap = ticketHeight + gap;
+                var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
+                var exactScroll = idx * ticketWithGap - centerOffset;
+                container.scrollTop = exactScroll;
+                
+                setTimeout(function() {
+                    var actualCenterTicket = getCenterTicket(container, tickets);
+                    var won = parseFloat(targetTicket.getAttribute('data-value'));
+                    
+                    if (actualCenterTicket) {
+                        var actualValue = parseFloat(actualCenterTicket.getAttribute('data-value'));
+                        if (actualValue === targetWon) {
+                            won = targetWon;
+                            actualCenterTicket.classList.add('highlight');
+                        } else {
+                            won = actualValue;
+                            actualCenterTicket.classList.add('highlight');
+                        }
+                    } else {
+                        targetTicket.classList.add('highlight');
                     }
-                    actualCenterTicket.classList.add('highlight');
-                } else {
-                    targetTicket.classList.add('highlight');
-                }
-                finishSpin(won);
-            }, 100);
+                    finishSpin(won);
+                }, 50);
+            }, 50);
         });
 
         function finishSpin(won) {
