@@ -278,32 +278,27 @@
         return 1 - Math.pow(1 - t, 4);
     }
 
-    function easeOutCustom(t) {
-        if (t <= 0) return 0;
-        if (t >= 1) return 1;
-        if (t < 0.98) {
-            return t;
-        }
-        var slow = (t - 0.98) / 0.02;
-        return 0.98 + (1 - Math.pow(1 - slow, 4)) * 0.02;
+    function easeOutLinear(t) {
+        return Math.max(0, Math.min(1, t));
     }
 
     function animateDrumScroll(container, targetScroll, durationMs, onComplete) {
         var startScroll = container.scrollTop;
         var startTime = Date.now();
         var distance = targetScroll - startScroll;
-        var interval = 25;
-        var timer = setInterval(function() {
+        function step() {
             var elapsed = Date.now() - startTime;
             var progress = Math.min(elapsed / durationMs, 1);
-            var eased = easeOutCustom(progress);
+            var eased = easeOutLinear(progress);
             container.scrollTop = startScroll + distance * eased;
             if (progress >= 1) {
-                clearInterval(timer);
                 container.scrollTop = targetScroll;
                 if (onComplete) onComplete();
+                return;
             }
-        }, interval);
+            requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
     }
 
     function getCenterTicket(container, tickets) {
@@ -376,6 +371,7 @@
                 var actualCenterTicket = getCenterTicket(container, tickets);
                 var won = targetWon;
                 if (actualCenterTicket) {
+                    won = parseFloat(actualCenterTicket.getAttribute('data-value')) || targetWon;
                     var ticketRect = actualCenterTicket.getBoundingClientRect();
                     var containerRect = container.getBoundingClientRect();
                     var currentCenterY = containerRect.top + (containerRect.height / 2);
