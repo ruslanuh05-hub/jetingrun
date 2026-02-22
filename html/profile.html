@@ -2642,11 +2642,48 @@
         #paymentWaitingPopup .supercell-popup-content {
             background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
         }
-        /* Убрать кнопку «Назад» из окна выбора способа оплаты и окна оплаты */
+        /* Кнопка «Назад» в окнах оплаты — в стиле приложения */
         #paymentMethodPopup .steam-back-btn,
-        #paymentMethodPopup .payment-back-btn,
         #paymentWaitingPopup .steam-back-btn {
-            display: none !important;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            min-height: 40px;
+            padding: 0;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            color: #00d4ff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #paymentMethodPopup .steam-back-btn:hover,
+        #paymentWaitingPopup .steam-back-btn:hover {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: rgba(0, 212, 255, 0.5);
+            color: #00d4ff;
+        }
+        #paymentMethodPopup .payment-back-btn {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            color: #00d4ff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #paymentMethodPopup .payment-back-btn:hover {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: rgba(0, 212, 255, 0.5);
+            color: #00d4ff;
         }
         
         /* Мобильная оптимизация для окон оплаты */
@@ -3105,12 +3142,17 @@
     <div id="paymentMethodPopup" class="popup">
         <div class="popup-content supercell-popup-content" style="background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);">
             <div class="steam-popup-header">
-                <div style="width: 40px; min-width: 40px; flex-shrink: 0;"></div>
+                <button class="steam-back-btn" onclick="closePaymentMethodPopup()" aria-label="Назад">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
                 <h2 class="steam-popup-title">Выбор способа оплаты</h2>
                 <div style="width: 40px;"></div>
             </div>
             
             <div class="steam-popup-body payment-method-body" style="padding: 16px;">
+                <button class="payment-back-btn" onclick="closePaymentMethodPopup()" style="margin-bottom:12px;">
+                    <i class="fas fa-chevron-left"></i> Назад
+                </button>
                 <!-- СБП и карты (FreeKassa) -->
                 <div class="payment-category">
                     <h3 class="payment-category-title">СБП и карты (FreeKassa)</h3>
@@ -3159,7 +3201,9 @@
     <div id="paymentWaitingPopup" class="popup">
         <div class="popup-content supercell-popup-content" style="background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);">
             <div class="steam-popup-header">
-                <div style="width: 40px; min-width: 40px; flex-shrink: 0;"></div>
+                <button class="steam-back-btn" onclick="closePaymentWaiting()" aria-label="Назад">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
                 <h2 class="steam-popup-title" id="paymentWaitingTitle">Ожидание оплаты</h2>
                 <div style="width: 40px;"></div>
             </div>
