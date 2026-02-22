@@ -77,7 +77,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
     // Оплата через FreeKassa: товар уже выдан по вебхуку от FreeKassa
     if (checkResponse && checkResponse.delivered_by_freekassa === true) {
         if (purchaseType === 'balance') {
-            var amount = parseFloat((data.purchase && data.purchase.amount) || 0) || 0;
+            var amount = parseFloat((data.purchase && data.purchase.amount) || data.baseAmount || 0) || 0;
             if (amount > 0) {
                 try {
                     var balanceKey = 'jetstore_balance_fixed';
@@ -108,11 +108,9 @@ function runDeliveryAfterPayment(data, checkResponse) {
             } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
                 window.Telegram.WebApp.showPopup({ title: 'Успешно', message: amountMsg });
             }
-            setTimeout(function() {
-                if (typeof closePaymentWaiting === 'function') {
-                    closePaymentWaiting();
-                }
-            }, 500);
+            if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
+            if (typeof closePaymentMethodPopup === 'function') closePaymentMethodPopup(true);
+            if (typeof closeBalanceTopup === 'function') closeBalanceTopup();
             return;
         }
         var optsDelivered = null;
@@ -165,7 +163,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
             message += 'Спин будет добавлен. Перезайдите на страницу рулетки.';
         }
     } else if (purchaseType === 'balance') {
-        var amount = parseFloat((data.purchase && data.purchase.amount) || 0) || 0;
+        var amount = parseFloat((data.purchase && data.purchase.amount) || data.baseAmount || 0) || 0;
         if (amount > 0) {
             try {
                 var balanceKey = 'jetstore_balance_fixed';
@@ -190,11 +188,9 @@ function runDeliveryAfterPayment(data, checkResponse) {
         } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
             window.Telegram.WebApp.showPopup({ title: 'Успешно', message: message });
         }
-        setTimeout(function() {
-            if (typeof closePaymentWaiting === 'function') {
-                closePaymentWaiting();
-            }
-        }, 500);
+        if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
+        if (typeof closePaymentMethodPopup === 'function') closePaymentMethodPopup(true);
+        if (typeof closeBalanceTopup === 'function') closeBalanceTopup();
         return;
     } else {
         message += 'Товар будет выдан автоматически после обработки на сервере.';

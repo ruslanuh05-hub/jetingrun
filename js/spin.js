@@ -85,9 +85,9 @@
         }).join('');
     }
 
-    function updateUI() {
+    function updateUI(skipRenderTickets) {
         spinsCount = loadSpins();
-        renderTickets();
+        if (!skipRenderTickets) renderTickets();
 
         var countEl = document.getElementById('spinsCount');
         if (countEl) countEl.textContent = spinsCount;
@@ -170,7 +170,7 @@
                 if (res.ok && res.data && res.data.success) {
                     if (typeof res.data.balance_rub === 'number') setBalanceRub(res.data.balance_rub);
                     saveSpins(loadSpins() + 1);
-                    updateUI();
+                    updateUI(true);
                     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
                         window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
                     } else { alert('Спин куплен за счёт баланса. Крутите!'); }
@@ -190,7 +190,7 @@
         if (balance >= SPIN_PRICE_RUB) {
             setBalanceRub(balance - SPIN_PRICE_RUB);
             saveSpins(loadSpins() + 1);
-            updateUI();
+            updateUI(true);
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
                 window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
             } else { alert('Спин куплен за счёт баланса. Крутите!'); }
@@ -230,7 +230,7 @@
                 if (res.ok && res.data && res.data.success) {
                     if (typeof res.data.balance_usdt === 'number') setBalanceUsdt(res.data.balance_usdt);
                     saveSpins(loadSpins() + 1);
-                    updateUI();
+                    updateUI(true);
                     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
                         window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
                     } else { alert('Спин куплен за счёт баланса. Крутите!'); }
@@ -250,7 +250,7 @@
         if (balance >= SPIN_PRICE_USDT) {
             setBalanceUsdt(balance - SPIN_PRICE_USDT);
             saveSpins(loadSpins() + 1);
-            updateUI();
+            updateUI(true);
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
                 window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
             } else { alert('Спин куплен за счёт баланса. Крутите!'); }
@@ -271,20 +271,18 @@
 
     function animateDrumScroll(container, targetScroll, durationMs, onComplete) {
         var startScroll = container.scrollTop;
-        var startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
-        function step() {
-            var now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
-            var elapsed = now - startTime;
+        var startTime = Date.now();
+        var interval = 50;
+        var timer = setInterval(function() {
+            var elapsed = Date.now() - startTime;
             var progress = Math.min(elapsed / durationMs, 1);
             var eased = easeOutExpo(progress);
             container.scrollTop = startScroll + (targetScroll - startScroll) * eased;
-            if (progress < 1) {
-                requestAnimationFrame(step);
-            } else {
+            if (progress >= 1) {
+                clearInterval(timer);
                 if (onComplete) onComplete();
             }
-        }
-        requestAnimationFrame(step);
+        }, interval);
     }
 
     function getCenterTicket(container, tickets) {
@@ -316,7 +314,7 @@
 
         if (!container || !tickets.length) {
             isSpinning = false;
-            updateUI();
+            updateUI(true);
             return;
         }
 
@@ -371,7 +369,7 @@
 
             var done = function() {
                 isSpinning = false;
-                updateUI();
+                updateUI(true);
             };
             creditWinToBalance(won, done);
             setTimeout(function() { if (isSpinning) done(); }, 8000);
@@ -439,7 +437,7 @@
 
         document.getElementById('resultCloseBtn').addEventListener('click', function() {
             document.getElementById('resultOverlay').classList.remove('show');
-            updateUI();
+            updateUI(true);
         });
 
         var drum = document.querySelector('.spin-drum');
@@ -448,13 +446,13 @@
         }
 
         updateUI();
-        syncBalanceFromApi(updateUI);
+        syncBalanceFromApi(function() { updateUI(true); });
 
         var checkReturn = function() {
             var added = sessionStorage.getItem('jetstore_spin_added');
             if (added === '1') {
                 sessionStorage.removeItem('jetstore_spin_added');
-                updateUI();
+                updateUI(true);
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
                     window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин добавлен! Можете крутить.' });
                 }
