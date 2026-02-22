@@ -37,14 +37,40 @@ function runDeliveryAfterPayment(data, checkResponse) {
     
     // Оплата через FreeKassa: товар уже выдан по вебхуку от FreeKassa
     if (checkResponse && checkResponse.delivered_by_freekassa === true) {
+        if (purchaseType === 'balance') {
+            var amount = parseFloat((data.purchase && data.purchase.amount) || 0) || 0;
+            if (amount > 0) {
+                try {
+                    var balanceKey = 'jetstore_balance_fixed';
+                    var balanceData = JSON.parse(localStorage.getItem(balanceKey) || '{}');
+                    var cur = parseFloat(balanceData.RUB) || 0;
+                    var newBalance = cur + amount;
+                    balanceData.RUB = newBalance;
+                    balanceData.lastUpdate = Date.now();
+                    localStorage.setItem(balanceKey, JSON.stringify(balanceData));
+                    if (window.Database && typeof window.Database.saveBalanceFixed === 'function') {
+                        window.Database.saveBalanceFixed('RUB', newBalance);
+                    }
+                    if (window.userData) {
+                        if (!window.userData.currencies) window.userData.currencies = {};
+                        window.userData.currencies.RUB = newBalance;
+                    }
+                } catch (e) {
+                    console.warn('[runDeliveryAfterPayment] balance add error:', e);
+                }
+            }
+            if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, { status: 'delivered' });
+            if (typeof showStoreNotification === 'function') showStoreNotification('Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽', 'success');
+            if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
+            if (typeof window.updateBalanceDisplay === 'function') window.updateBalanceDisplay();
+            return;
+        }
         var optsDelivered = null;
         if (purchaseType === 'stars') {
-            // Для звёзд: явно фиксируем, что они выданы
             optsDelivered = { status: 'delivered' };
         }
         if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, optsDelivered);
         
-        // Перезагружаем историю покупок, если мы на странице профиля
         setTimeout(function() {
             if (typeof window.loadPurchases === 'function') {
                 window.loadPurchases();

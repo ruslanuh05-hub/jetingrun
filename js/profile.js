@@ -397,15 +397,17 @@ function updateBalanceDisplay() {
         }
     }
     
-    // Баланс скрыт — показываем «Скоро»
+    // Показываем реальный баланс
     const balanceElement = document.getElementById('profileBalance');
     if (balanceElement) {
-        balanceElement.textContent = 'Скоро';
+        const rub = (userData.currencies && userData.currencies.RUB != null) ? userData.currencies.RUB : 0;
+        balanceElement.textContent = (typeof rub === 'number' ? rub : parseFloat(rub) || 0).toFixed(2) + ' ₽';
     }
     
     const headerBalanceEl = document.getElementById('headerBalance');
     if (headerBalanceEl) {
-        headerBalanceEl.textContent = 'Скоро';
+        const rub = (userData.currencies && userData.currencies.RUB != null) ? userData.currencies.RUB : 0;
+        headerBalanceEl.textContent = (typeof rub === 'number' ? rub : parseFloat(rub) || 0).toFixed(2) + ' ₽';
     }
 }
 
@@ -742,7 +744,7 @@ function updateSbpAmount() {
     // Пока ничего не делаем, просто для совместимости
 }
 
-// Обработка СБП пополнения (без проверок, сразу зачисление)
+// Обработка СБП пополнения: переход к оплате через FreeKassa
 function processSbpDeposit() {
     const input = document.getElementById('sbpAmount');
     const amount = parseFloat(input?.value) || 0;
@@ -756,77 +758,11 @@ function processSbpDeposit() {
         return;
     }
     
-    // Получаем текущий баланс
-    const db = window.Database || (typeof Database !== 'undefined' ? Database : null);
-    let currentBalance = 0;
-    
-    if (db && typeof db.getBalanceFixed === 'function') {
-        currentBalance = db.getBalanceFixed('RUB') || 0;
-    } else {
-        try {
-            const balanceKey = 'jetstore_balance_fixed';
-            const balanceData = JSON.parse(localStorage.getItem(balanceKey) || '{}');
-            currentBalance = balanceData.RUB || 0;
-        } catch (e) {
-            console.error('Ошибка загрузки баланса:', e);
-        }
-    }
-    
-    // Обновляем window.userData
-    if (!window.userData) {
-        window.userData = {
-            currencies: { RUB: 0 }
-        };
-    }
-    if (!window.userData.currencies) {
-        window.userData.currencies = { RUB: 0 };
-    }
-    
-    // Зачисляем сумму на баланс
-    const newBalance = currentBalance + amount;
-    window.userData.currencies.RUB = newBalance;
-    
-    // Сохраняем баланс
-    if (db && typeof db.saveBalanceFixed === 'function') {
-        db.saveBalanceFixed('RUB', newBalance);
-    }
-    
-    // Прямое сохранение в localStorage
-    try {
-        const balanceKey = 'jetstore_balance_fixed';
-        const balanceData = {
-            RUB: newBalance,
-            lastUpdate: Date.now()
-        };
-        localStorage.setItem(balanceKey, JSON.stringify(balanceData));
-    } catch (e) {
-        console.error('Ошибка сохранения баланса:', e);
-    }
-    
-    // Сохраняем пользователя
-    if (db && typeof db.saveUser === 'function' && window.userData.id) {
-        db.saveUser(window.userData);
-    }
-    
-    // Добавляем транзакцию
-    if (!window.userData.transactions) {
-        window.userData.transactions = [];
-    }
-    window.userData.transactions.push({
-        type: 'deposit',
-        method: 'SBP',
-        amount: amount,
-        date: new Date().toISOString()
-    });
-    
-    // Обновляем отображение (баланс скрыт — «Скоро»)
-    updateBalanceDisplay();
-    
-    // Закрываем попап
     closeSbpPopup();
-    
-    // Показываем уведомление
-    showNotification(`Баланс пополнен на ${amount.toLocaleString('ru-RU')} ₽`, 'success');
+    // Переход на главную с параметрами пополнения баланса — откроется выбор способа оплаты (СБП/карта)
+    var path = window.location.pathname || '';
+    var indexPath = path.indexOf('html') >= 0 ? path.replace(/\/html\/.*$/, '/index.html') : path.replace(/[^/]*$/, '') + 'index.html';
+    window.location.href = window.location.origin + indexPath + '?pay=balance&amount=' + encodeURIComponent(amount);
 }
 
 // Проверка статуса платежа через бэкенд

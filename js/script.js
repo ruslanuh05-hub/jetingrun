@@ -213,7 +213,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             spinData = JSON.parse(sessionStorage.getItem('spin_pay_data') || '{}');
         } catch (e) {}
-        const purchase = spinData.purchase || {};
         const amount = currency === 'RUB' ? 100 : 1.5;
         currentPurchase = {
             type: 'spin',
@@ -228,6 +227,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (typeof showPaymentMethodSelection === 'function') {
             showPaymentMethodSelection('spin');
+        }
+    } else if (urlParams.get('pay') === 'balance') {
+        var amount = parseFloat(urlParams.get('amount') || '0') || 0;
+        if (amount >= 100) {
+            currentPurchase = {
+                type: 'balance',
+                amount: amount,
+                currency: 'RUB',
+                productName: 'Пополнение баланса'
+            };
+            previousView = { type: 'profile', gameCategory: null, supercellGame: null };
+            if (typeof history.replaceState === 'function') {
+                history.replaceState({}, '', window.location.pathname + (window.location.hash || ''));
+            }
+            if (typeof showPaymentMethodSelection === 'function') {
+                showPaymentMethodSelection('balance');
+            }
         }
     }
     // Переход с premium.html по кнопке «Оплатить»: открыть выбор способа оплаты
@@ -2642,6 +2658,13 @@ function showPaymentMethodSelection(purchaseType) {
             rubSection.style.display = cur === 'RUB' ? '' : 'none';
             cryptoSection.style.display = cur === 'USDT' ? '' : 'none';
         }
+    } else if (purchaseType === 'balance') {
+        previousView = { type: 'profile', gameCategory: null, supercellGame: null };
+        // Пополнение баланса: только рубли (СБП/карта)
+        var rubSection = document.querySelector('#paymentMethodPopup .payment-category:first-of-type');
+        var cryptoSection = document.querySelector('#paymentMethodPopup .payment-category:last-of-type');
+        if (rubSection) rubSection.style.display = '';
+        if (cryptoSection) cryptoSection.style.display = 'none';
     } else if (purchaseType !== 'spin') {
         // Сбрасываем скрытие для других типов покупок
         var rubSection = document.querySelector('#paymentMethodPopup .payment-category:first-of-type');
@@ -2720,6 +2743,11 @@ function closePaymentMethodPopup(skipReturnToPrevious) {
         var spinUrl = 'spin.html';
         if (window.location.pathname.indexOf('/html/') < 0) spinUrl = 'html/spin.html';
         window.location.href = spinUrl;
+        return;
+    } else if (previousView.type === 'profile') {
+        var profileUrl = 'profile.html';
+        if (window.location.pathname.indexOf('/html/') < 0) profileUrl = 'html/profile.html';
+        window.location.href = profileUrl;
         return;
     } else if (previousView.type === 'game') {
         // Возвращаем в окно продуктов игры

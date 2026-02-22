@@ -2388,10 +2388,10 @@
                     </div>
                 </div>
             
-            <!-- Секция баланса (временно скрыта) -->
-            <div class="balance-section page-block-enter" style="display: none;">
+            <!-- Секция баланса -->
+            <div class="balance-section page-block-enter">
                 <p class="balance-label">Доступный баланс</p>
-                <p class="balance-amount-main" id="profileBalance">Скоро</p>
+                <p class="balance-amount-main" id="profileBalance">0 ₽</p>
                 <div class="balance-actions-main">
                     <button class="btn-deposit-main" onclick="showDepositPopup()">
                         <i class="fas fa-plus-circle"></i>
@@ -2597,12 +2597,11 @@
             <div class="popup-body">
                 <p class="deposit-subtitle">Выберите способ оплаты</p>
                 <div class="payment-methods">
-                    <button class="payment-method-btn sbp payment-method-disabled" onclick="showPaymentUnavailable('sbp'); return false;" style="opacity: 0.65; cursor: not-allowed;">
+                    <button class="payment-method-btn sbp" onclick="closeDepositPopup(); showSbpDeposit();">
                         <div class="payment-icon sbp">
                             <img src="../assets/sbp-icon.png" alt="СБП">
                         </div>
                         <span class="payment-name">СБП / Банковские карты</span>
-                        <span class="payment-badge" style="background: rgba(255,255,255,0.3);">Скоро</span>
                     </button>
                 </div>
             </div>

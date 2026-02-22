@@ -62,7 +62,7 @@
         var container = document.getElementById('spinTickets');
         if (!container) return;
         var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
-        var currencyLabel = currentCurrency === 'RUB' ? 'Рубли' : 'Tether';
+        var currencyLabel = currentCurrency === 'RUB' ? 'Рублей' : 'Tether';
         var highThreshold = currentCurrency === 'RUB' ? 500 : 25;
         container.innerHTML = prizes.map(function(v, i) {
             var highClass = v >= highThreshold ? ' prize-high' : '';
@@ -81,7 +81,7 @@
         if (countEl) countEl.textContent = spinsCount;
 
         var currencyName = document.getElementById('currencyName');
-        if (currencyName) currencyName.textContent = currentCurrency === 'RUB' ? 'Рубли' : 'USDT';
+        if (currencyName) currencyName.textContent = currentCurrency === 'RUB' ? 'Рублей' : 'USDT';
 
         var balanceEl = document.getElementById('balanceValue');
         if (balanceEl) balanceEl.textContent = (currentCurrency === 'RUB' ? getBalanceRub() : getBalanceUsdt()).toFixed(2) + (currentCurrency === 'RUB' ? ' ₽' : ' USDT');
@@ -98,7 +98,45 @@
         }
     }
 
+    function setBalanceRub(val) {
+        try {
+            var key = 'jetstore_balance_fixed';
+            var d = JSON.parse(localStorage.getItem(key) || '{}');
+            d.RUB = val;
+            d.lastUpdate = Date.now();
+            localStorage.setItem(key, JSON.stringify(d));
+            if (window.Database && typeof window.Database.saveBalanceFixed === 'function') {
+                window.Database.saveBalanceFixed('RUB', val);
+            }
+        } catch (e) {}
+    }
+
+    function setBalanceUsdt(val) {
+        try {
+            var key = 'jetstore_balance_fixed';
+            var d = JSON.parse(localStorage.getItem(key) || '{}');
+            d.USDT = val;
+            d.lastUpdate = Date.now();
+            localStorage.setItem(key, JSON.stringify(d));
+            if (window.Database && typeof window.Database.saveBalanceFixed === 'function') {
+                window.Database.saveBalanceFixed('USDT', val);
+            }
+        } catch (e) {}
+    }
+
     function buyWithRubles() {
+        var balance = getBalanceRub();
+        if (balance >= SPIN_PRICE_RUB) {
+            setBalanceRub(balance - SPIN_PRICE_RUB);
+            saveSpins(loadSpins() + 1);
+            updateUI();
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
+                window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
+            } else {
+                alert('Спин куплен за счёт баланса. Крутите!');
+            }
+            return;
+        }
         var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (!apiBase) {
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
@@ -125,6 +163,18 @@
     }
 
     function buyWithUsdt() {
+        var balance = getBalanceUsdt();
+        if (balance >= SPIN_PRICE_USDT) {
+            setBalanceUsdt(balance - SPIN_PRICE_USDT);
+            saveSpins(loadSpins() + 1);
+            updateUI();
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
+                window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
+            } else {
+                alert('Спин куплен за счёт баланса. Крутите!');
+            }
+            return;
+        }
         var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
         if (!apiBase) {
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
