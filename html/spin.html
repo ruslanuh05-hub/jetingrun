@@ -25,7 +25,7 @@
         }
         .spin-body {
             flex: 1;
-            padding: 20px 16px max(140px, calc(120px + env(safe-area-inset-bottom)));
+            padding: 12px 16px 16px;
             overflow-y: auto;
             background-image: 
                 radial-gradient(circle at 10% 20%, rgba(255,255,255,0.03) 0%, transparent 25%),
@@ -65,13 +65,8 @@
         .spin-header-title { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.3px; }
         .spin-header-subtitle { font-size: 0.75rem; color: rgba(255,255,255,0.7); margin-top: 2px; }
         .spin-header-right {
-            width: 60px;
-            min-width: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
+            display: none;
         }
-        .spin-header-right i { font-size: 1.1rem; color: rgba(255,255,255,0.9); cursor: pointer; }
         
         /* Барабан рулетки — как на скрине: билеты с серратированными краями */
         .spin-wheel-area {
@@ -79,7 +74,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin: 20px 0 24px;
+            margin: 8px 0 12px;
         }
         .spin-drum-arrow {
             width: 0;
@@ -99,7 +94,7 @@
         .spin-drum {
             position: relative;
             max-width: 300px;
-            padding: 24px 20px;
+            padding: 12px 16px;
             border-radius: 0;
             background: transparent;
             box-shadow: none;
@@ -107,10 +102,12 @@
         .spin-tickets {
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 36px;
-            height: 420px;
-            max-height: 420px;
+            height: 260px;
+            max-height: 260px;
             overflow-y: auto;
+            scroll-behavior: auto;
             overflow-x: hidden;
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -232,7 +229,7 @@
             background: rgba(28, 31, 38, 0.95);
             border: none;
             border-radius: 0;
-            padding: 18px 20px 20px;
+            padding: 12px 16px 14px;
             margin-bottom: 0;
         }
         .spin-currency-row {
@@ -272,7 +269,7 @@
         .spin-tabs {
             display: flex;
             gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
         .spin-tab {
             flex: 1;
@@ -295,7 +292,7 @@
         .spin-buttons-row {
             display: flex;
             gap: 12px;
-            margin-top: 16px;
+            margin-top: 10px;
         }
         .spin-spin-btn {
             flex: 1;
@@ -331,7 +328,7 @@
         .spin-buy-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .spin-spins-count {
             text-align: center;
-            margin: 12px 0;
+            margin: 6px 0;
             font-size: 1rem;
             color: rgba(255,255,255,0.7);
         }

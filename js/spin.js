@@ -58,13 +58,25 @@
         } catch (e) { return 0; }
     }
 
+    function shuffleArray(arr) {
+        var a = arr.slice();
+        for (var i = a.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var t = a[i];
+            a[i] = a[j];
+            a[j] = t;
+        }
+        return a;
+    }
+
     function renderTickets() {
         var container = document.getElementById('spinTickets');
         if (!container) return;
         var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
+        var shuffled = shuffleArray(prizes.slice());
         var currencyLabel = currentCurrency === 'RUB' ? 'Рублей' : 'Tether';
         var highThreshold = currentCurrency === 'RUB' ? 500 : 25;
-        container.innerHTML = prizes.map(function(v, i) {
+        container.innerHTML = shuffled.map(function(v, i) {
             var highClass = v >= highThreshold ? ' prize-high' : '';
             return '<div class="spin-ticket' + highClass + '" data-index="' + i + '" data-value="' + v + '">' +
                 '<div class="spin-ticket-icon"><i class="fas fa-gem"></i></div>' +
@@ -259,10 +271,10 @@
 
     function animateDrumScroll(container, targetScroll, durationMs, onComplete) {
         var startScroll = container.scrollTop;
-        var startTime = null;
-        function step(timestamp) {
-            if (!startTime) startTime = timestamp;
-            var elapsed = timestamp - startTime;
+        var startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        function step() {
+            var now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+            var elapsed = now - startTime;
             var progress = Math.min(elapsed / durationMs, 1);
             var eased = easeOutExpo(progress);
             container.scrollTop = startScroll + (targetScroll - startScroll) * eased;
@@ -297,59 +309,57 @@
     function doSpin() {
         if (isSpinning || spinsCount <= 0) return;
         isSpinning = true;
-        var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
-        var idx = Math.floor(Math.random() * prizes.length);
-        var targetWon = prizes[idx];
-
+        spinsCount = loadSpins();
         var tickets = document.querySelectorAll('.spin-ticket');
         var container = document.getElementById('spinTickets');
         tickets.forEach(function(t) { t.classList.remove('highlight'); });
-        var targetTicket = tickets[idx];
 
-        if (container && targetTicket && tickets.length > 0) {
-            var containerHeight = container.clientHeight;
-            var ticketHeight = targetTicket.offsetHeight;
-            var gap = 36;
-            var ticketWithGap = ticketHeight + gap;
-            var totalHeight = ticketWithGap * tickets.length;
-            var laps = 3 + Math.floor(Math.random() * 2);
-            var offsetToWin = idx * ticketWithGap;
-            var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
-            var targetScroll = laps * totalHeight + offsetToWin - centerOffset;
-            targetScroll = Math.max(0, targetScroll);
-            container.scrollTop = 0;
-            var durationMs = 6000;
-            animateDrumScroll(container, targetScroll, durationMs, function() {
-                setTimeout(function() {
-                    var actualCenterTicket = getCenterTicket(container, tickets);
-                    var won = targetWon;
-                    if (actualCenterTicket) {
-                        var actualIdx = parseInt(actualCenterTicket.getAttribute('data-index') || '-1', 10);
-                        if (actualIdx >= 0 && actualIdx < prizes.length) {
-                            won = prizes[actualIdx];
-                            var ticketRect = actualCenterTicket.getBoundingClientRect();
-                            var containerRect = container.getBoundingClientRect();
-                            var currentCenterY = containerRect.top + (containerRect.height / 2);
-                            var ticketCenterY = ticketRect.top + (ticketRect.height / 2);
-                            var offset = ticketCenterY - currentCenterY;
-                            if (Math.abs(offset) > 5) {
-                                container.scrollTop += offset;
-                            }
-                        }
-                        actualCenterTicket.classList.add('highlight');
-                    } else if (targetTicket) {
-                        targetTicket.classList.add('highlight');
-                    }
-                    finishSpin(won);
-                }, 100);
-            });
-        } else {
-            if (targetTicket) targetTicket.classList.add('highlight');
-            setTimeout(function() { finishSpin(targetWon); }, 500);
+        if (!container || !tickets.length) {
+            isSpinning = false;
+            updateUI();
+            return;
         }
 
+        var idx = Math.floor(Math.random() * tickets.length);
+        var targetTicket = tickets[idx];
+        var targetWon = parseFloat(targetTicket.getAttribute('data-value')) || 0;
+
+        var containerHeight = container.clientHeight;
+        var ticketHeight = targetTicket.offsetHeight;
+        var gap = 36;
+        var ticketWithGap = ticketHeight + gap;
+        var totalHeight = ticketWithGap * tickets.length;
+        var laps = 3 + Math.floor(Math.random() * 2);
+        var offsetToWin = idx * ticketWithGap;
+        var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
+        var targetScroll = laps * totalHeight + offsetToWin - centerOffset;
+        targetScroll = Math.max(0, targetScroll);
+        container.scrollTop = 0;
+        var durationMs = 6000;
+        animateDrumScroll(container, targetScroll, durationMs, function() {
+            setTimeout(function() {
+                var actualCenterTicket = getCenterTicket(container, tickets);
+                var won = targetWon;
+                if (actualCenterTicket) {
+                    won = parseFloat(actualCenterTicket.getAttribute('data-value')) || targetWon;
+                    var ticketRect = actualCenterTicket.getBoundingClientRect();
+                    var containerRect = container.getBoundingClientRect();
+                    var currentCenterY = containerRect.top + (containerRect.height / 2);
+                    var ticketCenterY = ticketRect.top + (ticketRect.height / 2);
+                    var offset = ticketCenterY - currentCenterY;
+                    if (Math.abs(offset) > 5) {
+                        container.scrollTop += offset;
+                    }
+                    actualCenterTicket.classList.add('highlight');
+                } else {
+                    targetTicket.classList.add('highlight');
+                }
+                finishSpin(won);
+            }, 100);
+        });
+
         function finishSpin(won) {
-            spinsCount = Math.max(0, spinsCount - 1);
+            spinsCount = Math.max(0, loadSpins() - 1);
             saveSpins(spinsCount);
             var countEl = document.getElementById('spinsCount');
             if (countEl) countEl.textContent = spinsCount;
@@ -359,10 +369,12 @@
             if (resultVal) resultVal.textContent = won + (currentCurrency === 'RUB' ? ' ₽' : ' USDT');
             if (overlay) overlay.classList.add('show');
 
-            creditWinToBalance(won, function() {
-                updateUI();
+            var done = function() {
                 isSpinning = false;
-            });
+                updateUI();
+            };
+            creditWinToBalance(won, done);
+            setTimeout(function() { if (isSpinning) done(); }, 8000);
         }
     }
 
@@ -427,6 +439,7 @@
 
         document.getElementById('resultCloseBtn').addEventListener('click', function() {
             document.getElementById('resultOverlay').classList.remove('show');
+            updateUI();
         });
 
         var drum = document.querySelector('.spin-drum');
@@ -441,8 +454,6 @@
             var added = sessionStorage.getItem('jetstore_spin_added');
             if (added === '1') {
                 sessionStorage.removeItem('jetstore_spin_added');
-                spinsCount = loadSpins() + 1;
-                saveSpins(spinsCount);
                 updateUI();
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
                     window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин добавлен! Можете крутить.' });
