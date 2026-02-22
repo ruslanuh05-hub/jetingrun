@@ -58,20 +58,44 @@
         } catch (e) { return 0; }
     }
 
+    function getSecureRandom(max) {
+        var entropy = [];
+        if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+            try {
+                var array = new Uint32Array(4);
+                crypto.getRandomValues(array);
+                for (var i = 0; i < array.length; i++) {
+                    entropy.push(array[i]);
+                }
+            } catch (e) {}
+        }
+        entropy.push(Date.now());
+        entropy.push(performance.now ? performance.now() : 0);
+        entropy.push(Math.random() * 1000000);
+        entropy.push(Math.random() * 1000000);
+        
+        var combined = 0;
+        for (var j = 0; j < entropy.length; j++) {
+            combined = ((combined * 31) + entropy[j]) % 2147483647;
+        }
+        
+        return Math.floor(combined) % max;
+    }
+
+    function pickRandomPrize(prizes) {
+        var idx = getSecureRandom(prizes.length);
+        return prizes[idx];
+    }
+
     function shuffleArray(arr) {
         var a = arr.slice();
         for (var i = a.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
+            var j = getSecureRandom(i + 1);
             var t = a[i];
             a[i] = a[j];
             a[j] = t;
         }
         return a;
-    }
-
-    function pickRandomPrize(prizes) {
-        var shuffled = shuffleArray(prizes.slice());
-        return shuffled[0];
     }
 
     function renderTickets() {
@@ -279,7 +303,6 @@
     }
 
     function animateDrumScroll(container, targetTicketIndex, tickets, durationMs, onComplete) {
-        var startTime = Date.now();
         var containerHeight = container.clientHeight;
         var ticketHeight = tickets[0] ? tickets[0].offsetHeight : 80;
         var gap = 36;
@@ -287,35 +310,56 @@
         var totalHeight = ticketWithGap * tickets.length;
         var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
         
-        var startScroll = 0;
         container.scrollTop = 0;
         
-        var laps = 3 + Math.floor(Math.random() * 2);
-        var finalPosition = laps * totalHeight + targetTicketIndex * ticketWithGap - centerOffset;
-        var distance = finalPosition - startScroll;
+        var laps = 3 + getSecureRandom(2);
+        var scrollDistance = laps * totalHeight + targetTicketIndex * ticketWithGap - centerOffset;
+        var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
         
-        var timer = setInterval(function() {
-            var elapsed = Date.now() - startTime;
+        var startTime = Date.now();
+        var startScroll = 0;
+        var distance = scrollDistance;
+        var timer = null;
+        var rafId = null;
+        
+        var completed = false;
+        var fallbackTimer = null;
+        
+        function finish() {
+            if (completed) return;
+            completed = true;
+            if (timer) clearInterval(timer);
+            if (rafId !== null) cancelAnimationFrame(rafId);
+            if (fallbackTimer) clearTimeout(fallbackTimer);
+            container.scrollTop = exactFinalPosition;
+            if (onComplete) onComplete();
+        }
+        
+        function update() {
+            var now = Date.now();
+            var elapsed = now - startTime;
             var progress = Math.min(elapsed / durationMs, 1);
             
-            if (progress >= 1) {
-                clearInterval(timer);
-                var exactPosition = targetTicketIndex * ticketWithGap - centerOffset;
-                container.scrollTop = exactPosition;
-                if (onComplete) onComplete();
+            if (progress >= 1 || elapsed >= durationMs) {
+                finish();
                 return;
             }
             
-            var eased;
-            if (progress < 0.85) {
-                eased = progress * 0.95;
-            } else {
-                var slow = (progress - 0.85) / 0.15;
-                eased = 0.8075 + (1 - Math.pow(1 - slow, 3)) * 0.1425;
-            }
+            var t = progress;
+            var eased = t < 0.92 ? t * 0.995 : 0.9154 + (1 - Math.pow(1 - (t - 0.92) / 0.08, 5)) * 0.0846;
             
             container.scrollTop = startScroll + distance * eased;
-        }, 20);
+        }
+        
+        function rafUpdate() {
+            update();
+            if (completed || timer) return;
+            rafId = requestAnimationFrame(rafUpdate);
+        }
+        
+        fallbackTimer = setTimeout(finish, durationMs + 500);
+        timer = setInterval(update, 20);
+        rafId = requestAnimationFrame(rafUpdate);
     }
 
     function getCenterTicket(container, tickets) {
@@ -352,7 +396,11 @@
         }
 
         var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
-        var targetWon = pickRandomPrize(prizes);
+        var r1 = getSecureRandom(prizes.length);
+        var r2 = getSecureRandom(prizes.length);
+        var r3 = getSecureRandom(prizes.length);
+        var randomIdx = (r1 + r2 + r3) % prizes.length;
+        var targetWon = prizes[randomIdx];
         
         var targetTicketIndex = -1;
         for (var i = 0; i < tickets.length; i++) {
@@ -364,24 +412,50 @@
         }
         
         if (targetTicketIndex < 0) {
-            targetTicketIndex = Math.floor(Math.random() * tickets.length);
+            targetTicketIndex = getSecureRandom(tickets.length);
             targetWon = parseFloat(tickets[targetTicketIndex].getAttribute('data-value')) || 0;
         }
 
         var durationMs = 6000;
         animateDrumScroll(container, targetTicketIndex, tickets, durationMs, function() {
             setTimeout(function() {
-                var actualCenterTicket = getCenterTicket(container, tickets);
-                var won = targetWon;
+                var containerHeight = container.clientHeight;
+                var targetTicket = tickets[targetTicketIndex];
+                var ticketHeight = targetTicket.offsetHeight;
+                var gap = 36;
+                var ticketWithGap = ticketHeight + gap;
+                var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
+                var exactPosition = targetTicketIndex * ticketWithGap - centerOffset;
                 
-                if (actualCenterTicket) {
-                    won = parseFloat(actualCenterTicket.getAttribute('data-value')) || targetWon;
-                    actualCenterTicket.classList.add('highlight');
-                } else {
-                    tickets[targetTicketIndex].classList.add('highlight');
-                }
+                container.scrollTop = exactPosition;
                 
-                finishSpin(won);
+                setTimeout(function() {
+                    var actualCenterTicket = getCenterTicket(container, tickets);
+                    var won = targetWon;
+                    
+                    if (actualCenterTicket) {
+                        var actualValue = parseFloat(actualCenterTicket.getAttribute('data-value'));
+                        var targetRect = targetTicket.getBoundingClientRect();
+                        var actualRect = actualCenterTicket.getBoundingClientRect();
+                        var containerRect = container.getBoundingClientRect();
+                        var centerY = containerRect.top + containerRect.height / 2;
+                        
+                        var targetDist = Math.abs(targetRect.top + targetRect.height / 2 - centerY);
+                        var actualDist = Math.abs(actualRect.top + actualRect.height / 2 - centerY);
+                        
+                        if (targetDist < actualDist && actualValue === targetWon) {
+                            won = targetWon;
+                            targetTicket.classList.add('highlight');
+                        } else {
+                            won = actualValue;
+                            actualCenterTicket.classList.add('highlight');
+                        }
+                    } else {
+                        targetTicket.classList.add('highlight');
+                    }
+                    
+                    finishSpin(won);
+                }, 200);
             }, 100);
         });
 
