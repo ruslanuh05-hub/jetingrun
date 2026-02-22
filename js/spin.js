@@ -253,6 +253,28 @@
         redirectToPaySpin('USDT');
     }
 
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    function animateDrumScroll(container, targetScroll, durationMs, onComplete) {
+        var startScroll = container.scrollTop;
+        var startTime = null;
+        function step(timestamp) {
+            if (!startTime) startTime = timestamp;
+            var elapsed = timestamp - startTime;
+            var progress = Math.min(elapsed / durationMs, 1);
+            var eased = easeOutCubic(progress);
+            container.scrollTop = startScroll + (targetScroll - startScroll) * eased;
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                if (onComplete) onComplete();
+            }
+        }
+        requestAnimationFrame(step);
+    }
+
     function doSpin() {
         if (isSpinning || spinsCount <= 0) return;
         isSpinning = true;
@@ -261,14 +283,33 @@
         var won = prizes[idx];
 
         var tickets = document.querySelectorAll('.spin-ticket');
+        var container = document.getElementById('spinTickets');
         tickets.forEach(function(t) { t.classList.remove('highlight'); });
         var ticket = tickets[idx];
-        if (ticket) {
-            ticket.classList.add('highlight');
-            ticket.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        if (container && ticket) {
+            var containerHeight = container.clientHeight;
+            var ticketHeight = ticket.offsetHeight;
+            var gap = 22;
+            var ticketWithGap = ticketHeight + gap;
+            var totalHeight = ticketWithGap * tickets.length;
+            var laps = 2 + Math.floor(Math.random() * 2);
+            var offsetToWin = idx * ticketWithGap;
+            var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
+            var targetScroll = laps * totalHeight + offsetToWin - centerOffset;
+            targetScroll = Math.max(0, targetScroll);
+            container.scrollTop = 0;
+            var durationMs = 3500;
+            animateDrumScroll(container, targetScroll, durationMs, function() {
+                ticket.classList.add('highlight');
+                finishSpin();
+            });
+        } else {
+            if (ticket) ticket.classList.add('highlight');
+            setTimeout(finishSpin, 500);
         }
 
-        setTimeout(function() {
+        function finishSpin() {
             spinsCount = Math.max(0, spinsCount - 1);
             saveSpins(spinsCount);
             var countEl = document.getElementById('spinsCount');
@@ -278,8 +319,41 @@
             var overlay = document.getElementById('resultOverlay');
             if (resultVal) resultVal.textContent = won + (currentCurrency === 'RUB' ? ' ₽' : ' USDT');
             if (overlay) overlay.classList.add('show');
-            isSpinning = false;
-        }, 1500);
+
+            creditWinToBalance(won, function() {
+                updateUI();
+                isSpinning = false;
+            });
+        }
+    }
+
+    function creditWinToBalance(won, onDone) {
+        var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+        var initData = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) ? window.Telegram.WebApp.initData : '';
+        if (!apiBase || !initData) {
+            var cur = currentCurrency === 'RUB' ? getBalanceRub() : getBalanceUsdt();
+            if (currentCurrency === 'RUB') setBalanceRub(cur + won); else setBalanceUsdt(cur + won);
+            if (onDone) onDone();
+            return;
+        }
+        fetch(apiBase.replace(/\/$/, '') + '/api/balance/credit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData },
+            body: JSON.stringify({ reason: 'spin_win', currency: currentCurrency, amount: won })
+        }).then(function(r) { return r.json().catch(function() { return {}; }); }).then(function(d) {
+            if (d && d.success) {
+                if (typeof d.balance_rub === 'number') setBalanceRub(d.balance_rub);
+                if (typeof d.balance_usdt === 'number') setBalanceUsdt(d.balance_usdt);
+            } else {
+                var cur = currentCurrency === 'RUB' ? getBalanceRub() : getBalanceUsdt();
+                if (currentCurrency === 'RUB') setBalanceRub(cur + won); else setBalanceUsdt(cur + won);
+            }
+            if (onDone) onDone();
+        }).catch(function() {
+            var cur = currentCurrency === 'RUB' ? getBalanceRub() : getBalanceUsdt();
+            if (currentCurrency === 'RUB') setBalanceRub(cur + won); else setBalanceUsdt(cur + won);
+            if (onDone) onDone();
+        });
     }
 
     function init() {
