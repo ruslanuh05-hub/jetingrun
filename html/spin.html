@@ -426,44 +426,34 @@
         </header>
         
         <div class="spin-body">
-            <div class="spin-wheel-area spin-entrance spin-entrance-2">
-                <div class="spin-drum-arrow left"></div>
-                <div class="spin-drum">
-                    <div class="spin-tickets" id="spinTickets">
-                        <!-- Билеты заполняются через JS -->
+            <!-- Новая рулетка-кейс -->
+            <div class="roulette-wrapper spin-entrance spin-entrance-2">
+                <div class="roulette-circle">
+                    <div class="roulette-arrow"></div>
+                    <div class="roulette-wheel" id="rouletteWheel"></div>
+                    <div class="roulette-center">
+                        <div class="roulette-center-label">Текущая ставка</div>
+                        <div class="roulette-center-bet" id="rouletteBetDisplay">50 ₽</div>
+                        <div class="roulette-center-mult" id="rouletteMultiplierDisplay">x?</div>
                     </div>
                 </div>
-                <div class="spin-drum-arrow right"></div>
             </div>
-            
-            <div class="spin-spins-count spin-entrance spin-entrance-3">
-                У вас: <strong id="spinsCount">0</strong> спин(ов)
-            </div>
-            
-            <div class="spin-currency-section spin-entrance spin-entrance-4">
-                <div class="spin-currency-row">
-                    <div class="spin-currency-info">
-                        <div class="spin-currency-icon"><i class="fas fa-gem"></i></div>
-                        <div>
-                            <span class="spin-currency-name" id="currencyName">Рублей</span>
-                            <span class="spin-currency-change" id="changeCurrencyBtn">Изменить монету &gt;</span>
-                        </div>
-                    </div>
-                    <div class="spin-balance">
-                        <div class="spin-balance-val" id="balanceValue">0 ₽</div>
-                        <div class="spin-balance-label">ваш баланс</div>
-                    </div>
+
+            <div class="roulette-panel spin-entrance spin-entrance-3">
+                <div class="roulette-balance-row">
+                    <span class="roulette-balance-label">Баланс:</span>
+                    <span class="roulette-balance-value" id="balanceValue">0 ₽</span>
                 </div>
-                
-                <div class="spin-tabs">
-                    <button class="spin-tab active" data-currency="RUB">₽ Рублей</button>
-                    <button class="spin-tab" data-currency="USDT">💎 USDT</button>
+
+                <div class="roulette-bet-row">
+                    <button class="roulette-bet-btn" id="betMinusBtn">−50</button>
+                    <input type="number" min="50" step="50" id="betInput" class="roulette-bet-input" value="50">
+                    <button class="roulette-bet-btn" id="betPlusBtn">+50</button>
                 </div>
-                
-                <div class="spin-buttons-row spin-entrance spin-entrance-5">
-                    <button class="spin-spin-btn" id="spinBtn">Авто-спин</button>
-                    <button class="spin-buy-btn" id="buySpinBtn">Крутить за 100 ₽</button>
-                </div>
+
+                <div class="roulette-note">Минимальная ставка: 50 ₽. Оплата только с баланса.</div>
+
+                <button class="roulette-spin-btn spin-entrance spin-entrance-4" id="spinBtn">Сделать ставку</button>
             </div>
         </div>
     </div>
@@ -478,6 +468,6 @@
     </div>
     
     <script src="../js/config.js?v=2"></script>
-    <script src="../js/spin.js?v=2"></script>
+    <script src="../js/roulette.js?v=1"></script>
 </body>
 </html>
