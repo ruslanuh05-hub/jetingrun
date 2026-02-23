@@ -6439,8 +6439,9 @@
                     var isLocal = (host === 'localhost' || host === '127.0.0.1');
                     var tg = window.Telegram && window.Telegram.WebApp;
                     var hasUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-                    // В проде (не localhost) требуем Telegram WebApp с пользователем
-                    if (!isLocal && !hasUser) {
+                    // ВРЕМЕННО: requireTelegram = false — вход из браузера разрешён. Вернуть true чтобы включить проверку.
+                    var requireTelegram = false;
+                    if (requireTelegram && !isLocal && !hasUser) {
                         var ov = document.getElementById('tgGuardOverlay');
                         if (ov) {
                             ov.classList.add('active');

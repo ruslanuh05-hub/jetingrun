@@ -316,52 +316,42 @@
         var scrollDistance = laps * totalHeight + targetTicketIndex * ticketWithGap - centerOffset;
         var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
         
-        var startTime = Date.now();
         var startScroll = 0;
         var distance = scrollDistance;
         var completed = false;
-        var rafId = null;
-        var intervalId = null;
-        var fallbackId = null;
+        var stepMs = 80;
+        var steps = Math.ceil(durationMs / stepMs);
         
         function doComplete() {
             if (completed) return;
             completed = true;
-            if (rafId) cancelAnimationFrame(rafId);
-            if (intervalId) clearInterval(intervalId);
-            if (fallbackId) clearTimeout(fallbackId);
             container.scrollTop = exactFinalPosition;
             if (onComplete) onComplete();
         }
         
-        function update() {
+        function runStep(stepIndex) {
             if (completed) return;
-            try {
-                var elapsed = Date.now() - startTime;
-                var progress = Math.min(elapsed / durationMs, 1);
-                
-                if (progress >= 1) {
-                    doComplete();
-                    return;
-                }
-                
-                var t = progress;
-                var eased = t < 0.9 ? t : 0.9 + (1 - Math.pow(1 - (t - 0.9) / 0.1, 4)) * 0.1;
-                container.scrollTop = startScroll + distance * eased;
-            } catch (e) {
+            var elapsed = stepIndex * stepMs;
+            var progress = Math.min(elapsed / durationMs, 1);
+            
+            if (progress >= 1) {
                 doComplete();
+                return;
+            }
+            
+            var t = progress;
+            var eased = t < 0.9 ? t : 0.9 + (1 - Math.pow(1 - (t - 0.9) / 0.1, 4)) * 0.1;
+            container.scrollTop = startScroll + distance * eased;
+            
+            if (stepIndex + 1 < steps) {
+                setTimeout(function() { runStep(stepIndex + 1); }, stepMs);
+            } else {
+                setTimeout(doComplete, stepMs);
             }
         }
         
-        function rafLoop() {
-            if (completed) return;
-            update();
-            rafId = requestAnimationFrame(rafLoop);
-        }
-        
-        rafId = requestAnimationFrame(rafLoop);
-        intervalId = setInterval(update, 50);
-        fallbackId = setTimeout(doComplete, durationMs + 1000);
+        runStep(0);
+        setTimeout(doComplete, durationMs + 500);
     }
 
     function getCenterTicket(container, tickets) {
