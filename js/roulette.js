@@ -27,6 +27,14 @@
                 });
             }
         });
+
+        // Перемешиваем порядок сегментов, чтобы цвета шли по кругу в рандомном порядке
+        for (var i = segments.length - 1; i > 0; i--) {
+            var j = getRandomInt(i + 1);
+            var tmp = segments[i];
+            segments[i] = segments[j];
+            segments[j] = tmp;
+        }
     }
 
     function getRandomInt(max) {
@@ -117,12 +125,18 @@
         if (!wheel) return;
         wheel.innerHTML = '';
         var total = segments.length || 1;
+
+        // Радиус подставляем динамически, чтобы на разных телефонах сегменты шли ровно по кругу
+        var rect = wheel.getBoundingClientRect();
+        var radius = Math.max(40, rect.width / 2 - 22); // небольшой отступ от края
+
         for (var i = 0; i < total; i++) {
             var segCfg = segments[i];
             var seg = document.createElement('div');
             seg.className = 'roulette-segment roulette-' + segCfg.color;
             var angle = (360 / total) * i;
             seg.style.transform = 'rotate(' + angle + 'deg)';
+            seg.style.transformOrigin = 'center -' + radius + 'px';
             seg.dataset.multiplier = String(segCfg.multiplier);
             wheel.appendChild(seg);
         }
