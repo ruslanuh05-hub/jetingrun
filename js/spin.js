@@ -440,7 +440,7 @@
 
         var isTg = !!(window.Telegram && window.Telegram.WebApp);
         // В Telegram WebApp делаем анимацию короче, чтобы не было фризов из‑за долгого скролла
-        var durationMs = isTg ? 2500 : 10000;
+        var durationMs = 3000;
         animateDrumScroll(container, targetTicketIndex, tickets, durationMs, function() {
             setTimeout(function() {
                 var containerHeight = container.clientHeight;
@@ -499,7 +499,6 @@
                 updateUI(true);
             };
             creditWinToBalance(won, done);
-            setTimeout(function() { if (isSpinning) done(); }, 8000);
         }
     }
 
