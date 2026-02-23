@@ -59,27 +59,16 @@
     }
 
     function getSecureRandom(max) {
-        var entropy = [];
+        if (!max || max <= 0) return 0;
+        // Простой и честный выбор индекса 0..max-1
         if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
             try {
-                var array = new Uint32Array(4);
-                crypto.getRandomValues(array);
-                for (var i = 0; i < array.length; i++) {
-                    entropy.push(array[i]);
-                }
+                var arr = new Uint32Array(1);
+                crypto.getRandomValues(arr);
+                return arr[0] % max;
             } catch (e) {}
         }
-        entropy.push(Date.now());
-        entropy.push(performance.now ? performance.now() : 0);
-        entropy.push(Math.random() * 1000000);
-        entropy.push(Math.random() * 1000000);
-        
-        var combined = 0;
-        for (var j = 0; j < entropy.length; j++) {
-            combined = ((combined * 31) + entropy[j]) % 2147483647;
-        }
-        
-        return Math.floor(combined) % max;
+        return Math.floor(Math.random() * max);
     }
 
     function pickRandomPrize(prizes) {
