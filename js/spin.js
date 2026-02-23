@@ -319,47 +319,28 @@
         var startTime = Date.now();
         var startScroll = 0;
         var distance = scrollDistance;
-        var timer = null;
-        var rafId = null;
+        var done = false;
         
-        var completed = false;
-        var fallbackTimer = null;
-        
-        function finish() {
-            if (completed) return;
-            completed = true;
-            if (timer) clearInterval(timer);
-            if (rafId !== null) cancelAnimationFrame(rafId);
-            if (fallbackTimer) clearTimeout(fallbackTimer);
-            container.scrollTop = exactFinalPosition;
-            if (onComplete) onComplete();
-        }
-        
-        function update() {
-            var now = Date.now();
-            var elapsed = now - startTime;
+        function tick() {
+            if (done) return;
+            var elapsed = Date.now() - startTime;
             var progress = Math.min(elapsed / durationMs, 1);
             
-            if (progress >= 1 || elapsed >= durationMs) {
-                finish();
+            if (progress >= 1) {
+                done = true;
+                clearInterval(timer);
+                container.scrollTop = exactFinalPosition;
+                if (onComplete) onComplete();
                 return;
             }
             
             var t = progress;
-            var eased = t < 0.92 ? t * 0.995 : 0.9154 + (1 - Math.pow(1 - (t - 0.92) / 0.08, 5)) * 0.0846;
-            
+            var eased = t < 0.9 ? t : 0.9 + (1 - Math.pow(1 - (t - 0.9) / 0.1, 4)) * 0.1;
             container.scrollTop = startScroll + distance * eased;
         }
         
-        function rafUpdate() {
-            update();
-            if (completed || timer) return;
-            rafId = requestAnimationFrame(rafUpdate);
-        }
-        
-        fallbackTimer = setTimeout(finish, durationMs + 500);
-        timer = setInterval(update, 20);
-        rafId = requestAnimationFrame(rafUpdate);
+        var timer = setInterval(tick, 16);
+        tick();
     }
 
     function getCenterTicket(container, tickets) {
@@ -416,7 +397,7 @@
             targetWon = parseFloat(tickets[targetTicketIndex].getAttribute('data-value')) || 0;
         }
 
-        var durationMs = 6000;
+        var durationMs = 10000;
         animateDrumScroll(container, targetTicketIndex, tickets, durationMs, function() {
             setTimeout(function() {
                 var containerHeight = container.clientHeight;
