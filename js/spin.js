@@ -318,72 +318,38 @@
         var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
 
         var completed = false;
-        var rafId = null;
-        var fallbackTimeoutId = null;
+        var timeoutId = null;
 
         function doComplete() {
             if (completed) return;
             completed = true;
 
-            if (rafId !== null && typeof cancelAnimationFrame === 'function') {
-                try { cancelAnimationFrame(rafId); } catch (e) {}
-                rafId = null;
-            }
-            if (fallbackTimeoutId) {
-                clearTimeout(fallbackTimeoutId);
-                fallbackTimeoutId = null;
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
             }
 
+            // Сбрасываем анимацию и фиксируем барабан на выигрышном билете
+            container.style.transition = 'none';
+            container.style.transform = 'translateY(0px)';
             container.scrollTop = exactFinalPosition;
+
             if (onComplete) onComplete();
         }
 
-        // Основной путь для Telegram WebApp — один requestAnimationFrame‑цикл
-        var startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        // Сначала убираем любые старые transition/transform
+        container.style.transition = 'none';
+        container.style.transform = 'translateY(0px)';
+        // Форсируем reflow, чтобы браузер применил изменения перед новой анимацией
+        void container.offsetHeight;
 
-        function frame(now) {
-            if (completed) return;
+        // Анимация целиком на стороне движка (CSS transition), без JS‑лупа
+        var seconds = durationMs / 1000;
+        container.style.transition = 'transform ' + seconds + 's cubic-bezier(0.16, 0.84, 0.22, 1)';
+        container.style.transform = 'translateY(' + (-scrollDistance) + 'px)';
 
-            var tNow = (typeof now === 'number') ? now : ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now());
-            var elapsed = tNow - startTime;
-            var progress = elapsed / durationMs;
-            if (progress >= 1) {
-                container.scrollTop = scrollDistance;
-                doComplete();
-                return;
-            }
-
-            if (progress < 0) progress = 0;
-            if (progress > 1) progress = 1;
-
-            // Плавное замедление к концу
-            var eased = 1 - Math.pow(1 - progress, 3);
-            container.scrollTop = scrollDistance * eased;
-
-            rafId = requestAnimationFrame(frame);
-        }
-
-        if (typeof requestAnimationFrame === 'function') {
-            rafId = requestAnimationFrame(frame);
-            // Защита, если rAF внезапно перестанет вызываться
-            fallbackTimeoutId = setTimeout(doComplete, durationMs + 800);
-        } else {
-            // Фоллбек без rAF: редкие шаги по времени
-            var start = Date.now();
-            function step() {
-                if (completed) return;
-                var elapsed = Date.now() - start;
-                var progress = elapsed / durationMs;
-                if (progress >= 1) {
-                    doComplete();
-                    return;
-                }
-                var eased = 1 - Math.pow(1 - progress, 3);
-                container.scrollTop = scrollDistance * eased;
-                setTimeout(step, 120);
-            }
-            step();
-        }
+        // По окончании времени жёстко выставляем окончательную позицию
+        timeoutId = setTimeout(doComplete, durationMs + 100);
     }
 
     function getCenterTicket(container, tickets) {
