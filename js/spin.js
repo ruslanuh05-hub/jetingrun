@@ -298,49 +298,89 @@
         var ticketWithGap = ticketHeight + gap;
         var totalHeight = ticketWithGap * tickets.length;
         var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
-        
-        container.scrollTop = 0;
-        
+
+        // Всегда начинаем с верха списка
+        var startScroll = 0;
+        container.scrollTop = startScroll;
+
+        // Делаем несколько кругов, как раньше
         var laps = 3 + getSecureRandom(2);
         var scrollDistance = laps * totalHeight + targetTicketIndex * ticketWithGap - centerOffset;
         var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
-        
-        var startScroll = 0;
+
         var distance = scrollDistance;
         var completed = false;
-        var stepMs = 80;
-        var steps = Math.ceil(durationMs / stepMs);
-        
-        function doComplete() {
+        var rafId = null;
+        var fallbackId = null;
+
+        function finish() {
             if (completed) return;
             completed = true;
+            if (rafId !== null && typeof cancelAnimationFrame === 'function') {
+                try { cancelAnimationFrame(rafId); } catch (e) {}
+            }
+            if (fallbackId !== null) {
+                clearTimeout(fallbackId);
+            }
             container.scrollTop = exactFinalPosition;
             if (onComplete) onComplete();
         }
-        
-        function runStep(stepIndex) {
+
+        // Плавная анимация через requestAnimationFrame (~60fps)
+        var startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+
+        function frame(now) {
             if (completed) return;
-            var elapsed = stepIndex * stepMs;
-            var progress = Math.min(elapsed / durationMs, 1);
-            
+
+            var tNow = (typeof now === 'number') ? now :
+                ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now());
+
+            var elapsed = tNow - startTime;
+            var progress = elapsed / durationMs;
+
             if (progress >= 1) {
-                doComplete();
+                finish();
                 return;
             }
-            
+
+            if (progress < 0) progress = 0;
+            if (progress > 1) progress = 1;
+
+            // Как и раньше: 90% линейно, последние 10% — плавное замедление
             var t = progress;
-            var eased = t < 0.9 ? t : 0.9 + (1 - Math.pow(1 - (t - 0.9) / 0.1, 4)) * 0.1;
+            var eased = t < 0.9
+                ? t
+                : 0.9 + (1 - Math.pow(1 - (t - 0.9) / 0.1, 4)) * 0.1;
+
             container.scrollTop = startScroll + distance * eased;
-            
-            if (stepIndex + 1 < steps) {
-                setTimeout(function() { runStep(stepIndex + 1); }, stepMs);
-            } else {
-                setTimeout(doComplete, stepMs);
-            }
+            rafId = requestAnimationFrame(frame);
         }
-        
-        runStep(0);
-        setTimeout(doComplete, durationMs + 500);
+
+        if (typeof requestAnimationFrame === 'function') {
+            rafId = requestAnimationFrame(frame);
+            // Защита на случай, если по какой-то причине rAF перестанет вызываться
+            fallbackId = setTimeout(finish, durationMs + 1000);
+        } else {
+            // Фоллбек: если rAF нет, используем более частый setTimeout
+            var stepMs = 20;
+            var startTs = Date.now();
+            function step() {
+                if (completed) return;
+                var elapsed = Date.now() - startTs;
+                var progress = elapsed / durationMs;
+                if (progress >= 1) {
+                    finish();
+                    return;
+                }
+                var t = progress;
+                var eased = t < 0.9
+                    ? t
+                    : 0.9 + (1 - Math.pow(1 - (t - 0.9) / 0.1, 4)) * 0.1;
+                container.scrollTop = startScroll + distance * eased;
+                setTimeout(step, stepMs);
+            }
+            step();
+        }
     }
 
     function getCenterTicket(container, tickets) {
