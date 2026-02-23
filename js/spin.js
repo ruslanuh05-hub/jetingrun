@@ -59,16 +59,27 @@
     }
 
     function getSecureRandom(max) {
-        if (!max || max <= 0) return 0;
-        // Надёжный источник — crypto.getRandomValues, с запасным вариантом через Math.random
+        var entropy = [];
         if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
             try {
-                var array = new Uint32Array(1);
+                var array = new Uint32Array(4);
                 crypto.getRandomValues(array);
-                return array[0] % max;
+                for (var i = 0; i < array.length; i++) {
+                    entropy.push(array[i]);
+                }
             } catch (e) {}
         }
-        return Math.floor(Math.random() * max);
+        entropy.push(Date.now());
+        entropy.push(performance.now ? performance.now() : 0);
+        entropy.push(Math.random() * 1000000);
+        entropy.push(Math.random() * 1000000);
+        
+        var combined = 0;
+        for (var j = 0; j < entropy.length; j++) {
+            combined = ((combined * 31) + entropy[j]) % 2147483647;
+        }
+        
+        return Math.floor(combined) % max;
     }
 
     function pickRandomPrize(prizes) {
@@ -292,49 +303,55 @@
     }
 
     function animateDrumScroll(container, targetTicketIndex, tickets, durationMs, onComplete) {
-        var totalTickets = tickets ? tickets.length : 0;
-        if (!totalTickets) {
+        var containerHeight = container.clientHeight;
+        var ticketHeight = tickets[0] ? tickets[0].offsetHeight : 80;
+        var gap = 36;
+        var ticketWithGap = ticketHeight + gap;
+        var totalHeight = ticketWithGap * tickets.length;
+        var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
+        
+        container.scrollTop = 0;
+        
+        var laps = 3 + getSecureRandom(2);
+        var scrollDistance = laps * totalHeight + targetTicketIndex * ticketWithGap - centerOffset;
+        var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
+        
+        var startScroll = 0;
+        var distance = scrollDistance;
+        var completed = false;
+        var stepMs = 80;
+        var steps = Math.ceil(durationMs / stepMs);
+        
+        function doComplete() {
+            if (completed) return;
+            completed = true;
+            container.scrollTop = exactFinalPosition;
             if (onComplete) onComplete();
-            return;
         }
-
-        // Количество полных оборотов «подсветки» перед остановкой
-        var cycles = 3;
-        var totalSteps = cycles * totalTickets + targetTicketIndex;
-        var currentStep = 0;
-
-        tickets.forEach(function(t) { t.classList.remove('highlight'); });
-
-        function getStepDelay(stepIndex) {
-            // t от 0 до 1
-            var t = totalSteps > 0 ? (stepIndex / totalSteps) : 0;
-            // Начинаем быстрее, заканчиваем медленнее
-            var minDelay = 40;
-            var maxDelay = 180;
-            return minDelay + (maxDelay - minDelay) * (t * t);
-        }
-
-        function tick() {
-            if (currentStep > totalSteps) {
-                // Финальная подсветка выигрышного билета
-                tickets.forEach(function(t) { t.classList.remove('highlight'); });
-                if (tickets[targetTicketIndex]) {
-                    tickets[targetTicketIndex].classList.add('highlight');
-                }
-                if (onComplete) onComplete();
+        
+        function runStep(stepIndex) {
+            if (completed) return;
+            var elapsed = stepIndex * stepMs;
+            var progress = Math.min(elapsed / durationMs, 1);
+            
+            if (progress >= 1) {
+                doComplete();
                 return;
             }
-
-            var idx = currentStep % totalTickets;
-            tickets.forEach(function(t) { t.classList.remove('highlight'); });
-            tickets[idx].classList.add('highlight');
-
-            currentStep++;
-            var delay = getStepDelay(currentStep);
-            setTimeout(tick, delay);
+            
+            var t = progress;
+            var eased = t < 0.9 ? t : 0.9 + (1 - Math.pow(1 - (t - 0.9) / 0.1, 4)) * 0.1;
+            container.scrollTop = startScroll + distance * eased;
+            
+            if (stepIndex + 1 < steps) {
+                setTimeout(function() { runStep(stepIndex + 1); }, stepMs);
+            } else {
+                setTimeout(doComplete, stepMs);
+            }
         }
-
-        tick();
+        
+        runStep(0);
+        setTimeout(doComplete, durationMs + 500);
     }
 
     function getCenterTicket(container, tickets) {
@@ -360,26 +377,78 @@
         if (isSpinning || spinsCount <= 0) return;
         isSpinning = true;
         spinsCount = loadSpins();
-
         var tickets = document.querySelectorAll('.spin-ticket');
         var container = document.getElementById('spinTickets');
         tickets.forEach(function(t) { t.classList.remove('highlight'); });
 
-        if (!tickets.length) {
+        if (!container || !tickets.length) {
             isSpinning = false;
             updateUI(true);
             return;
         }
 
-        // Выбираем СЛУЧАЙНЫЙ билет как победителя — именно он и будет результатом
-        var targetTicketIndex = getSecureRandom(tickets.length);
-        var targetTicket = tickets[targetTicketIndex];
-        var targetWon = parseFloat(targetTicket.getAttribute('data-value')) || 0;
+        var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
+        var r1 = getSecureRandom(prizes.length);
+        var r2 = getSecureRandom(prizes.length);
+        var r3 = getSecureRandom(prizes.length);
+        var randomIdx = (r1 + r2 + r3) % prizes.length;
+        var targetWon = prizes[randomIdx];
+        
+        var targetTicketIndex = -1;
+        for (var i = 0; i < tickets.length; i++) {
+            var ticketValue = parseFloat(tickets[i].getAttribute('data-value'));
+            if (ticketValue === targetWon) {
+                targetTicketIndex = i;
+                break;
+            }
+        }
+        
+        if (targetTicketIndex < 0) {
+            targetTicketIndex = getSecureRandom(tickets.length);
+            targetWon = parseFloat(tickets[targetTicketIndex].getAttribute('data-value')) || 0;
+        }
 
-        var durationMs = 3500;
+        var durationMs = 10000;
         animateDrumScroll(container, targetTicketIndex, tickets, durationMs, function() {
-            // После анимации подсветки фиксируем выигрыш и показываем результат
-            finishSpin(targetWon);
+            setTimeout(function() {
+                var containerHeight = container.clientHeight;
+                var targetTicket = tickets[targetTicketIndex];
+                var ticketHeight = targetTicket.offsetHeight;
+                var gap = 36;
+                var ticketWithGap = ticketHeight + gap;
+                var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
+                var exactPosition = targetTicketIndex * ticketWithGap - centerOffset;
+                
+                container.scrollTop = exactPosition;
+                
+                setTimeout(function() {
+                    var actualCenterTicket = getCenterTicket(container, tickets);
+                    var won = targetWon;
+                    
+                    if (actualCenterTicket) {
+                        var actualValue = parseFloat(actualCenterTicket.getAttribute('data-value'));
+                        var targetRect = targetTicket.getBoundingClientRect();
+                        var actualRect = actualCenterTicket.getBoundingClientRect();
+                        var containerRect = container.getBoundingClientRect();
+                        var centerY = containerRect.top + containerRect.height / 2;
+                        
+                        var targetDist = Math.abs(targetRect.top + targetRect.height / 2 - centerY);
+                        var actualDist = Math.abs(actualRect.top + actualRect.height / 2 - centerY);
+                        
+                        if (targetDist < actualDist && actualValue === targetWon) {
+                            won = targetWon;
+                            targetTicket.classList.add('highlight');
+                        } else {
+                            won = actualValue;
+                            actualCenterTicket.classList.add('highlight');
+                        }
+                    } else {
+                        targetTicket.classList.add('highlight');
+                    }
+                    
+                    finishSpin(won);
+                }, 200);
+            }, 100);
         });
 
         function finishSpin(won) {
