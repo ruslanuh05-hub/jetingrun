@@ -274,10 +274,9 @@
         var winIndex = getRandomInt(total);
         var winSeg = segments[winIndex];
 
-        // 3 секунды кручения с несколькими полными оборотами
+        // 3 секунды — колесо крутится по часовой стрелке (положительный rotate)
         var spins = 4;
         var anglePer = 360 / total;
-        // Делаем так, чтобы центр выигрышного сегмента встал ровно под стрелку (верх)
         var targetAngle = -winIndex * anglePer;
         var finalRotation = currentRotation + spins * 360 + targetAngle;
         currentRotation = finalRotation % 360;
