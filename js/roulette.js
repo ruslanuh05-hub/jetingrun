@@ -258,8 +258,7 @@
                 afterDeduct();
             });
         } else {
-            // Нет API — работаем только с локальным балансом
-            setBalanceRub(Math.max(0, balance - currentBet));
+            // Нет API (браузер / тест) — баланс не трогаем, только визуальный спин
             afterDeduct();
         }
     }
