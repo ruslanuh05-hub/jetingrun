@@ -16,7 +16,6 @@
     var segments = [];
     var isSpinning = false;
     var currentBet = MIN_BET_RUB;
-    var currentRotation = 0;
 
     function buildSegments() {
         segments = [];
@@ -146,7 +145,6 @@
         // Сбрасываем поворот
         wheel.style.transition = 'none';
         wheel.style.transform = 'rotate(0deg)';
-        currentRotation = 0;
     }
 
     function adjustBet(delta) {
@@ -286,12 +284,12 @@
         // Сегмент 0 смотрит вниз (6ч), стрелка наверху (12ч) — смещение 180°
         var spins = 4;
         var anglePer = 360 / total;
-        var targetAngle = 180 - winIndex * anglePer;
-        var finalRotation = currentRotation + spins * 360 + targetAngle;
-        currentRotation = finalRotation % 360;
+        // Всегда считаем вращение от нуля, чтобы не накапливать ошибку
+        var finalRotation = spins * 360 + (180 - winIndex * anglePer);
 
         wheel.style.transition = 'none';
-        wheel.style.transform = 'rotate(' + currentRotation + 'deg)';
+        // Стартуем каждый спин из 0°
+        wheel.style.transform = 'rotate(0deg)';
 
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
