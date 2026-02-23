@@ -1,4 +1,19 @@
 // Конфиг: сайт на GitHub Pages / jetstoreapp.ru, бот на Railway.
+// Уведомление: в браузере — alert, в Telegram — showAlert (showPopup в 6.0 не поддерживается)
+window.jetShowAlert = function(msg) {
+    var msgStr = String(msg || '');
+    var tg = window.Telegram && window.Telegram.WebApp;
+    var inTelegram = tg && tg.initData && tg.initData.length > 10;
+    if (inTelegram && typeof tg.showAlert === 'function') {
+        try {
+            tg.showAlert(msgStr);
+        } catch (e) {
+            alert(msgStr);
+        }
+    } else {
+        alert(msgStr);
+    }
+};
 // URL бота — для API (CryptoBot, курс TON, Fragment и т.д.)
 window.JET_BOT_API_URL = 'https://jet-store-bot-production.up.railway.app';
 window.JET_API_BASE = '';

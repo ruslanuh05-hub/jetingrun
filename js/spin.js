@@ -189,15 +189,11 @@
                     if (typeof res.data.balance_rub === 'number') setBalanceRub(res.data.balance_rub);
                     saveSpins(loadSpins() + 1);
                     updateUI(true);
-                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
-                        window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
-                    } else { alert('Спин куплен за счёт баланса. Крутите!'); }
+                    (window.jetShowAlert || alert)('Готово\n\nСпин куплен за счёт баланса. Крутите!');
                     return;
                 }
                 if (res.status === 400 && (res.data && res.data.error === 'insufficient_funds')) {
-                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                        window.Telegram.WebApp.showAlert('Недостаточно средств на балансе. Пополните баланс или оплатите спин.');
-                    } else { alert('Недостаточно средств на балансе.'); }
+                    (window.jetShowAlert || alert)('Недостаточно средств на балансе. Пополните баланс или оплатите спин.');
                     return;
                 }
                 redirectToPaySpin('RUB');
@@ -209,15 +205,11 @@
             setBalanceRub(balance - SPIN_PRICE_RUB);
             saveSpins(loadSpins() + 1);
             updateUI(true);
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
-                window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
-            } else { alert('Спин куплен за счёт баланса. Крутите!'); }
+            (window.jetShowAlert || alert)('Готово\n\nСпин куплен за счёт баланса. Крутите!');
             return;
         }
         if (!apiBase) {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                window.Telegram.WebApp.showAlert('API бота не настроен. Укажите URL в настройках.');
-            } else { alert('API бота не настроен.'); }
+            (window.jetShowAlert || alert)('API бота не настроен. Укажите URL в настройках.');
             return;
         }
         redirectToPaySpin('RUB');
@@ -249,15 +241,11 @@
                     if (typeof res.data.balance_usdt === 'number') setBalanceUsdt(res.data.balance_usdt);
                     saveSpins(loadSpins() + 1);
                     updateUI(true);
-                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
-                        window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
-                    } else { alert('Спин куплен за счёт баланса. Крутите!'); }
+                    (window.jetShowAlert || alert)('Готово\n\nСпин куплен за счёт баланса. Крутите!');
                     return;
                 }
                 if (res.status === 400 && (res.data && res.data.error === 'insufficient_funds')) {
-                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                        window.Telegram.WebApp.showAlert('Недостаточно средств на балансе. Пополните баланс или оплатите спин.');
-                    } else { alert('Недостаточно средств на балансе.'); }
+                    (window.jetShowAlert || alert)('Недостаточно средств на балансе. Пополните баланс или оплатите спин.');
                     return;
                 }
                 redirectToPaySpin('USDT');
@@ -269,15 +257,11 @@
             setBalanceUsdt(balance - SPIN_PRICE_USDT);
             saveSpins(loadSpins() + 1);
             updateUI(true);
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
-                window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин куплен за счёт баланса. Крутите!' });
-            } else { alert('Спин куплен за счёт баланса. Крутите!'); }
+            (window.jetShowAlert || alert)('Готово\n\nСпин куплен за счёт баланса. Крутите!');
             return;
         }
         if (!apiBase) {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                window.Telegram.WebApp.showAlert('API бота не настроен.');
-            } else { alert('API бота не настроен.'); }
+            (window.jetShowAlert || alert)('API бота не настроен.');
             return;
         }
         redirectToPaySpin('USDT');
@@ -567,9 +551,7 @@
             if (added === '1') {
                 sessionStorage.removeItem('jetstore_spin_added');
                 updateUI(true);
-                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
-                    window.Telegram.WebApp.showPopup({ title: 'Готово', message: 'Спин добавлен! Можете крутить.' });
-                }
+                (window.jetShowAlert || alert)('Готово\n\nСпин добавлен! Можете крутить.');
             }
         };
         setTimeout(checkReturn, 500);

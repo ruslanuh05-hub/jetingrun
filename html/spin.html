@@ -529,10 +529,10 @@
         .roulette-bet-row {
             display: flex;
             align-items: center;
-            /* Растягиваем ряд по всей ширине панели, элементы по краям */
             justify-content: space-between;
             gap: 6px;
             margin-bottom: 8px;
+            pointer-events: auto;
         }
         .roulette-bet-btn {
             flex: 0 0 56px;
@@ -544,6 +544,8 @@
             font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
+            pointer-events: auto;
+            touch-action: manipulation;
             transition: background 0.18s ease, transform 0.1s ease;
         }
         .roulette-bet-btn:active {
@@ -551,7 +553,6 @@
             background: rgba(14,165,233,0.35);
         }
         .roulette-bet-input {
-            /* Инпут растягивается между кнопками, выравнивание по краям */
             flex: 1;
             max-width: none;
             padding: 6px 10px;
@@ -562,6 +563,10 @@
             font-size: 0.85rem;
             text-align: center;
             outline: none;
+            pointer-events: auto;
+            touch-action: manipulation;
+            -webkit-user-select: text;
+            user-select: text;
         }
         .roulette-bet-input:focus {
             border-color: #38bdf8;
@@ -626,12 +631,12 @@
                 </div>
 
                 <div class="roulette-bet-row">
-                    <button class="roulette-bet-btn" id="betMinusBtn">−50</button>
-                    <input type="number" min="50" step="50" id="betInput" class="roulette-bet-input" value="50">
-                    <button class="roulette-bet-btn" id="betPlusBtn">+50</button>
+                    <button class="roulette-bet-btn" id="betMinusBtn">−10</button>
+                    <input type="number" id="betInput" class="roulette-bet-input" value="50" min="1" max="10000" step="10" inputmode="numeric" enterkeyhint="done">
+                    <button class="roulette-bet-btn" id="betPlusBtn">+10</button>
                 </div>
 
-                <div class="roulette-note">Минимальная ставка: 50 ₽. Оплата только с баланса.</div>
+                <div class="roulette-note">Можно ввести любую сумму. Для крутки минимальная ставка 50 ₽. Оплата только с баланса.</div>
 
                 <button class="roulette-spin-btn spin-entrance spin-entrance-4" id="spinBtn">Сделать ставку</button>
             </div>
@@ -647,7 +652,7 @@
         </div>
     </div>
     
-    <script src="../js/config.js?v=2"></script>
-    <script src="../js/roulette.js?v=1"></script>
+    <script src="../js/config.js?v=3"></script>
+    <script src="../js/roulette.js?v=3"></script>
 </body>
 </html>

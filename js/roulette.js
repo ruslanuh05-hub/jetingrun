@@ -3,6 +3,7 @@
     'use strict';
 
     var MIN_BET_RUB = 50;
+    var MAX_BET_RUB = 10000;
 
     // Конфигурация сегментов: чем больше count, тем выше шанс
     var SEGMENTS_CONFIG = [
@@ -107,16 +108,16 @@
     }
 
     function clampBet(v) {
-        if (isNaN(v) || !isFinite(v)) v = MIN_BET_RUB;
-        v = Math.floor(v / 50) * 50;
-        if (v < MIN_BET_RUB) v = MIN_BET_RUB;
+        if (isNaN(v) || !isFinite(v)) v = 1;
+        v = Math.max(0, Math.floor(Number(v)));
+        if (v > MAX_BET_RUB) v = MAX_BET_RUB;
         return v;
     }
 
     function updateBetDisplay() {
         var betInput = document.getElementById('betInput');
         var betCenter = document.getElementById('rouletteBetDisplay');
-        if (betInput) betInput.value = currentBet;
+        if (betInput) betInput.value = String(currentBet);
         if (betCenter) betCenter.textContent = currentBet.toFixed(0) + ' ₽';
     }
 
@@ -148,12 +149,16 @@
     }
 
     function adjustBet(delta) {
+        var betInput = document.getElementById('betInput');
+        if (betInput) currentBet = parseInt(betInput.value, 10) || 0;
         currentBet = clampBet(currentBet + delta);
+        if (currentBet < 1) currentBet = 1;
         updateBetDisplay();
     }
 
     function creditWin(amount, cb) {
-        if (!amount || amount <= 0) {
+        var maxWin = MAX_BET_RUB * 10;
+        if (!amount || amount <= 0 || !isFinite(amount) || amount > maxWin) {
             if (cb) cb();
             return;
         }
@@ -192,17 +197,21 @@
     function startSpin() {
         if (isSpinning) return;
 
+        var betInput = document.getElementById('betInput');
+        if (betInput) currentBet = clampBet(parseInt(betInput.value, 10) || 0);
+        syncBalanceFromApi(function () {
+            doSpin();
+        });
+    }
+
+    function doSpin() {
         var balance = getBalanceRub();
         if (currentBet < MIN_BET_RUB) {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                window.Telegram.WebApp.showAlert('Минимальная ставка: 50 ₽');
-            } else { alert('Минимальная ставка: 50 ₽'); }
+            (window.jetShowAlert || alert)('Минимальная ставка: 50 ₽');
             return;
         }
         if (balance < currentBet) {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                window.Telegram.WebApp.showAlert('Недостаточно средств на балансе.');
-            } else { alert('Недостаточно средств на балансе.'); }
+            (window.jetShowAlert || alert)('Недостаточно средств на балансе.');
             return;
         }
 
@@ -237,9 +246,7 @@
                     return;
                 }
                 if (res.status === 400 && res.data && res.data.error === 'insufficient_funds') {
-                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                        window.Telegram.WebApp.showAlert('Недостаточно средств на балансе.');
-                    } else { alert('Недостаточно средств на балансе.'); }
+                    (window.jetShowAlert || alert)('Недостаточно средств на балансе.');
                     isSpinning = false;
                     updateBalanceDisplay();
                     return;
@@ -275,9 +282,10 @@
         var winSeg = segments[winIndex];
 
         // 3 секунды — колесо крутится по часовой стрелке (положительный rotate)
+        // Сегмент 0 смотрит вниз (6ч), стрелка сверху (12ч) — смещение 180°
         var spins = 4;
         var anglePer = 360 / total;
-        var targetAngle = -winIndex * anglePer;
+        var targetAngle = 180 - winIndex * anglePer;
         var finalRotation = currentRotation + spins * 360 + targetAngle;
         currentRotation = finalRotation % 360;
 
@@ -320,14 +328,28 @@
         var closeResultBtn = document.getElementById('resultCloseBtn');
 
         if (betInput) {
-            betInput.value = MIN_BET_RUB;
+            betInput.value = String(MIN_BET_RUB);
             betInput.addEventListener('input', function () {
-                currentBet = clampBet(parseInt(betInput.value, 10) || MIN_BET_RUB);
+                var val = parseInt(betInput.value, 10);
+                if (isNaN(val)) val = 0;
+                currentBet = clampBet(val);
+                if (currentBet < 1) currentBet = 1;
+                var bc = document.getElementById('rouletteBetDisplay');
+                if (bc) bc.textContent = currentBet.toFixed(0) + ' ₽';
+            });
+            betInput.addEventListener('blur', function () {
+                var val = parseInt(String(betInput.value || '').trim(), 10);
+                if (isNaN(val)) val = 0;
+                currentBet = clampBet(val);
+                if (currentBet < 1) currentBet = 1;
                 updateBetDisplay();
+                if (val >= 1 && val <= 49) {
+                    (window.jetShowAlert || alert)('Минимальная сумма ставки — 50 ₽');
+                }
             });
         }
-        if (minusBtn) minusBtn.addEventListener('click', function () { adjustBet(-50); });
-        if (plusBtn) plusBtn.addEventListener('click', function () { adjustBet(50); });
+        if (minusBtn) minusBtn.addEventListener('click', function () { adjustBet(-10); });
+        if (plusBtn) plusBtn.addEventListener('click', function () { adjustBet(10); });
         if (spinBtn) spinBtn.addEventListener('click', startSpin);
         if (closeResultBtn) {
             closeResultBtn.addEventListener('click', function () {

@@ -105,8 +105,8 @@ function runDeliveryAfterPayment(data, checkResponse) {
                 showStoreNotification(amountMsg, 'success');
             } else if (typeof showNotification === 'function') {
                 showNotification(amountMsg, 'success');
-            } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
-                window.Telegram.WebApp.showPopup({ title: 'Успешно', message: amountMsg });
+            } else {
+                (window.jetShowAlert || alert)('Успешно\n\n' + amountMsg);
             }
             if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
             if (typeof closePaymentMethodPopup === 'function') closePaymentMethodPopup(true);
@@ -185,8 +185,8 @@ function runDeliveryAfterPayment(data, checkResponse) {
             showStoreNotification(message, 'success');
         } else if (typeof showNotification === 'function') {
             showNotification(message, 'success');
-        } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showPopup) {
-            window.Telegram.WebApp.showPopup({ title: 'Успешно', message: message });
+        } else {
+            (window.jetShowAlert || alert)('Успешно\n\n' + message);
         }
         if (typeof closePaymentWaiting === 'function') closePaymentWaiting();
         if (typeof closePaymentMethodPopup === 'function') closePaymentMethodPopup(true);
