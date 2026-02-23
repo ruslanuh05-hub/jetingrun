@@ -309,49 +309,81 @@
         var ticketWithGap = ticketHeight + gap;
         var totalHeight = ticketWithGap * tickets.length;
         var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
-        
+
+        // Стартуем всегда из начала списка
         container.scrollTop = 0;
-        
+
         var laps = 3 + getSecureRandom(2);
         var scrollDistance = laps * totalHeight + targetTicketIndex * ticketWithGap - centerOffset;
         var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
-        
-        var startScroll = 0;
-        var distance = scrollDistance;
+
         var completed = false;
-        var stepMs = 80;
-        var steps = Math.ceil(durationMs / stepMs);
-        
+        var rafId = null;
+        var fallbackTimeoutId = null;
+
         function doComplete() {
             if (completed) return;
             completed = true;
+
+            if (rafId !== null && typeof cancelAnimationFrame === 'function') {
+                try { cancelAnimationFrame(rafId); } catch (e) {}
+                rafId = null;
+            }
+            if (fallbackTimeoutId) {
+                clearTimeout(fallbackTimeoutId);
+                fallbackTimeoutId = null;
+            }
+
             container.scrollTop = exactFinalPosition;
             if (onComplete) onComplete();
         }
-        
-        function runStep(stepIndex) {
+
+        // Основной путь для Telegram WebApp — один requestAnimationFrame‑цикл
+        var startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+
+        function frame(now) {
             if (completed) return;
-            var elapsed = stepIndex * stepMs;
-            var progress = Math.min(elapsed / durationMs, 1);
-            
+
+            var tNow = (typeof now === 'number') ? now : ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now());
+            var elapsed = tNow - startTime;
+            var progress = elapsed / durationMs;
             if (progress >= 1) {
+                container.scrollTop = scrollDistance;
                 doComplete();
                 return;
             }
-            
-            var t = progress;
-            var eased = t < 0.9 ? t : 0.9 + (1 - Math.pow(1 - (t - 0.9) / 0.1, 4)) * 0.1;
-            container.scrollTop = startScroll + distance * eased;
-            
-            if (stepIndex + 1 < steps) {
-                setTimeout(function() { runStep(stepIndex + 1); }, stepMs);
-            } else {
-                setTimeout(doComplete, stepMs);
-            }
+
+            if (progress < 0) progress = 0;
+            if (progress > 1) progress = 1;
+
+            // Плавное замедление к концу
+            var eased = 1 - Math.pow(1 - progress, 3);
+            container.scrollTop = scrollDistance * eased;
+
+            rafId = requestAnimationFrame(frame);
         }
-        
-        runStep(0);
-        setTimeout(doComplete, durationMs + 500);
+
+        if (typeof requestAnimationFrame === 'function') {
+            rafId = requestAnimationFrame(frame);
+            // Защита, если rAF внезапно перестанет вызываться
+            fallbackTimeoutId = setTimeout(doComplete, durationMs + 800);
+        } else {
+            // Фоллбек без rAF: редкие шаги по времени
+            var start = Date.now();
+            function step() {
+                if (completed) return;
+                var elapsed = Date.now() - start;
+                var progress = elapsed / durationMs;
+                if (progress >= 1) {
+                    doComplete();
+                    return;
+                }
+                var eased = 1 - Math.pow(1 - progress, 3);
+                container.scrollTop = scrollDistance * eased;
+                setTimeout(step, 120);
+            }
+            step();
+        }
     }
 
     function getCenterTicket(container, tickets) {
