@@ -59,27 +59,16 @@
     }
 
     function getSecureRandom(max) {
-        var entropy = [];
+        if (!max || max <= 0) return 0;
+        // Надёжный источник — crypto.getRandomValues, с запасным вариантом через Math.random
         if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
             try {
-                var array = new Uint32Array(4);
+                var array = new Uint32Array(1);
                 crypto.getRandomValues(array);
-                for (var i = 0; i < array.length; i++) {
-                    entropy.push(array[i]);
-                }
+                return array[0] % max;
             } catch (e) {}
         }
-        entropy.push(Date.now());
-        entropy.push(performance.now ? performance.now() : 0);
-        entropy.push(Math.random() * 1000000);
-        entropy.push(Math.random() * 1000000);
-        
-        var combined = 0;
-        for (var j = 0; j < entropy.length; j++) {
-            combined = ((combined * 31) + entropy[j]) % 2147483647;
-        }
-        
-        return Math.floor(combined) % max;
+        return Math.floor(Math.random() * max);
     }
 
     function pickRandomPrize(prizes) {
@@ -303,93 +292,49 @@
     }
 
     function animateDrumScroll(container, targetTicketIndex, tickets, durationMs, onComplete) {
-        var isTg = !!(window.Telegram && window.Telegram.WebApp);
-        // В Telegram WebApp сокращаем длительность, но крутим только ОДИН раз
-        // ровно до нужного билета без «кругов», чтобы не было пустоты.
-        var animDuration = isTg ? Math.min(durationMs, 3500) : durationMs;
-
-        var containerHeight = container.clientHeight;
-        var ticketHeight = tickets[0] ? tickets[0].offsetHeight : 80;
-        var gap = 36;
-        var ticketWithGap = ticketHeight + gap;
-        var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
-
-        // Стартуем всегда из начала списка
-        var startScroll = 0;
-        container.scrollTop = startScroll;
-
-        // Конечная позиция — чтобы нужный билет был по центру
-        var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
-        if (exactFinalPosition < 0) exactFinalPosition = 0;
-        var maxScroll = Math.max(0, container.scrollHeight - container.clientHeight);
-        if (exactFinalPosition > maxScroll) exactFinalPosition = maxScroll;
-
-        var distance = exactFinalPosition - startScroll;
-        var completed = false;
-        var rafId = null;
-        var fallbackTimeoutId = null;
-
-        function doComplete() {
-            if (completed) return;
-            completed = true;
-
-            if (rafId !== null && typeof cancelAnimationFrame === 'function') {
-                try { cancelAnimationFrame(rafId); } catch (e) {}
-                rafId = null;
-            }
-            if (fallbackTimeoutId) {
-                clearTimeout(fallbackTimeoutId);
-                fallbackTimeoutId = null;
-            }
-
-            container.scrollTop = exactFinalPosition;
+        var totalTickets = tickets ? tickets.length : 0;
+        if (!totalTickets) {
             if (onComplete) onComplete();
+            return;
         }
 
-        var startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        // Количество полных оборотов «подсветки» перед остановкой
+        var cycles = 3;
+        var totalSteps = cycles * totalTickets + targetTicketIndex;
+        var currentStep = 0;
 
-        function frame(now) {
-            if (completed) return;
+        tickets.forEach(function(t) { t.classList.remove('highlight'); });
 
-            var tNow = (typeof now === 'number') ? now : ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now());
-            var elapsed = tNow - startTime;
-            var progress = elapsed / animDuration;
+        function getStepDelay(stepIndex) {
+            // t от 0 до 1
+            var t = totalSteps > 0 ? (stepIndex / totalSteps) : 0;
+            // Начинаем быстрее, заканчиваем медленнее
+            var minDelay = 40;
+            var maxDelay = 180;
+            return minDelay + (maxDelay - minDelay) * (t * t);
+        }
 
-            if (progress >= 1) {
-                doComplete();
+        function tick() {
+            if (currentStep > totalSteps) {
+                // Финальная подсветка выигрышного билета
+                tickets.forEach(function(t) { t.classList.remove('highlight'); });
+                if (tickets[targetTicketIndex]) {
+                    tickets[targetTicketIndex].classList.add('highlight');
+                }
+                if (onComplete) onComplete();
                 return;
             }
 
-            if (progress < 0) progress = 0;
-            if (progress > 1) progress = 1;
+            var idx = currentStep % totalTickets;
+            tickets.forEach(function(t) { t.classList.remove('highlight'); });
+            tickets[idx].classList.add('highlight');
 
-            // Плавное замедление к концу (ease‑out)
-            var eased = 1 - Math.pow(1 - progress, 3);
-            container.scrollTop = startScroll + distance * eased;
-
-            rafId = requestAnimationFrame(frame);
+            currentStep++;
+            var delay = getStepDelay(currentStep);
+            setTimeout(tick, delay);
         }
 
-        if (typeof requestAnimationFrame === 'function') {
-            rafId = requestAnimationFrame(frame);
-            fallbackTimeoutId = setTimeout(doComplete, animDuration + 800);
-        } else {
-            // Фоллбек без rAF: редкие шаги по времени
-            var start = Date.now();
-            function step() {
-                if (completed) return;
-                var elapsed = Date.now() - start;
-                var progress = elapsed / animDuration;
-                if (progress >= 1) {
-                    doComplete();
-                    return;
-                }
-                var eased = 1 - Math.pow(1 - progress, 3);
-                container.scrollTop = startScroll + distance * eased;
-                setTimeout(step, 120);
-            }
-            step();
-        }
+        tick();
     }
 
     function getCenterTicket(container, tickets) {
@@ -415,78 +360,26 @@
         if (isSpinning || spinsCount <= 0) return;
         isSpinning = true;
         spinsCount = loadSpins();
+
         var tickets = document.querySelectorAll('.spin-ticket');
         var container = document.getElementById('spinTickets');
         tickets.forEach(function(t) { t.classList.remove('highlight'); });
 
-        if (!container || !tickets.length) {
+        if (!tickets.length) {
             isSpinning = false;
             updateUI(true);
             return;
         }
 
-        var prizes = currentCurrency === 'RUB' ? PRIZES_RUB : PRIZES_USDT;
-        var r1 = getSecureRandom(prizes.length);
-        var r2 = getSecureRandom(prizes.length);
-        var r3 = getSecureRandom(prizes.length);
-        var randomIdx = (r1 + r2 + r3) % prizes.length;
-        var targetWon = prizes[randomIdx];
-        
-        var targetTicketIndex = -1;
-        for (var i = 0; i < tickets.length; i++) {
-            var ticketValue = parseFloat(tickets[i].getAttribute('data-value'));
-            if (ticketValue === targetWon) {
-                targetTicketIndex = i;
-                break;
-            }
-        }
-        
-        if (targetTicketIndex < 0) {
-            targetTicketIndex = getSecureRandom(tickets.length);
-            targetWon = parseFloat(tickets[targetTicketIndex].getAttribute('data-value')) || 0;
-        }
+        // Выбираем СЛУЧАЙНЫЙ билет как победителя — именно он и будет результатом
+        var targetTicketIndex = getSecureRandom(tickets.length);
+        var targetTicket = tickets[targetTicketIndex];
+        var targetWon = parseFloat(targetTicket.getAttribute('data-value')) || 0;
 
-        var durationMs = 10000;
+        var durationMs = 3500;
         animateDrumScroll(container, targetTicketIndex, tickets, durationMs, function() {
-            setTimeout(function() {
-                var containerHeight = container.clientHeight;
-                var targetTicket = tickets[targetTicketIndex];
-                var ticketHeight = targetTicket.offsetHeight;
-                var gap = 36;
-                var ticketWithGap = ticketHeight + gap;
-                var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
-                var exactPosition = targetTicketIndex * ticketWithGap - centerOffset;
-                
-                container.scrollTop = exactPosition;
-                
-                setTimeout(function() {
-                    var actualCenterTicket = getCenterTicket(container, tickets);
-                    var won = targetWon;
-                    
-                    if (actualCenterTicket) {
-                        var actualValue = parseFloat(actualCenterTicket.getAttribute('data-value'));
-                        var targetRect = targetTicket.getBoundingClientRect();
-                        var actualRect = actualCenterTicket.getBoundingClientRect();
-                        var containerRect = container.getBoundingClientRect();
-                        var centerY = containerRect.top + containerRect.height / 2;
-                        
-                        var targetDist = Math.abs(targetRect.top + targetRect.height / 2 - centerY);
-                        var actualDist = Math.abs(actualRect.top + actualRect.height / 2 - centerY);
-                        
-                        if (targetDist < actualDist && actualValue === targetWon) {
-                            won = targetWon;
-                            targetTicket.classList.add('highlight');
-                        } else {
-                            won = actualValue;
-                            actualCenterTicket.classList.add('highlight');
-                        }
-                    } else {
-                        targetTicket.classList.add('highlight');
-                    }
-                    
-                    finishSpin(won);
-                }, 200);
-            }, 100);
+            // После анимации подсветки фиксируем выигрыш и показываем результат
+            finishSpin(targetWon);
         });
 
         function finishSpin(won) {
