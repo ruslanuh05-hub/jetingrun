@@ -303,6 +303,11 @@
     }
 
     function animateDrumScroll(container, targetTicketIndex, tickets, durationMs, onComplete) {
+        var isTg = !!(window.Telegram && window.Telegram.WebApp);
+        // В Telegram WebApp уменьшаем длительность и количество кругов,
+        // чтобы избежать троттлинга и фризов.
+        var animDuration = isTg ? Math.min(durationMs, 4000) : durationMs;
+
         var containerHeight = container.clientHeight;
         var ticketHeight = tickets[0] ? tickets[0].offsetHeight : 80;
         var gap = 36;
@@ -313,7 +318,7 @@
         // Стартуем всегда из начала списка
         container.scrollTop = 0;
 
-        var laps = 3 + getSecureRandom(2);
+        var laps = isTg ? 1 : (3 + getSecureRandom(2));
         var scrollDistance = laps * totalHeight + targetTicketIndex * ticketWithGap - centerOffset;
         var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
 
@@ -344,12 +349,12 @@
         void container.offsetHeight;
 
         // Анимация целиком на стороне движка (CSS transition), без JS‑лупа
-        var seconds = durationMs / 1000;
+        var seconds = animDuration / 1000;
         container.style.transition = 'transform ' + seconds + 's cubic-bezier(0.16, 0.84, 0.22, 1)';
         container.style.transform = 'translateY(' + (-scrollDistance) + 'px)';
 
         // По окончании времени жёстко выставляем окончательную позицию
-        timeoutId = setTimeout(doComplete, durationMs + 100);
+        timeoutId = setTimeout(doComplete, animDuration + 100);
     }
 
     function getCenterTicket(container, tickets) {
