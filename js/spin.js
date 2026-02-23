@@ -304,9 +304,9 @@
 
     function animateDrumScroll(container, targetTicketIndex, tickets, durationMs, onComplete) {
         var isTg = !!(window.Telegram && window.Telegram.WebApp);
-        // В Telegram WebApp уменьшаем длительность и количество кругов,
-        // чтобы избежать троттлинга и фризов.
-        var animDuration = isTg ? Math.min(durationMs, 4000) : durationMs;
+        // В Telegram WebApp сокращаем длительность и количество кругов,
+        // чтобы не ловить фризы от долгих анимаций.
+        var animDuration = isTg ? Math.min(durationMs, 3500) : durationMs;
 
         var containerHeight = container.clientHeight;
         var ticketHeight = tickets[0] ? tickets[0].offsetHeight : 80;
@@ -323,38 +323,73 @@
         var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
 
         var completed = false;
-        var timeoutId = null;
+        var rafId = null;
+        var fallbackTimeoutId = null;
 
         function doComplete() {
             if (completed) return;
             completed = true;
 
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-                timeoutId = null;
+            if (rafId !== null && typeof cancelAnimationFrame === 'function') {
+                try { cancelAnimationFrame(rafId); } catch (e) {}
+                rafId = null;
+            }
+            if (fallbackTimeoutId) {
+                clearTimeout(fallbackTimeoutId);
+                fallbackTimeoutId = null;
             }
 
-            // Сбрасываем анимацию и фиксируем барабан на выигрышном билете
-            container.style.transition = 'none';
-            container.style.transform = 'translateY(0px)';
             container.scrollTop = exactFinalPosition;
-
             if (onComplete) onComplete();
         }
 
-        // Сначала убираем любые старые transition/transform
-        container.style.transition = 'none';
-        container.style.transform = 'translateY(0px)';
-        // Форсируем reflow, чтобы браузер применил изменения перед новой анимацией
-        void container.offsetHeight;
+        // Основной путь — один requestAnimationFrame‑цикл без setInterval / CSS‑transform
+        var startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
 
-        // Анимация целиком на стороне движка (CSS transition), без JS‑лупа
-        var seconds = animDuration / 1000;
-        container.style.transition = 'transform ' + seconds + 's cubic-bezier(0.16, 0.84, 0.22, 1)';
-        container.style.transform = 'translateY(' + (-scrollDistance) + 'px)';
+        function frame(now) {
+            if (completed) return;
 
-        // По окончании времени жёстко выставляем окончательную позицию
-        timeoutId = setTimeout(doComplete, animDuration + 100);
+            var tNow = (typeof now === 'number') ? now : ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now());
+            var elapsed = tNow - startTime;
+            var progress = elapsed / animDuration;
+
+            if (progress >= 1) {
+                container.scrollTop = scrollDistance;
+                doComplete();
+                return;
+            }
+
+            if (progress < 0) progress = 0;
+            if (progress > 1) progress = 1;
+
+            // Плавное замедление к концу (ease‑out)
+            var eased = 1 - Math.pow(1 - progress, 3);
+            container.scrollTop = scrollDistance * eased;
+
+            rafId = requestAnimationFrame(frame);
+        }
+
+        if (typeof requestAnimationFrame === 'function') {
+            rafId = requestAnimationFrame(frame);
+            // Защита на случай, если rAF где‑то потеряется
+            fallbackTimeoutId = setTimeout(doComplete, animDuration + 800);
+        } else {
+            // Фоллбек без rAF: редкие шаги по времени
+            var start = Date.now();
+            function step() {
+                if (completed) return;
+                var elapsed = Date.now() - start;
+                var progress = elapsed / animDuration;
+                if (progress >= 1) {
+                    doComplete();
+                    return;
+                }
+                var eased = 1 - Math.pow(1 - progress, 3);
+                container.scrollTop = scrollDistance * eased;
+                setTimeout(step, 120);
+            }
+            step();
+        }
     }
 
     function getCenterTicket(container, tickets) {
