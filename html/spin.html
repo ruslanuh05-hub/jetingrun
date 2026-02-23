@@ -448,17 +448,13 @@
         }
         .roulette-wheel {
             position: absolute;
-            /* Чуть опускаем колесо с цветными сегментами вниз внутри внешнего круга */
-            top: 255px;
-            left: 18px;
-            right: 25px;
-            bottom: 10px;
+            inset: 0;
             border-radius: 50%;
+            transform-origin: 50% 50%;
         }
         .roulette-segment {
             position: absolute;
-            /* Центр поворота — кольцо с наградами */
-            top: 52%;
+            top: 50%;
             left: 50%;
             width: 10px;
             height: 32px;
