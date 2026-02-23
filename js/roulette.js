@@ -136,7 +136,8 @@
             var segCfg = segments[i];
             var seg = document.createElement('div');
             seg.className = 'roulette-segment roulette-' + segCfg.color;
-            var angle = (360 / total) * i;
+            // Сдвигаем базовый угол на 180°, чтобы сегмент 0 смотрел вверх (12 часов)
+            var angle = (360 / total) * i + 180;
             seg.style.transform = 'rotate(' + angle + 'deg)';
             seg.style.transformOrigin = 'center -' + radius + 'px';
             seg.dataset.multiplier = String(segCfg.multiplier);
@@ -282,10 +283,10 @@
         var winSeg = segments[winIndex];
 
         // 3 секунды — колесо крутится по часовой стрелке (положительный rotate)
-        // Сегмент 0 смотрит вниз (6ч), стрелка сверху (12ч) — смещение 180°
         var spins = 4;
         var anglePer = 360 / total;
-        var targetAngle = 180 - winIndex * anglePer;
+        // Сегмент winIndex должен встать под стрелку (12ч)
+        var targetAngle = -winIndex * anglePer;
         var finalRotation = currentRotation + spins * 360 + targetAngle;
         currentRotation = finalRotation % 360;
 
