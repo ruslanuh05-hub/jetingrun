@@ -292,6 +292,7 @@
     }
 
     function animateDrumScroll(container, targetTicketIndex, tickets, durationMs, onComplete) {
+        var isTg = !!(window.Telegram && window.Telegram.WebApp);
         var containerHeight = container.clientHeight;
         var ticketHeight = tickets[0] ? tickets[0].offsetHeight : 80;
         var gap = 36;
@@ -303,8 +304,8 @@
         var startScroll = 0;
         container.scrollTop = startScroll;
 
-        // Делаем несколько кругов, как раньше
-        var laps = 3 + getSecureRandom(2);
+        // В Telegram — меньше кругов, чтобы не было долгого скролла
+        var laps = isTg ? 1 : (3 + getSecureRandom(2));
         var scrollDistance = laps * totalHeight + targetTicketIndex * ticketWithGap - centerOffset;
         var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
 
@@ -437,7 +438,9 @@
             targetWon = parseFloat(tickets[targetTicketIndex].getAttribute('data-value')) || 0;
         }
 
-        var durationMs = 10000;
+        var isTg = !!(window.Telegram && window.Telegram.WebApp);
+        // В Telegram WebApp делаем анимацию короче, чтобы не было фризов из‑за долгого скролла
+        var durationMs = isTg ? 2500 : 10000;
         animateDrumScroll(container, targetTicketIndex, tickets, durationMs, function() {
             setTimeout(function() {
                 var containerHeight = container.clientHeight;
