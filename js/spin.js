@@ -304,24 +304,27 @@
 
     function animateDrumScroll(container, targetTicketIndex, tickets, durationMs, onComplete) {
         var isTg = !!(window.Telegram && window.Telegram.WebApp);
-        // В Telegram WebApp сокращаем длительность и количество кругов,
-        // чтобы не ловить фризы от долгих анимаций.
+        // В Telegram WebApp сокращаем длительность, но крутим только ОДИН раз
+        // ровно до нужного билета без «кругов», чтобы не было пустоты.
         var animDuration = isTg ? Math.min(durationMs, 3500) : durationMs;
 
         var containerHeight = container.clientHeight;
         var ticketHeight = tickets[0] ? tickets[0].offsetHeight : 80;
         var gap = 36;
         var ticketWithGap = ticketHeight + gap;
-        var totalHeight = ticketWithGap * tickets.length;
         var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
 
         // Стартуем всегда из начала списка
-        container.scrollTop = 0;
+        var startScroll = 0;
+        container.scrollTop = startScroll;
 
-        var laps = isTg ? 1 : (3 + getSecureRandom(2));
-        var scrollDistance = laps * totalHeight + targetTicketIndex * ticketWithGap - centerOffset;
+        // Конечная позиция — чтобы нужный билет был по центру
         var exactFinalPosition = targetTicketIndex * ticketWithGap - centerOffset;
+        if (exactFinalPosition < 0) exactFinalPosition = 0;
+        var maxScroll = Math.max(0, container.scrollHeight - container.clientHeight);
+        if (exactFinalPosition > maxScroll) exactFinalPosition = maxScroll;
 
+        var distance = exactFinalPosition - startScroll;
         var completed = false;
         var rafId = null;
         var fallbackTimeoutId = null;
@@ -343,7 +346,6 @@
             if (onComplete) onComplete();
         }
 
-        // Основной путь — один requestAnimationFrame‑цикл без setInterval / CSS‑transform
         var startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
 
         function frame(now) {
@@ -354,7 +356,6 @@
             var progress = elapsed / animDuration;
 
             if (progress >= 1) {
-                container.scrollTop = scrollDistance;
                 doComplete();
                 return;
             }
@@ -364,14 +365,13 @@
 
             // Плавное замедление к концу (ease‑out)
             var eased = 1 - Math.pow(1 - progress, 3);
-            container.scrollTop = scrollDistance * eased;
+            container.scrollTop = startScroll + distance * eased;
 
             rafId = requestAnimationFrame(frame);
         }
 
         if (typeof requestAnimationFrame === 'function') {
             rafId = requestAnimationFrame(frame);
-            // Защита на случай, если rAF где‑то потеряется
             fallbackTimeoutId = setTimeout(doComplete, animDuration + 800);
         } else {
             // Фоллбек без rAF: редкие шаги по времени
@@ -385,7 +385,7 @@
                     return;
                 }
                 var eased = 1 - Math.pow(1 - progress, 3);
-                container.scrollTop = scrollDistance * eased;
+                container.scrollTop = startScroll + distance * eased;
                 setTimeout(step, 120);
             }
             step();

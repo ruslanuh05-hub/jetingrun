@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Рулетка — JET Store</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/mobile.css?v=3">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+            min-height: 100vh;
+            background: #1a1d24;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .supercell-popup-content {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #1a1d24;
+        }
+        .spin-body {
+            flex: 1;
+            padding: 12px 16px 16px;
+            overflow-y: auto;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.03) 0%, transparent 25%),
+                radial-gradient(circle at 90% 80%, rgba(255,255,255,0.02) 0%, transparent 25%),
+                repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(255,255,255,0.02) 24px, rgba(255,255,255,0.02) 25px),
+                repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(255,255,255,0.015) 24px, rgba(255,255,255,0.015) 25px);
+        }
+        .spin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px max(16px, env(safe-area-inset-left)) 12px max(16px, env(safe-area-inset-right));
+            background: rgba(28, 31, 38, 0.98);
+            flex-shrink: 0;
+        }
+        .spin-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s ease;
+        }
+        .spin-back-btn:hover { opacity: 0.85; }
+        .spin-header-center {
+            flex: 1;
+            text-align: center;
+            min-width: 0;
+        }
+        .spin-header-title { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.3px; }
+        .spin-header-subtitle { font-size: 0.75rem; color: rgba(255,255,255,0.7); margin-top: 2px; }
+        .spin-header-right {
+            display: none;
+        }
+        
+        /* Барабан рулетки — как на скрине: билеты с серратированными краями */
+        .spin-wheel-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 8px 0 12px;
+        }
+        .spin-drum-arrow {
+            width: 0;
+            height: 0;
+            border-top: 24px solid transparent;
+            border-bottom: 24px solid transparent;
+            flex-shrink: 0;
+        }
+        .spin-drum-arrow.left {
+            border-left: 20px solid #00d4ff;
+            border-right: 0;
+        }
+        .spin-drum-arrow.right {
+            border-right: 20px solid #00d4ff;
+            border-left: 0;
+        }
+        .spin-drum {
+            position: relative;
+            max-width: 300px;
+            padding: 12px 16px;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+        .spin-tickets {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 36px;
+            height: 260px;
+            max-height: 260px;
+            overflow-y: auto;
+            scroll-behavior: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            pointer-events: none;
+        }
+        .spin-tickets::-webkit-scrollbar {
+            display: none;
+        }
+        .spin-ticket {
+            position: relative;
+            padding: 22px 24px 22px 26px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            min-width: 220px;
+            flex-shrink: 0;
+            border: none;
+            background: linear-gradient(145deg, #26a69a 0%, #1e8b82 50%, #197068 100%);
+            box-shadow: 
+                0 3px 0 rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                0 6px 16px rgba(0,0,0,0.25);
+            transition: all 0.3s ease;
+            clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+        }
+        .spin-ticket::before,
+        .spin-ticket::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            background: inherit;
+            z-index: 1;
+        }
+        .spin-ticket::before {
+            left: 0;
+            clip-path: polygon(0 0, 100% 8px, 100% 16px, 0 24px, 0 32px, 100% 40px, 100% 48px, 0 56px, 0 64px, 100% 72px, 100% 80px, 0 88px, 0 96px, 100% 100%, 100% 0);
+        }
+        .spin-ticket::after {
+            right: 0;
+            left: auto;
+            clip-path: polygon(0 8px, 100% 0, 100% 100%, 0 100%, 0 88px, 100% 80px, 100% 72px, 0 64px, 0 56px, 100% 48px, 100% 40px, 0 32px, 0 24px, 100% 16px, 100% 8px);
+        }
+        .spin-ticket.prize-high {
+            background: linear-gradient(145deg, #e91e8c 0%, #c2185b 50%, #ad1457 100%);
+            box-shadow: 
+                0 2px 0 rgba(0,0,0,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                0 4px 16px rgba(233,30,140,0.4);
+        }
+        .spin-ticket.highlight {
+            background: linear-gradient(145deg, #00d4ff 0%, #00a4cc 50%, #0088aa 100%);
+            box-shadow: 
+                0 0 24px rgba(0, 212, 255, 0.6),
+                inset 0 1px 0 rgba(255,255,255,0.4),
+                0 4px 20px rgba(0, 212, 255, 0.5);
+            transform: scale(1.03);
+        }
+        .spin-ticket.highlight .spin-ticket-icon {
+            background: linear-gradient(145deg, #0088aa 0%, #006688 100%);
+        }
+        .spin-ticket.highlight .spin-ticket-icon i { color: #fff; }
+        .spin-ticket.highlight.prize-high {
+            background: linear-gradient(145deg, #ff6b9d 0%, #e91e8c 50%, #c2185b 100%);
+        }
+        .spin-ticket.highlight.prize-high .spin-ticket-icon {
+            background: linear-gradient(145deg, #ad1457 0%, #880e4f 100%);
+        }
+        .spin-ticket.highlight.prize-high .spin-ticket-icon i { color: #fff; }
+        .spin-ticket-icon {
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #2a9d8f 0%, #238276 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .spin-ticket-icon i { 
+            font-size: 1.25rem; 
+            color: #fff;
+            font-weight: 700;
+        }
+        .spin-ticket.prize-high .spin-ticket-icon {
+            background: linear-gradient(145deg, #c2185b 0%, #ad1457 100%);
+        }
+        .spin-ticket.prize-high .spin-ticket-icon i { color: #fff; }
+        .spin-ticket-content { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px;
+            position: relative;
+            z-index: 2;
+        }
+        .spin-ticket-value { 
+            font-size: 1.75rem; 
+            font-weight: 900; 
+            color: #fff;
+            line-height: 1.1;
+        }
+        .spin-ticket-currency { 
+            font-size: 0.9rem; 
+            color: rgba(255,255,255,0.9); 
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        
+        .spin-currency-section {
+            background: rgba(28, 31, 38, 0.95);
+            border: none;
+            border-radius: 0;
+            padding: 12px 16px 14px;
+            margin-bottom: 0;
+        }
+        .spin-currency-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .spin-currency-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .spin-currency-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #26a69a 0%, #00897b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1rem;
+        }
+        .spin-currency-name { font-weight: 700; font-size: 1.1rem; }
+        .spin-currency-change {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: block;
+            margin-top: 2px;
+        }
+        .spin-balance { text-align: right; }
+        .spin-balance-val { font-size: 1.2rem; font-weight: 800; }
+        .spin-balance-label { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+        
+        .spin-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .spin-tab {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.8);
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .spin-tab.active {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            color: #fff;
+        }
+        
+        .spin-buttons-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .spin-spin-btn {
+            flex: 1;
+            min-height: 38px;
+            padding: 8px 12px;
+            margin-bottom: 0;
+            border-radius: 14px;
+            border: none;
+            background: rgba(55, 71, 79, 0.6);
+            color: #00d4ff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .spin-spin-btn:hover:not(:disabled) { opacity: 0.9; background: rgba(55, 71, 79, 0.8); }
+        .spin-spin-btn:active { transform: scale(0.98); }
+        .spin-spin-btn:disabled { opacity: 0.5; cursor: not-allowed; color: rgba(0, 212, 255, 0.6); }
+        .spin-buy-btn {
+            flex: 1;
+            min-height: 38px;
+            padding: 8px 12px;
+            border-radius: 14px;
+            border: none;
+            background: #00a4ff;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .spin-buy-btn:hover { transform: translateY(-1px); }
+        .spin-buy-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .spin-spins-count {
+            text-align: center;
+            margin: 6px 0;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.7);
+        }
+        .spin-spins-count strong { color: #00d4ff; }
+        
+        .spin-result-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+        .spin-result-overlay.show { display: flex; }
+        .spin-result-card {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 128, 200, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            border-radius: 20px;
+            padding: 32px;
+            text-align: center;
+            max-width: 320px;
+        }
+        .spin-result-title { font-size: 1.5rem; margin-bottom: 16px; color: #00d4ff; }
+        .spin-result-value { font-size: 2.5rem; font-weight: 800; margin: 12px 0; }
+        .spin-result-hint { font-size: 0.95rem; color: rgba(255,255,255,0.75); margin-top: 8px; }
+        .spin-result-close {
+            margin-top: 24px;
+            padding: 12px 32px;
+            border-radius: 12px;
+            background: #00d4ff;
+            color: #0a0a0a;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        /* Анимация входа — всё собирается как везде */
+        .spin-entrance {
+            opacity: 0;
+            transform: translateY(24px);
+            animation: spinPageAssemble 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .spin-entrance-1 { animation-delay: 0.05s; }
+        .spin-entrance-2 { animation-delay: 0.12s; }
+        .spin-entrance-3 { animation-delay: 0.19s; }
+        .spin-entrance-4 { animation-delay: 0.26s; }
+        .spin-entrance-5 { animation-delay: 0.33s; }
+        .spin-entrance-6 { animation-delay: 0.40s; }
+        .spin-entrance-7 { animation-delay: 0.47s; }
+        /* Анимации для уведомлений */
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes spinPageAssemble {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="supercell-popup-content">
+        <header class="spin-header spin-entrance spin-entrance-1">
+            <a href="index.html" class="spin-back-btn" id="backBtn">
+                <i class="fas fa-chevron-left"></i>
+                <span>Назад</span>
+            </a>
+            <div class="spin-header-center"></div>
+            <div class="spin-header-right"><i class="fas fa-ellipsis-v"></i></div>
+        </header>
+        
+        <div class="spin-body">
+            <div class="spin-wheel-area spin-entrance spin-entrance-2">
+                <div class="spin-drum-arrow left"></div>
+                <div class="spin-drum">
+                    <div class="spin-tickets" id="spinTickets">
+                        <!-- Билеты заполняются через JS -->
+                    </div>
+                </div>
+                <div class="spin-drum-arrow right"></div>
+            </div>
+            
+            <div class="spin-spins-count spin-entrance spin-entrance-3">
+                У вас: <strong id="spinsCount">0</strong> спин(ов)
+            </div>
+            
+            <div class="spin-currency-section spin-entrance spin-entrance-4">
+                <div class="spin-currency-row">
+                    <div class="spin-currency-info">
+                        <div class="spin-currency-icon"><i class="fas fa-gem"></i></div>
+                        <div>
+                            <span class="spin-currency-name" id="currencyName">Рублей</span>
+                            <span class="spin-currency-change" id="changeCurrencyBtn">Изменить монету &gt;</span>
+                        </div>
+                    </div>
+                    <div class="spin-balance">
+                        <div class="spin-balance-val" id="balanceValue">0 ₽</div>
+                        <div class="spin-balance-label">ваш баланс</div>
+                    </div>
+                </div>
+                
+                <div class="spin-tabs">
+                    <button class="spin-tab active" data-currency="RUB">₽ Рублей</button>
+                    <button class="spin-tab" data-currency="USDT">💎 USDT</button>
+                </div>
+                
+                <div class="spin-buttons-row spin-entrance spin-entrance-5">
+                    <button class="spin-spin-btn" id="spinBtn">Авто-спин</button>
+                    <button class="spin-buy-btn" id="buySpinBtn">Крутить за 100 ₽</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="spin-result-overlay" id="resultOverlay">
+        <div class="spin-result-card">
+            <div class="spin-result-title">🏆 Поздравляем!</div>
+            <div class="spin-result-value" id="resultValue">0 ₽</div>
+            <div class="spin-result-hint" id="resultHint">Сумма зачислена на баланс</div>
+            <button class="spin-result-close" id="resultCloseBtn">OK</button>
+        </div>
+    </div>
+    
+    <script src="../js/config.js"></script>
+    <script src="../js/spin.js"></script>
+</body>
+</html>

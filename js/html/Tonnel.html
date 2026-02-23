@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Купить TON на кошелёк</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #0d0a14 0%, #1a1525 25%, #251d35 50%, #1e1830 75%, #16122a 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .tonnel-page {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px 16px 32px;
+        }
+        .tonnel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .tonnel-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .tonnel-back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            border: none;
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .tonnel-title-block h1 {
+            font-size: 1.3rem;
+            margin: 0;
+        }
+        .tonnel-title-block p {
+            margin: 2px 0 0;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+        }
+        .tonnel-card {
+            background: rgba(9, 11, 28, 0.96);
+            border-radius: 18px;
+            padding: 18px 16px;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.65);
+            border: 1px solid rgba(0, 213, 255, 0.18);
+            margin-bottom: 16px;
+        }
+        .tonnel-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .tonnel-chip {
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(0,213,255,0.1);
+            border: 1px solid rgba(0,213,255,0.4);
+            font-size: 0.75rem;
+            color: #7ff7ff;
+        }
+        .tonnel-form-group {
+            margin-bottom: 12px;
+        }
+        .tonnel-label {
+            display: block;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 6px;
+        }
+        .tonnel-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .tonnel-input-icon {
+            position: absolute;
+            left: 10px;
+            color: rgba(255,255,255,0.45);
+            font-size: 0.9rem;
+        }
+        .tonnel-input {
+            width: 100%;
+            padding: 10px 12px 10px 30px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(10,11,30,0.9);
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .tonnel-input::placeholder {
+            color: rgba(255,255,255,0.35);
+        }
+        .tonnel-amount-row {
+            display: flex;
+            gap: 10px;
+        }
+        .tonnel-amount-row .tonnel-input {
+            padding-right: 58px;
+        }
+        .tonnel-amount-currency {
+            position: absolute;
+            right: 10px;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+        }
+        .tonnel-secondary-chip {
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.7);
+        }
+        .tonnel-note {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.65);
+            margin-top: 6px;
+        }
+        .tonnel-warning {
+            background: rgba(255, 193, 7, 0.08);
+            border-radius: 14px;
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            color: #ffd75e;
+            border: 1px solid rgba(255,193,7,0.35);
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            margin-top: 10px;
+        }
+        .tonnel-warning i {
+            margin-top: 2px;
+        }
+        .tonnel-submit {
+            width: 100%;
+            margin-top: 16px;
+            padding: 11px 14px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg, #00d4ff 0%, #0078ff 100%);
+            color: #fff;
+            font-size: 0.97rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+    </style>
+    <link rel="stylesheet" href="../css/mobile.css?v=3">
+</head>
+<body>
+    <div class="tonnel-page">
+        <div class="tonnel-header">
+            <div class="tonnel-header-left">
+                <button class="tonnel-back-btn" onclick="history.back()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="tonnel-title-block">
+                    <h1>Купить TON</h1>
+                    <p>Моментальное пополнение через JET</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tonnel-card">
+            <div class="tonnel-card-header">
+                <div>
+                    <div style="font-size:0.9rem;color:rgba(255,255,255,0.7);">Сколько TON купить</div>
+                </div>
+                <div class="tonnel-chip">
+                    <i class="fas fa-coins"></i> От 1 TON
+                </div>
+            </div>
+            <div class="tonnel-form-group tonnel-amount-row">
+                <div class="tonnel-input-wrapper">
+                    <i class="fas fa-gem tonnel-input-icon"></i>
+                    <input id="tonnelAmount" class="tonnel-input" type="number" min="1" max="100000" step="0.01" placeholder="Введите сумму TON">
+                    <span class="tonnel-amount-currency">TON</span>
+                </div>
+            </div>
+            <div class="tonnel-note" id="tonnelAmountHint">Минимальная сумма заявки 1 TON. Итоговая сумма в рублях будет рассчитана по текущему курсу.</div>
+        </div>
+
+        <div class="tonnel-card">
+            <div class="tonnel-card-header">
+                <div>
+                    <div style="font-size:0.9rem;color:rgba(255,255,255,0.7);">Кошелёк для получения</div>
+                </div>
+                <div class="tonnel-chip">
+                    <i class="fas fa-wallet"></i> Криптокошелёк
+                </div>
+            </div>
+            <div class="tonnel-form-group">
+                <label class="tonnel-label">Адрес кошелька</label>
+                <div class="tonnel-input-wrapper">
+                    <i class="fas fa-key tonnel-input-icon"></i>
+                    <input id="tonnelWallet" class="tonnel-input" type="text" placeholder="Вставьте адрес кошелька">
+                </div>
+            </div>
+            <div class="tonnel-form-group">
+                <label class="tonnel-label">Сеть</label>
+                <div class="tonnel-input-wrapper">
+                    <select id="tonnelNetwork" class="tonnel-input" style="padding-left: 10px;">
+                        <option value="TON">TON</option>
+                        <option value="TRC20">TRC20</option>
+                        <option value="BEP20">BEP20</option>
+                        <option value="ERC20">ERC20</option>
+                    </select>
+                </div>
+                <div class="tonnel-warning">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <div>
+                        Убедитесь, что выбрана **правильная сеть** и адрес кошелька принадлежит этой сети. Перевод в неправильную сеть может привести к потере средств.
+                    </div>
+                </div>
+            </div>
+            <button class="tonnel-submit" onclick="submitTonnelRequest()">
+                Создать заявку на покупку
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script>
+        async function submitTonnelRequest() {
+            try {
+                const amountTon = parseFloat(document.getElementById('tonnelAmount').value);
+                const wallet = (document.getElementById('tonnelWallet').value || '').trim();
+                const network = document.getElementById('tonnelNetwork').value;
+
+                if (!amountTon || amountTon <= 0) {
+                    alert('Введите корректную сумму TON');
+                    return;
+                }
+                if (!wallet) {
+                    alert('Введите адрес кошелька');
+                    return;
+                }
+
+                // Получаем данные пользователя из Telegram WebApp
+                let buyer = {};
+                try {
+                    const tg = window.Telegram && window.Telegram.WebApp;
+                    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                        const u = tg.initDataUnsafe.user;
+                        buyer = {
+                            id: String(u.id),
+                            username: u.username || '',
+                            first_name: u.first_name || '',
+                            last_name: u.last_name || ''
+                        };
+                    }
+                } catch (e) {
+                    console.warn('Telegram user fetch error:', e);
+                }
+
+                // Базовый URL API
+                const apiBase = (window.getJetApiBase && window.getJetApiBase())
+                    || window.JET_API_BASE
+                    || localStorage.getItem('jet_api_base')
+                    || '';
+                if (!apiBase) {
+                    alert('API бота не настроен. Откройте мини-апп через бота.');
+                    return;
+                }
+
+                // Получаем курс TON→RUB для оценки суммы в рублях
+                let rate = 600;
+                try {
+                    const r = await fetch(apiBase.replace(/\/$/, '') + '/api/ton-rate');
+                    if (r.ok) {
+                        const data = await r.json();
+                        rate = data.TON || data.ton_rate_rub || data.rate || 600;
+                    }
+                } catch (e) {
+                    console.warn('TON rate error in Tonnel:', e);
+                }
+                const totalRub = amountTon * rate;
+
+                // Отправляем заявку в /api/ton/notify — бот создаст сообщение в рабочей группе
+                const resp = await fetch(apiBase.replace(/\/$/, '') + '/api/ton/notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'manual',
+                        total_rub: totalRub,
+                        base_rub: totalRub,
+                        buyer: buyer,
+                        purchase: {
+                            wallet: wallet,
+                            network: network,
+                            ton_amount: amountTon
+                        }
+                    })
+                });
+                const json = await resp.json().catch(() => ({}));
+                if (!resp.ok || !json.success) {
+                    alert(json.message || 'Не удалось создать заявку. Попробуйте позже.');
+                    return;
+                }
+
+                alert('Заявка на покупку TON отправлена. Ожидайте обработки администратором.');
+                document.getElementById('tonnelAmount').value = '';
+                document.getElementById('tonnelWallet').value = '';
+                document.getElementById('tonnelNetwork').value = 'TON';
+            } catch (e) {
+                console.error('submitTonnelRequest error', e);
+                alert('Ошибка при создании заявки. Попробуйте позже.');
+            }
+        }
+    </script>
+</body>
+</html>
+
