@@ -276,7 +276,8 @@
         // 3 секунды кручения с несколькими полными оборотами
         var spins = 4;
         var anglePer = 360 / total;
-        var targetAngle = 360 - (winIndex * anglePer + anglePer / 2);
+        // Делаем так, чтобы центр выигрышного сегмента встал ровно под стрелку (верх)
+        var targetAngle = -winIndex * anglePer;
         var finalRotation = currentRotation + spins * 360 + targetAngle;
         currentRotation = finalRotation % 360;
 
