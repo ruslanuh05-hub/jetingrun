@@ -128,7 +128,8 @@
 
         // Радиус подставляем динамически, чтобы на разных телефонах сегменты шли ровно по кругу
         var rect = wheel.getBoundingClientRect();
-        var radius = Math.max(40, rect.width / 2 - 22); // небольшой отступ от края
+        // Ещё ближе к внешней границе — кольцо наград выглядит крупнее
+        var radius = Math.max(40, rect.width / 2 - 12);
 
         for (var i = 0; i < total; i++) {
             var segCfg = segments[i];
