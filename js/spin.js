@@ -442,45 +442,33 @@
         // В Telegram WebApp делаем анимацию короче, чтобы не было фризов из‑за долгого скролла
         var durationMs = 3000;
         animateDrumScroll(container, targetTicketIndex, tickets, durationMs, function() {
+            // После анимации всегда ориентируемся на ТО, что реально в центре стрелок
             setTimeout(function() {
+                var centerTicket = getCenterTicket(container, tickets) || tickets[targetTicketIndex];
+                if (!centerTicket) {
+                    finishSpin(targetWon);
+                    return;
+                }
+
+                // Подсветка только финального билета
+                tickets.forEach(function(t) { t.classList.remove('highlight'); });
+                centerTicket.classList.add('highlight');
+
+                // Аккуратно дотягиваем скролл так, чтобы этот билет оказался ровно по центру
                 var containerHeight = container.clientHeight;
-                var targetTicket = tickets[targetTicketIndex];
-                var ticketHeight = targetTicket.offsetHeight;
+                var ticketHeight = centerTicket.offsetHeight || 80;
                 var gap = 36;
                 var ticketWithGap = ticketHeight + gap;
                 var centerOffset = (containerHeight / 2) - (ticketHeight / 2);
-                var exactPosition = targetTicketIndex * ticketWithGap - centerOffset;
-                
+
+                var finalIndex = Array.prototype.indexOf.call(tickets, centerTicket);
+                if (finalIndex < 0) finalIndex = targetTicketIndex;
+                var exactPosition = finalIndex * ticketWithGap - centerOffset;
                 container.scrollTop = exactPosition;
-                
-                setTimeout(function() {
-                    var actualCenterTicket = getCenterTicket(container, tickets);
-                    var won = targetWon;
-                    
-                    if (actualCenterTicket) {
-                        var actualValue = parseFloat(actualCenterTicket.getAttribute('data-value'));
-                        var targetRect = targetTicket.getBoundingClientRect();
-                        var actualRect = actualCenterTicket.getBoundingClientRect();
-                        var containerRect = container.getBoundingClientRect();
-                        var centerY = containerRect.top + containerRect.height / 2;
-                        
-                        var targetDist = Math.abs(targetRect.top + targetRect.height / 2 - centerY);
-                        var actualDist = Math.abs(actualRect.top + actualRect.height / 2 - centerY);
-                        
-                        if (targetDist < actualDist && actualValue === targetWon) {
-                            won = targetWon;
-                            targetTicket.classList.add('highlight');
-                        } else {
-                            won = actualValue;
-                            actualCenterTicket.classList.add('highlight');
-                        }
-                    } else {
-                        targetTicket.classList.add('highlight');
-                    }
-                    
-                    finishSpin(won);
-                }, 200);
-            }, 100);
+
+                var won = parseFloat(centerTicket.getAttribute('data-value')) || targetWon;
+                finishSpin(won);
+            }, 150);
         });
 
         function finishSpin(won) {
