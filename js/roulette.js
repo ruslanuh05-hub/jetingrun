@@ -249,7 +249,11 @@
         if (isSpinning) return;
 
         var betInput = document.getElementById('betInput');
-        if (betInput) currentBet = clampBet(parseInt(betInput.value, 10) || 0);
+        if (betInput) {
+            // форсим blur, чтобы сработала проверка минимальной ставки один раз
+            betInput.blur();
+            currentBet = clampBet(parseInt(betInput.value, 10) || 0);
+        }
         syncBalanceFromApi(function () {
             doSpin();
         });
@@ -257,9 +261,9 @@
 
     function doSpin() {
         var balance = getCurrentBalance();
+        // Если ставка меньше минимума — просто не крутим
+        // (уведомление уже показал обработчик blur поля ввода)
         if (currentBet < MIN_BET_RUB) {
-            var minText = 'Минимальная ставка: ' + MIN_BET_RUB + (currentCurrency === 'RUB' ? ' ₽' : ' USDT');
-            (window.jetShowAlert || alert)(minText);
             return;
         }
         if (balance < currentBet) {

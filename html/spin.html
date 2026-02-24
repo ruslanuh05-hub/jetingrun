@@ -435,8 +435,8 @@
         }
         .roulette-arrow {
             position: absolute;
-            /* Чуть опускаем стрелку внутрь круга */
-            top: 35px;
+            /* Опускаем стрелку чуть ниже внутрь круга */
+            top: 48px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
@@ -448,14 +448,14 @@
         }
         .roulette-wheel {
             position: absolute;
-            /* Чуть опускаем колесо с цветными сегментами вниз внутри внешнего круга */
-            top: 264px;
-            left: 18px;
-            right: 21px;
+            inset: 0;
+            top: 247px;
+            left: 15px;
+            right: 25px;
             bottom: 10px;
             border-radius: 50%;
-            /* Центр вращения — середина круга рулетки, а не центра колеса */
-            transform-origin: 142px -104px;
+            /* Центр вращения — геометрический центр круга */
+            transform-origin: 50% 50%;
         }
         .roulette-segment {
             position: absolute;
