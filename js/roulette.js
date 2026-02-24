@@ -189,6 +189,8 @@
         }
         // Сбрасываем поворот
         wheel.style.transition = 'none';
+        // Жёстко фиксируем ось вращения ровно по центру колеса
+        wheel.style.transformOrigin = '50% 50%';
         wheel.style.transform = 'rotate(0deg)';
     }
 
