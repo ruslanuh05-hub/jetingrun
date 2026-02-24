@@ -502,6 +502,13 @@
             font-size: 0.95rem;
             font-weight: 600;
             color: #38bdf8;
+            opacity: 0.4;
+            transform: translateY(0);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .roulette-center-mult.revealed {
+            opacity: 1;
+            transform: translateY(-2px);
         }
 
         .roulette-panel {
@@ -525,6 +532,31 @@
         .roulette-balance-value {
             color: #e5f6ff;
             font-weight: 700;
+        }
+        .roulette-currency-switch {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+        }
+        .roulette-currency-btn {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,0.4);
+            background: transparent;
+            color: rgba(148,163,184,0.95);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.1s ease;
+        }
+        .roulette-currency-btn.active {
+            background: rgba(56,189,248,0.16);
+            border-color: #38bdf8;
+            color: #e5f6ff;
+        }
+        .roulette-currency-btn:active {
+            transform: scale(0.97);
         }
         .roulette-bet-row {
             display: flex;
@@ -597,6 +629,24 @@
             box-shadow: 0 10px 28px rgba(34,197,94,0.45);
             filter: brightness(0.95);
         }
+        .roulette-oneclick-row {
+            margin-top: 8px;
+            display: flex;
+            justify-content: flex-end;
+            font-size: 0.78rem;
+            color: rgba(148,163,184,0.9);
+        }
+        .roulette-oneclick-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .roulette-oneclick-toggle input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: #38bdf8;
+        }
     </style>
 </head>
 <body>
@@ -630,6 +680,11 @@
                     <span class="roulette-balance-value" id="balanceValue">0 ₽</span>
                 </div>
 
+                <div class="roulette-currency-switch">
+                    <button class="roulette-currency-btn active" id="currencyRubBtn">₽ RUB</button>
+                    <button class="roulette-currency-btn" id="currencyUsdtBtn">USDT</button>
+                </div>
+
                 <div class="roulette-bet-row">
                     <button class="roulette-bet-btn" id="betMinusBtn">−10</button>
                     <input type="number" id="betInput" class="roulette-bet-input" value="50" min="1" max="10000" step="10" inputmode="numeric" enterkeyhint="done">
@@ -639,6 +694,13 @@
                 <div class="roulette-note">Можно ввести любую сумму. Для крутки минимальная ставка 50 ₽. Оплата только с баланса.</div>
 
                 <button class="roulette-spin-btn spin-entrance spin-entrance-4" id="spinBtn">Сделать ставку</button>
+
+                <div class="roulette-oneclick-row">
+                    <label class="roulette-oneclick-toggle">
+                        <input type="checkbox" id="oneClickSpinToggle">
+                        <span>Спин в один клик</span>
+                    </label>
+                </div>
             </div>
         </div>
     </div>

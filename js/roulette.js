@@ -16,6 +16,7 @@
     var segments = [];
     var isSpinning = false;
     var currentBet = MIN_BET_RUB;
+    var currentCurrency = 'RUB'; // 'RUB' | 'USDT'
 
     function buildSegments() {
         segments = [];
@@ -64,6 +65,14 @@
         } catch (e) { return 0; }
     }
 
+    function getBalanceUsdt() {
+        try {
+            var key = 'jetstore_balance_fixed';
+            var d = JSON.parse(localStorage.getItem(key) || '{}');
+            return parseFloat(d.USDT) || 0;
+        } catch (e) { return 0; }
+    }
+
     function setBalanceRub(val) {
         try {
             var key = 'jetstore_balance_fixed';
@@ -75,6 +84,27 @@
                 window.Database.saveBalanceFixed('RUB', val);
             }
         } catch (e) {}
+    }
+
+    function setBalanceUsdt(val) {
+        try {
+            var key = 'jetstore_balance_fixed';
+            var d = JSON.parse(localStorage.getItem(key) || '{}');
+            d.USDT = val;
+            d.lastUpdate = Date.now();
+            localStorage.setItem(key, JSON.stringify(d));
+            if (window.Database && typeof window.Database.saveBalanceFixed === 'function') {
+                window.Database.saveBalanceFixed('USDT', val);
+            }
+        } catch (e) {}
+    }
+
+    function getCurrentBalance() {
+        return currentCurrency === 'RUB' ? getBalanceRub() : getBalanceUsdt();
+    }
+
+    function setCurrentBalance(val) {
+        if (currentCurrency === 'RUB') setBalanceRub(val); else setBalanceUsdt(val);
     }
 
     function syncBalanceFromApi(cb) {
@@ -90,8 +120,15 @@
             method: 'GET',
             headers: { 'X-Telegram-Init-Data': initData }
         }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
-            if (d && typeof d.balance_rub === 'number') {
-                setBalanceRub(d.balance_rub);
+            if (d && (typeof d.balance_rub === 'number' || typeof d.balance_usdt === 'number')) {
+                try {
+                    var key = 'jetstore_balance_fixed';
+                    var cur = JSON.parse(localStorage.getItem(key) || '{}');
+                    if (typeof d.balance_rub === 'number') cur.RUB = d.balance_rub;
+                    if (typeof d.balance_usdt === 'number') cur.USDT = d.balance_usdt;
+                    cur.lastUpdate = Date.now();
+                    localStorage.setItem(key, JSON.stringify(cur));
+                } catch (e) {}
             }
             if (cb) cb();
         }).catch(function () {
@@ -102,7 +139,12 @@
     function updateBalanceDisplay() {
         var el = document.getElementById('balanceValue');
         if (el) {
-            el.textContent = getBalanceRub().toFixed(2) + ' ₽';
+            var bal = getCurrentBalance();
+            if (currentCurrency === 'RUB') {
+                el.textContent = bal.toFixed(2) + ' ₽';
+            } else {
+                el.textContent = bal.toFixed(2) + ' USDT';
+            }
         }
     }
 
@@ -117,7 +159,10 @@
         var betInput = document.getElementById('betInput');
         var betCenter = document.getElementById('rouletteBetDisplay');
         if (betInput) betInput.value = String(currentBet);
-        if (betCenter) betCenter.textContent = currentBet.toFixed(0) + ' ₽';
+        if (betCenter) {
+            var suffix = currentCurrency === 'RUB' ? ' ₽' : ' USDT';
+            betCenter.textContent = currentBet.toFixed(0) + suffix;
+        }
     }
 
     function renderWheel() {
@@ -128,8 +173,8 @@
 
         // Радиус подставляем динамически, чтобы на разных телефонах сегменты шли ровно по кругу
         var rect = wheel.getBoundingClientRect();
-        // Ещё ближе к внешней границе — кольцо наград выглядит крупнее
-        var radius = Math.max(40, rect.width / 2 - 12);
+        // Чуть уменьшаем радиус, чтобы вокруг сегментов был запас фона
+        var radius = Math.max(40, rect.width / 2 - 20);
 
         for (var i = 0; i < total; i++) {
             var segCfg = segments[i];
@@ -166,8 +211,8 @@
             ? window.Telegram.WebApp.initData
             : '';
         if (!apiBase || !initData) {
-            var cur = getBalanceRub();
-            setBalanceRub(cur + amount);
+            var cur = getCurrentBalance();
+            setCurrentBalance(cur + amount);
             if (cb) cb();
             return;
         }
@@ -177,18 +222,25 @@
                 'Content-Type': 'application/json',
                 'X-Telegram-Init-Data': initData
             },
-            body: JSON.stringify({ reason: 'spin_win', currency: 'RUB', amount: amount })
+            body: JSON.stringify({ reason: 'spin_win', currency: currentCurrency, amount: amount })
         }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
-            if (d && d.success && typeof d.balance_rub === 'number') {
-                setBalanceRub(d.balance_rub);
+            if (d && d.success) {
+                if (currentCurrency === 'RUB' && typeof d.balance_rub === 'number') {
+                    setBalanceRub(d.balance_rub);
+                } else if (currentCurrency === 'USDT' && typeof d.balance_usdt === 'number') {
+                    setBalanceUsdt(d.balance_usdt);
+                } else {
+                    var cur = getCurrentBalance();
+                    setCurrentBalance(cur + amount);
+                }
             } else {
-                var cur = getBalanceRub();
-                setBalanceRub(cur + amount);
+                var cur2 = getCurrentBalance();
+                setCurrentBalance(cur2 + amount);
             }
             if (cb) cb();
         }).catch(function () {
-            var cur = getBalanceRub();
-            setBalanceRub(cur + amount);
+            var cur = getCurrentBalance();
+            setCurrentBalance(cur + amount);
             if (cb) cb();
         });
     }
@@ -204,9 +256,10 @@
     }
 
     function doSpin() {
-        var balance = getBalanceRub();
+        var balance = getCurrentBalance();
         if (currentBet < MIN_BET_RUB) {
-            (window.jetShowAlert || alert)('Минимальная ставка: 50 ₽');
+            var minText = 'Минимальная ставка: ' + MIN_BET_RUB + (currentCurrency === 'RUB' ? ' ₽' : ' USDT');
+            (window.jetShowAlert || alert)(minText);
             return;
         }
         if (balance < currentBet) {
@@ -233,7 +286,7 @@
                     'Content-Type': 'application/json',
                     'X-Telegram-Init-Data': initData
                 },
-                body: JSON.stringify({ type: 'spin', currency: 'RUB', amount: currentBet })
+                body: JSON.stringify({ type: 'spin', currency: currentCurrency, amount: currentBet })
             }).then(function (r) {
                 return r.json().then(function (d) {
                     return { ok: r.ok, status: r.status, data: d || {} };
@@ -290,6 +343,12 @@
         // Стартуем каждый спин из 0°
         wheel.style.transform = 'rotate(0deg)';
 
+        // Пока крутится — множитель скрыт
+        if (multDisplay) {
+            multDisplay.classList.remove('revealed');
+            multDisplay.textContent = 'x?';
+        }
+
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
                 wheel.style.transition = 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)';
@@ -297,12 +356,17 @@
             });
         });
 
-        if (multDisplay) multDisplay.textContent = winSeg.multiplier.toFixed(1) + 'x';
-
         var winAmount = Math.round(currentBet * winSeg.multiplier);
 
         setTimeout(function () {
-            if (resultValueEl) resultValueEl.textContent = winAmount.toFixed(2) + ' ₽';
+            if (multDisplay) {
+                multDisplay.textContent = winSeg.multiplier.toFixed(1) + 'x';
+                multDisplay.classList.add('revealed');
+            }
+            if (resultValueEl) {
+                var suffix = currentCurrency === 'RUB' ? ' ₽' : ' USDT';
+                resultValueEl.textContent = winAmount.toFixed(2) + suffix;
+            }
             if (resultHintEl) {
                 resultHintEl.textContent = 'Выпало ' + winSeg.multiplier.toFixed(1) + 'x. Выигрыш зачислен на баланс.';
             }
@@ -324,6 +388,9 @@
         var plusBtn = document.getElementById('betPlusBtn');
         var spinBtn = document.getElementById('spinBtn');
         var closeResultBtn = document.getElementById('resultCloseBtn');
+        var oneClickToggle = document.getElementById('oneClickSpinToggle');
+        var currencyRubBtn = document.getElementById('currencyRubBtn');
+        var currencyUsdtBtn = document.getElementById('currencyUsdtBtn');
 
         if (betInput) {
             betInput.value = String(MIN_BET_RUB);
@@ -332,8 +399,7 @@
                 if (isNaN(val)) val = 0;
                 currentBet = clampBet(val);
                 if (currentBet < 1) currentBet = 1;
-                var bc = document.getElementById('rouletteBetDisplay');
-                if (bc) bc.textContent = currentBet.toFixed(0) + ' ₽';
+                updateBetDisplay();
             });
             betInput.addEventListener('blur', function () {
                 var val = parseInt(String(betInput.value || '').trim(), 10);
@@ -342,7 +408,8 @@
                 if (currentBet < 1) currentBet = 1;
                 updateBetDisplay();
                 if (val >= 1 && val <= 49) {
-                    (window.jetShowAlert || alert)('Минимальная сумма ставки — 50 ₽');
+                    var hintText = 'Минимальная сумма ставки — ' + MIN_BET_RUB + (currentCurrency === 'RUB' ? ' ₽' : ' USDT');
+                    (window.jetShowAlert || alert)(hintText);
                 }
             });
         }
@@ -353,6 +420,28 @@
             closeResultBtn.addEventListener('click', function () {
                 var ov = document.getElementById('resultOverlay');
                 if (ov) ov.classList.remove('show');
+                if (oneClickToggle && oneClickToggle.checked) {
+                    startSpin();
+                }
+            });
+        }
+
+        if (currencyRubBtn && currencyUsdtBtn) {
+            currencyRubBtn.addEventListener('click', function () {
+                if (currentCurrency === 'RUB') return;
+                currentCurrency = 'RUB';
+                currencyRubBtn.classList.add('active');
+                currencyUsdtBtn.classList.remove('active');
+                updateBetDisplay();
+                updateBalanceDisplay();
+            });
+            currencyUsdtBtn.addEventListener('click', function () {
+                if (currentCurrency === 'USDT') return;
+                currentCurrency = 'USDT';
+                currencyUsdtBtn.classList.add('active');
+                currencyRubBtn.classList.remove('active');
+                updateBetDisplay();
+                updateBalanceDisplay();
             });
         }
 
