@@ -180,10 +180,6 @@
             var segCfg = segments[i];
             var seg = document.createElement('div');
             seg.className = 'roulette-segment roulette-' + segCfg.color;
-            // Центрируем сегмент относительно колеса, чтобы
-            // ось вращения круга всегда была в геометрическом центре
-            seg.style.top = '50%';
-            seg.style.left = '50%';
             // Базовый угол от 0°, сегмент 0 смотрит вниз (6 часов)
             var angle = (360 / total) * i;
             seg.style.transform = 'rotate(' + angle + 'deg)';
