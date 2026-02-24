@@ -418,8 +418,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Опускаем барабан ещё ниже от шапки */
-            margin: 74px 0 12px;
+            /* Расстояние от шапки до рулетки — меньше, чтобы она была выше на экране */
+            margin: 32px 0 12px;
         }
         .roulette-circle {
             position: relative;
@@ -448,19 +448,18 @@
         }
         .roulette-wheel {
             position: absolute;
-            inset: 0;
+            /* Симметричный отступ со всех сторон — кольцо строго по центру */
+            inset: 18px;
             border-radius: 50%;
-            /* Центр вращения — геометрический центр круга */
-            transform-origin: 100% 50%;
-            top: 247px;
-            left: 15px;
-            right: 25px;
-            bottom: 10px;
+            /* Вращаем относительно геометрического центра кольца */
+            transform-origin: 50% 50%;
         }
         .roulette-segment {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            /* Немного опускаем центр окружности с барабанами,
+               чтобы кольцо не "прилипало" к верхней части круга */
+            top: 265px;
+            left: 135px;
             width: 10px;
             height: 32px;
             border-radius: 6px;
