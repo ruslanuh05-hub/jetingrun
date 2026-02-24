@@ -254,9 +254,9 @@
             betInput.blur();
             currentBet = clampBet(parseInt(betInput.value, 10) || 0);
         }
-        syncBalanceFromApi(function () {
-            doSpin();
-        });
+        // Баланс синхронизируем только периодически (при заходе на страницу),
+        // чтобы не "откатывать" локально зачисленный выигрыш.
+        doSpin();
     }
 
     function doSpin() {
@@ -279,6 +279,7 @@
             : '';
 
         function afterDeduct() {
+            // После попытки списания всегда обновляем отображение баланса
             updateBalanceDisplay();
             runWheelAnimation();
         }
@@ -297,7 +298,16 @@
                 }).catch(function () { return { ok: false, status: r.status, data: {} }; });
             }).then(function (res) {
                 if (res.ok && res.data && res.data.success) {
-                    if (typeof res.data.balance_rub === 'number') setBalanceRub(res.data.balance_rub);
+                    // Успешное списание: обновляем баланс по текущей валюте
+                    if (currentCurrency === 'RUB' && typeof res.data.balance_rub === 'number') {
+                        setBalanceRub(res.data.balance_rub);
+                    } else if (currentCurrency === 'USDT' && typeof res.data.balance_usdt === 'number') {
+                        setBalanceUsdt(res.data.balance_usdt);
+                    } else {
+                        // На всякий случай считаем локально только по текущей валюте
+                        var newBal = Math.max(0, balance - currentBet);
+                        setCurrentBalance(newBal);
+                    }
                     afterDeduct();
                     return;
                 }
@@ -307,12 +317,16 @@
                     updateBalanceDisplay();
                     return;
                 }
-                // если бэк не ответил нормально — списываем локально
-                setBalanceRub(Math.max(0, balance - currentBet));
-                afterDeduct();
+                // Любая другая ошибка бэка — не списываем локально,
+                // просто даём ошибку без спина, чтобы не было лишних списаний
+                (window.jetShowAlert || alert)('Ошибка списания. Попробуйте позже.');
+                isSpinning = false;
+                updateBalanceDisplay();
             }).catch(function () {
-                setBalanceRub(Math.max(0, balance - currentBet));
-                afterDeduct();
+                // Ошибка сети — также ничего не списываем
+                (window.jetShowAlert || alert)('Ошибка сети при списании. Попробуйте позже.');
+                isSpinning = false;
+                updateBalanceDisplay();
             });
         } else {
             // Нет API (браузер / тест) — баланс не трогаем, только визуальный спин
