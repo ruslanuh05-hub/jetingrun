@@ -238,18 +238,14 @@
                     setCurrentBalance(cur + amount);
                 }
             } else {
-                // Если бэк вернул ошибку 4xx/5xx или d.success=false —
-                // всё равно зачисляем выигрыш локально, чтобы пользователь не терял его.
-                var cur2 = getCurrentBalance();
-                setCurrentBalance(cur2 + amount);
-                (window.jetShowAlert || alert)('Не удалось синхронизировать выигрыш с сервером, но он зачислен на ваш локальный баланс.');
+                // Если бэк вернул ошибку / отказал, ничего локально не меняем,
+                // чтобы не было "фантомного" баланса, который пропадает после обновления.
+                (window.jetShowAlert || alert)('Не удалось зачислить выигрыш. Попробуйте позже.');
             }
             if (cb) cb();
         }).catch(function () {
-            // Ошибка сети — зачисляем локально, чтобы выигрыш не пропал.
-            var cur = getCurrentBalance();
-            setCurrentBalance(cur + amount);
-            (window.jetShowAlert || alert)('Ошибка сети при зачислении выигрыша, но он зачислен на ваш локальный баланс.');
+            // Ошибка сети — тоже не трогаем локальный баланс при наличии API.
+            (window.jetShowAlert || alert)('Ошибка сети при зачислении выигрыша. Попробуйте позже.');
             if (cb) cb();
         });
     }
@@ -286,68 +282,16 @@
 
         isSpinning = true;
 
-        var apiBase = getApiBase();
-        var initData = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)
-            ? window.Telegram.WebApp.initData
-            : '';
-
-        function afterDeduct() {
-            // После попытки списания всегда обновляем отображение баланса
-            updateBalanceDisplay();
-            runWheelAnimation();
-        }
-
-        if (apiBase && initData) {
-            fetch(apiBase.replace(/\/$/, '') + '/api/balance/deduct', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Telegram-Init-Data': initData
-                },
-                body: JSON.stringify({ type: 'spin', currency: currentCurrency, amount: currentBet })
-            }).then(function (r) {
-                return r.json().then(function (d) {
-                    return { ok: r.ok, status: r.status, data: d || {} };
-                }).catch(function () { return { ok: false, status: r.status, data: {} }; });
-            }).then(function (res) {
-                if (res.ok && res.data && res.data.success) {
-                    // Успешное списание: обновляем баланс по текущей валюте
-                    if (currentCurrency === 'RUB' && typeof res.data.balance_rub === 'number') {
-                        setBalanceRub(res.data.balance_rub);
-                    } else if (currentCurrency === 'USDT' && typeof res.data.balance_usdt === 'number') {
-                        setBalanceUsdt(res.data.balance_usdt);
-                    } else {
-                        // На всякий случай считаем локально только по текущей валюте
-                        var newBal = Math.max(0, balance - currentBet);
-                        setCurrentBalance(newBal);
-                    }
-                    afterDeduct();
-                    return;
-                }
-                if (res.status === 400 && res.data && res.data.error === 'insufficient_funds') {
-                    (window.jetShowAlert || alert)('Недостаточно средств на балансе.');
-                    isSpinning = false;
-                    updateBalanceDisplay();
-                    return;
-                }
-                // Любая другая ошибка бэка — не списываем локально,
-                // просто даём ошибку без спина, чтобы не было лишних списаний
-                (window.jetShowAlert || alert)('Ошибка списания. Попробуйте позже.');
-                isSpinning = false;
-                updateBalanceDisplay();
-            }).catch(function () {
-                // Ошибка сети — также ничего не списываем
-                (window.jetShowAlert || alert)('Ошибка сети при списании. Попробуйте позже.');
-                isSpinning = false;
-                updateBalanceDisplay();
-            });
-        } else {
-            // Нет API (браузер / тест) — баланс не трогаем, только визуальный спин
-            afterDeduct();
-        }
+        // Полностью локальное списание без API:
+        // сразу уменьшаем баланс и запускаем анимацию спина.
+        var newBal = Math.max(0, balance - currentBet);
+        setCurrentBalance(newBal);
+        updateBalanceDisplay();
+        runWheelAnimation();
     }
 
-    function runWheelAnimation() {
+    // opts (необязательно): { winIndex, winAmount, multiplier, alreadyCredited }
+    function runWheelAnimation(opts) {
         var wheel = document.getElementById('rouletteWheel');
         var resultOverlay = document.getElementById('resultOverlay');
         var resultValueEl = document.getElementById('resultValue');
@@ -360,7 +304,12 @@
         }
 
         var total = segments.length;
-        var winIndex = getRandomInt(total);
+        var winIndex;
+        if (opts && typeof opts.winIndex === 'number' && opts.winIndex >= 0 && opts.winIndex < total) {
+            winIndex = opts.winIndex;
+        } else {
+            winIndex = getRandomInt(total);
+        }
         var winSeg = segments[winIndex];
 
         // 3 секунды — колесо крутится по часовой стрелке (положительный rotate)
@@ -387,11 +336,16 @@
             });
         });
 
-        var winAmount = Math.round(currentBet * winSeg.multiplier);
+        var winAmount = (opts && typeof opts.winAmount === 'number')
+            ? opts.winAmount
+            : Math.round(currentBet * winSeg.multiplier);
 
         setTimeout(function () {
+            var shownMultiplier = (opts && typeof opts.multiplier === 'number')
+                ? opts.multiplier
+                : winSeg.multiplier;
             if (multDisplay) {
-                multDisplay.textContent = winSeg.multiplier.toFixed(1) + 'x';
+                multDisplay.textContent = shownMultiplier.toFixed(1) + 'x';
                 multDisplay.classList.add('revealed');
             }
             if (resultValueEl) {
@@ -399,10 +353,19 @@
                 resultValueEl.textContent = winAmount.toFixed(2) + suffix;
             }
             if (resultHintEl) {
-                resultHintEl.textContent = 'Выпало ' + winSeg.multiplier.toFixed(1) + 'x. Выигрыш зачислен на баланс.';
+                resultHintEl.textContent = 'Выпало ' + shownMultiplier.toFixed(1) + 'x. Выигрыш зачислен на баланс.';
             }
             if (resultOverlay) resultOverlay.classList.add('show');
+            
+            // Если выигрыш уже зачислен на сервере (режим безопасной рулетки),
+            // локально баланс не трогаем, только обновляем отображение.
+            if (opts && opts.alreadyCredited) {
+                isSpinning = false;
+                updateBalanceDisplay();
+                return;
+            }
 
+            // Оффлайн‑режим / тесты: зачисляем выигрыш локально.
             creditWin(winAmount, function () {
                 isSpinning = false;
                 updateBalanceDisplay();
