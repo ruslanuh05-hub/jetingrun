@@ -94,7 +94,20 @@ function confirmPayment() {
                 if (statusEl) statusEl.textContent = statusText;
                 console.log('[Payment Check] Payment confirmed, method:', data.method, 'order_id:', res.order_id || data.order_id, 'invoice_id:', res.invoice_id || data.invoice_id);
                 if (typeof runDeliveryAfterPayment === 'function') {
-                    runDeliveryAfterPayment(data, res);
+                    try {
+                        runDeliveryAfterPayment(data, res);
+                    } catch (e) {
+                        console.error('[Payment Check] runDeliveryAfterPayment error:', e);
+                        // Даже если что‑то сломалось в выдаче, не держим пользователя на экране ожидания
+                        if (typeof closePaymentWaiting === 'function') {
+                            closePaymentWaiting();
+                        }
+                    }
+                } else {
+                    // На всякий случай: если модуль выдачи не подключен, просто закрываем экран ожидания
+                    if (typeof closePaymentWaiting === 'function') {
+                        closePaymentWaiting();
+                    }
                 }
             } else {
                 // Оплата ещё не найдена - продолжаем polling

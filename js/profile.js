@@ -99,9 +99,6 @@ function initProfilePage() {
     // Загружаем историю покупок
     loadUserPurchases();
     
-    // Инициализируем вкладки "История / Транзакции"
-    initProfileTabs();
-
     // Загружаем покупки, если активна вкладка "Мои покупки"
     setTimeout(() => {
         if (document.getElementById('purchasesTab')?.classList.contains('active')) {
@@ -115,28 +112,25 @@ function initProfilePage() {
     
 }
 // ==================== ВКЛАДКИ "ИСТОРИЯ / ТРАНЗАКЦИИ" ====================
-function initProfileTabs() {
-    const purchasesTabBtn = document.querySelector('.tabs-container .tab-btn:nth-child(1)');
-    const transactionsTabBtn = document.querySelector('.tabs-container .tab-btn:nth-child(2)');
-    const purchasesPane = document.getElementById('purchasesTab');
-    const transactionsPane = document.getElementById('transactionsTab');
+function switchTab(tab) {
+    var purchasesBtn = document.querySelector('.tabs-container .tab-btn:nth-child(1)');
+    var txBtn = document.querySelector('.tabs-container .tab-btn:nth-child(2)');
+    var purchasesPane = document.getElementById('purchasesTab');
+    var txPane = document.getElementById('transactionsTab');
+    if (!purchasesBtn || !txBtn || !purchasesPane || !txPane) return;
 
-    if (!purchasesTabBtn || !transactionsTabBtn || !purchasesPane || !transactionsPane) return;
-
-    purchasesTabBtn.addEventListener('click', function () {
-        purchasesTabBtn.classList.add('active');
-        transactionsTabBtn.classList.remove('active');
-        purchasesPane.classList.add('active');
-        transactionsPane.classList.remove('active');
-    });
-
-    transactionsTabBtn.addEventListener('click', function () {
-        transactionsTabBtn.classList.add('active');
-        purchasesTabBtn.classList.remove('active');
-        transactionsPane.classList.add('active');
+    if (tab === 'transactions') {
+        purchasesBtn.classList.remove('active');
         purchasesPane.classList.remove('active');
+        txBtn.classList.add('active');
+        txPane.classList.add('active');
         renderTransactions();
-    });
+    } else {
+        txBtn.classList.remove('active');
+        txPane.classList.remove('active');
+        purchasesBtn.classList.add('active');
+        purchasesPane.classList.add('active');
+    }
 }
 
 // Рендерим список транзакций (вкладка "Транзакции")

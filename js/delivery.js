@@ -94,6 +94,12 @@ function runDeliveryAfterPayment(data, checkResponse) {
                         if (!window.userData.currencies) window.userData.currencies = {};
                         window.userData.currencies.RUB = newBalance;
                     }
+                    // Мгновенно обновляем отображение баланса в шапке/профиле,
+                    // чтобы пользователь увидел пополнение без перезагрузки.
+                    var headerBalanceEl = document.getElementById('headerBalance');
+                    if (headerBalanceEl) headerBalanceEl.textContent = newBalance.toFixed(2) + ' ₽';
+                    var profileBalanceEl = document.getElementById('profileBalance');
+                    if (profileBalanceEl) profileBalanceEl.textContent = newBalance.toFixed(2) + ' ₽';
                 } catch (e) {
                     console.warn('[runDeliveryAfterPayment] balance add error:', e);
                 }
@@ -210,6 +216,11 @@ function runDeliveryAfterPayment(data, checkResponse) {
                     } catch (eTxStore) {
                         console.warn('[runDeliveryAfterPayment] cannot persist deposit transaction to users:', eTxStore);
                     }
+                    // Мгновенно обновляем отображение баланса в шапке/профиле
+                    var headerBalanceEl2 = document.getElementById('headerBalance');
+                    if (headerBalanceEl2) headerBalanceEl2.textContent = (cur + amount).toFixed(2) + ' ₽';
+                    var profileBalanceEl2 = document.getElementById('profileBalance');
+                    if (profileBalanceEl2) profileBalanceEl2.textContent = (cur + amount).toFixed(2) + ' ₽';
             } catch (e) { console.warn('[runDeliveryAfterPayment] balance sync error:', e); }
         }
         message = 'Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽';
