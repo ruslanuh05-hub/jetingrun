@@ -220,8 +220,6 @@
             return;
         }
 
-        // При наличии API считаем, что именно бэкенд — источник истины.
-        // Локально не "рисуем" выигрыш, если зачисление не подтвердилось.
         fetch(apiBase.replace(/\/$/, '') + '/api/balance/credit', {
             method: 'POST',
             headers: {
@@ -236,21 +234,22 @@
                 } else if (currentCurrency === 'USDT' && typeof d.balance_usdt === 'number') {
                     setBalanceUsdt(d.balance_usdt);
                 } else {
-                    // На всякий случай добавляем локально, если бэк не прислал баланс,
-                    // но помним, что это редкий случай.
                     var cur = getCurrentBalance();
                     setCurrentBalance(cur + amount);
                 }
             } else {
-                // Неуспех на бэке — выигрыш не зачисляем локально,
-                // чтобы не появлялась "фантомная" сумма, которая потом исчезнет.
-                (window.jetShowAlert || alert)('Не удалось зачислить выигрыш. Попробуйте позже.');
+                // Если бэк вернул ошибку 4xx/5xx или d.success=false —
+                // всё равно зачисляем выигрыш локально, чтобы пользователь не терял его.
+                var cur2 = getCurrentBalance();
+                setCurrentBalance(cur2 + amount);
+                (window.jetShowAlert || alert)('Не удалось синхронизировать выигрыш с сервером, но он зачислен на ваш локальный баланс.');
             }
             if (cb) cb();
         }).catch(function () {
-            // Ошибка сети — также не меняем баланс локально,
-            // чтобы не возникало расхождений с сервером.
-            (window.jetShowAlert || alert)('Ошибка сети при зачислении выигрыша. Попробуйте позже.');
+            // Ошибка сети — зачисляем локально, чтобы выигрыш не пропал.
+            var cur = getCurrentBalance();
+            setCurrentBalance(cur + amount);
+            (window.jetShowAlert || alert)('Ошибка сети при зачислении выигрыша, но он зачислен на ваш локальный баланс.');
             if (cb) cb();
         });
     }

@@ -383,13 +383,34 @@ function loadUserData() {
         const usersKey = 'jetstore_users';
         const directCheck = JSON.parse(localStorage.getItem(usersKey) || '{}');
         const directUser = directCheck[userData.id];
-        if (directUser && directUser.currencies) {
-            console.log('🔍 ПРЯМАЯ ПРОВЕРКА localStorage: Баланс RUB =', directUser.currencies.RUB);
-            // Если баланс в localStorage отличается, используем его (он более актуальный)
-            if (directUser.currencies.RUB !== userData.currencies.RUB) {
-                console.log('⚠️ Обнаружено расхождение! Используем баланс из localStorage');
-                userData.currencies.RUB = directUser.currencies.RUB;
-                window.userData.currencies.RUB = directUser.currencies.RUB;
+        if (directUser) {
+            if (directUser.currencies) {
+                console.log('🔍 ПРЯМАЯ ПРОВЕРКА localStorage: Баланс RUB =', directUser.currencies.RUB);
+                // Если баланс в localStorage отличается, используем его (он более актуальный)
+                if (directUser.currencies.RUB !== userData.currencies.RUB) {
+                    console.log('⚠️ Обнаружено расхождение! Используем баланс из localStorage');
+                    userData.currencies.RUB = directUser.currencies.RUB;
+                    if (window.userData && window.userData.currencies) {
+                        window.userData.currencies.RUB = directUser.currencies.RUB;
+                    }
+                }
+            }
+            // Также подхватываем локально сохранённые транзакции (в т.ч. пополнения)
+            if (Array.isArray(directUser.transactions) && directUser.transactions.length) {
+                console.log('🔍 Найдены транзакции в localStorage:', directUser.transactions.length);
+                if (!Array.isArray(userData.transactions) || !userData.transactions.length) {
+                    userData.transactions = directUser.transactions.slice();
+                } else {
+                    // Мерджим, избегая дублей по полям type+amount+date
+                    const seen = new Set(userData.transactions.map(t => (t.type || '') + '|' + (t.amount || 0) + '|' + (t.date || '')));
+                    directUser.transactions.forEach(t => {
+                        const key = (t.type || '') + '|' + (t.amount || 0) + '|' + (t.date || '');
+                        if (!seen.has(key)) {
+                            userData.transactions.push(t);
+                            seen.add(key);
+                        }
+                    });
+                }
             }
         }
     } catch (error) {

@@ -20,6 +20,11 @@ function recordPurchaseSuccess(data, deliveryOptions) {
     var amountRub = parseFloat(data.totalAmount || data.baseAmount || p.amount || 0);
     if (!amountRub || amountRub <= 0) return;
     var type = (p.type || 'stars').toLowerCase();
+    // Пополнение баланса не считаем покупкой: не пишем в историю покупок и рейтинг
+    if (type === 'balance') {
+        return;
+    }
+
     var productName = p.productName || p.name || '';
     var starsAmount = parseInt(p.stars_amount || (type === 'stars' ? amountRub / 0.65 : 0), 10) || 0;
     if (type === 'premium') {
