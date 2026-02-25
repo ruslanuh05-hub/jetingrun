@@ -100,6 +100,32 @@ function runDeliveryAfterPayment(data, checkResponse) {
                     if (headerBalanceEl) headerBalanceEl.textContent = newBalance.toFixed(2) + ' ₽';
                     var profileBalanceEl = document.getElementById('profileBalance');
                     if (profileBalanceEl) profileBalanceEl.textContent = newBalance.toFixed(2) + ' ₽';
+
+                    // Сохраняем транзакцию пополнения в Database (если доступен)
+                    try {
+                        var tgDb = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe;
+                        var uidDb = (tgDb && tgDb.user && tgDb.user.id)
+                            ? String(tgDb.user.id)
+                            : (window.userData && window.userData.id ? String(window.userData.id) : null);
+                        var db1 = window.Database || (typeof Database !== 'undefined' ? Database : null);
+                        if (uidDb && db1 && typeof db1.getUser === 'function' && typeof db1.saveUser === 'function') {
+                            var u = db1.getUser(uidDb) || { id: uidDb };
+                            if (!u.currencies) u.currencies = {};
+                            u.currencies.RUB = newBalance;
+                            if (!u.transactions) u.transactions = [];
+                            u.transactions.push({
+                                type: 'deposit',
+                                amount: amount,
+                                currency: 'RUB',
+                                date: new Date().toLocaleString('ru-RU'),
+                                status: 'completed',
+                                source: 'store'
+                            });
+                            db1.saveUser(u);
+                        }
+                    } catch (eDb1) {
+                        console.warn('[runDeliveryAfterPayment] DB deposit save error (freekassa):', eDb1);
+                    }
                 } catch (e) {
                     console.warn('[runDeliveryAfterPayment] balance add error:', e);
                 }
@@ -198,7 +224,14 @@ function runDeliveryAfterPayment(data, checkResponse) {
                     try {
                         var usersKey = 'jetstore_users';
                         var users = JSON.parse(localStorage.getItem(usersKey) || '{}');
-                        if (uid && users[uid]) {
+                        if (uid) {
+                            if (!users[uid]) {
+                                users[uid] = {
+                                    id: uid,
+                                    currencies: { RUB: cur + amount },
+                                    transactions: []
+                                };
+                            }
                             if (!users[uid].transactions) users[uid].transactions = [];
                             users[uid].transactions.push({
                                 type: 'deposit',
@@ -221,6 +254,28 @@ function runDeliveryAfterPayment(data, checkResponse) {
                     if (headerBalanceEl2) headerBalanceEl2.textContent = (cur + amount).toFixed(2) + ' ₽';
                     var profileBalanceEl2 = document.getElementById('profileBalance');
                     if (profileBalanceEl2) profileBalanceEl2.textContent = (cur + amount).toFixed(2) + ' ₽';
+
+                    // И дублируем транзакцию в Database, чтобы она сохранилась в базе
+                    try {
+                        var db2 = window.Database || (typeof Database !== 'undefined' ? Database : null);
+                        if (uid && db2 && typeof db2.getUser === 'function' && typeof db2.saveUser === 'function') {
+                            var u2 = db2.getUser(uid) || { id: uid };
+                            if (!u2.currencies) u2.currencies = {};
+                            u2.currencies.RUB = (u2.currencies.RUB || cur) + amount;
+                            if (!u2.transactions) u2.transactions = [];
+                            u2.transactions.push({
+                                type: 'deposit',
+                                amount: amount,
+                                currency: 'RUB',
+                                date: new Date().toLocaleString('ru-RU'),
+                                status: 'completed',
+                                source: 'store'
+                            });
+                            db2.saveUser(u2);
+                        }
+                    } catch (eDb2) {
+                        console.warn('[runDeliveryAfterPayment] DB deposit save error (generic):', eDb2);
+                    }
             } catch (e) { console.warn('[runDeliveryAfterPayment] balance sync error:', e); }
         }
         message = 'Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽';
