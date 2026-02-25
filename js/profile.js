@@ -599,7 +599,18 @@ function showDepositPopup() {
 
 // Закрыть окно пополнения баланса
 function closeDepositPopup() {
-    closeBalanceTopup();
+    closeAllDepositPopups();
+}
+
+// Закрываем все попапы пополнения (RUB/USDT/SBP),
+// чтобы после успешного пополнения в профиле не оставалось открытых окон.
+function closeAllDepositPopups() {
+    const ids = ['balanceTopupPopup', 'usdtDepositPopup', 'sbpDepositPopup'];
+    ids.forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+    });
+    document.body.classList.remove('steam-popup-open');
 }
 
 function closeBalanceTopup() {
@@ -1155,16 +1166,22 @@ function processDeposit(amount = null) {
     // Обновляем отображение (баланс скрыт — «Скоро»)
     updateBalanceDisplay();
     
-    // Показываем уведомление
+    // Показываем уведомление — в том же стиле, как после успешной оплаты звёзд
     try {
-        const notifyFn = typeof showNotification === 'function' ? showNotification : 
-                        (typeof window.showNotification === 'function' ? window.showNotification : 
-                        (typeof showMobileNotification === 'function' ? showMobileNotification : alert));
-        notifyFn(`✅ Баланс пополнен на ${depositAmount} ₽`, 'success');
-        console.log('Уведомление показано');
+        const msg = 'Баланс пополнен на ' + depositAmount.toLocaleString('ru-RU') + ' ₽';
+        if (typeof showStoreNotification === 'function') {
+            // "Фирменный" баннер, как в магазине звёзд
+            showStoreNotification(msg, 'success');
+        } else {
+            const notifyFn = typeof showNotification === 'function' ? showNotification : 
+                            (typeof window.showNotification === 'function' ? window.showNotification : 
+                            (typeof showMobileNotification === 'function' ? showMobileNotification : alert));
+            notifyFn(msg, 'success');
+        }
+        console.log('Уведомление о пополнении показано');
     } catch (error) {
         console.error('Ошибка показа уведомления:', error);
-        alert(`✅ Баланс пополнен на ${depositAmount} ₽`);
+        alert('Баланс пополнен на ' + depositAmount.toLocaleString('ru-RU') + ' ₽');
     }
     
     // Очищаем поле ввода
