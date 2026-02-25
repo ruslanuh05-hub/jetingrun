@@ -861,14 +861,12 @@ function loadRatingLeaderboard(period) {
                 ? '<span class="rating-medal ' + rankClass + '"><i class="fas fa-medal"></i><span class="rating-medal-num">' + rank + '</span></span>'
                 : '<span class="' + rankClass + '">#' + rank + '</span>';
             
-            // Если пользователь предпочёл скрыться из рейтинга — полностью убираем его строку из списка для него самого
-            if (isMe && isHidden) {
-                return;
-            }
-
             let nameHtml;
             if (isHidden) {
-                nameHtml = '<i class="fas fa-lock rating-lock"></i>Скрыто';
+                // Для себя показываем, что вы скрыты, но оставляем строку с очками
+                nameHtml = isMe
+                    ? '<i class="fas fa-lock rating-lock"></i>Вы скрыты'
+                    : '<i class="fas fa-lock rating-lock"></i>Скрыто';
             } else {
                 const firstName = (item.firstName || '').trim();
                 nameHtml = firstName || 'Пользователь';

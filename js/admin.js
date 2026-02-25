@@ -236,6 +236,58 @@ function loadInitialData() {
     loadSettings();
 }
 
+// Ручная корректировка баланса пользователя по username
+function adminAdjustBalance() {
+    console.log('[adminAdjustBalance] start');
+    const usernameInput = document.getElementById('adjustUsername');
+    const amountInput = document.getElementById('adjustAmount');
+    if (!usernameInput || !amountInput) {
+        showNotification('Элементы формы не найдены', 'error');
+        return;
+    }
+    const username = (usernameInput.value || '').trim();
+    let amount = parseFloat((amountInput.value || '').replace(',', '.'));
+    if (!username) {
+        showNotification('Введите username без @', 'error');
+        return;
+    }
+    if (!amount || isNaN(amount)) {
+        showNotification('Введите ненулевую сумму (можно отрицательную)', 'error');
+        return;
+    }
+
+    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var pwd = '';
+    try { pwd = sessionStorage.getItem('jetStoreAdminPassword') || ''; } catch (e) {}
+    if (!apiBase || !pwd) {
+        showNotification('Нет доступа к API админки (войдите заново)', 'error');
+        return;
+    }
+
+    fetch(apiBase.replace(/\/$/, '') + '/api/admin/balance-adjust', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + pwd
+        },
+        body: JSON.stringify({ username: username, amount: amount })
+    })
+        .then(function(r) { return r.json().catch(function() { return {}; }); })
+        .then(function(res) {
+            if (res && res.success) {
+                const newBal = typeof res.balance_rub === 'number' ? res.balance_rub.toFixed(2) : '—';
+                showNotification('Баланс обновлён. Новый баланс: ' + newBal + ' ₽', 'success');
+                try { refreshStatistics(); } catch (e) {}
+            } else {
+                showNotification(res.message || res.error || 'Ошибка изменения баланса', 'error');
+            }
+        })
+        .catch(function(err) {
+            console.error('[adminAdjustBalance] network error', err);
+            showNotification('Ошибка связи с сервером', 'error');
+        });
+}
+
 // Обновление статистики: с сервера (GET /api/admin/stats) или из локальной Database
 function refreshStatistics() {
     const block = document.getElementById('statBlock');

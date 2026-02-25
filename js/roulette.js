@@ -382,9 +382,9 @@
         }
         var winSeg = segments[winIndex];
 
-        // 3 секунды — колесо крутится по часовой стрелке (положительный rotate)
+        // Делаем вращение более плавным: медленнее старт и мягкая остановка
         // Сегмент 0 смотрит вниз (6ч), стрелка наверху (12ч) — смещение 180°
-        var spins = 4;
+        var spins = 6;
         var anglePer = 360 / total;
         // Всегда считаем вращение от нуля, чтобы не накапливать ошибку
         var finalRotation = spins * 360 + (180 - winIndex * anglePer);
@@ -401,7 +401,8 @@
 
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
-                wheel.style.transition = 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)';
+                // 5.5с: плавный разгон и плавная остановка
+                wheel.style.transition = 'transform 5.5s cubic-bezier(0.12, 0.9, 0.18, 1)';
                 wheel.style.transform = 'rotate(' + finalRotation + 'deg)';
             });
         });
@@ -440,7 +441,7 @@
                 isSpinning = false;
                 updateBalanceDisplay();
             });
-        }, 3100);
+        }, 5700);
     }
 
     function init() {
