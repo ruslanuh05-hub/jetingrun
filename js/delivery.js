@@ -162,7 +162,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
             console.warn('[runDeliveryAfterPayment] spin add error:', e);
             message += 'Спин будет добавлен. Перезайдите на страницу рулетки.';
         }
-    } else if (purchaseType === 'balance') {
+        } else if (purchaseType === 'balance') {
         var amount = parseFloat((data.purchase && data.purchase.amount) || data.baseAmount || 0) || 0;
         if (amount > 0) {
             try {
@@ -172,10 +172,44 @@ function runDeliveryAfterPayment(data, checkResponse) {
                 balanceData.RUB = cur + amount;
                 balanceData.lastUpdate = Date.now();
                 localStorage.setItem(balanceKey, JSON.stringify(balanceData));
-                if (window.userData) {
-                    if (!window.userData.currencies) window.userData.currencies = {};
-                    window.userData.currencies.RUB = (window.userData.currencies.RUB || 0) + amount;
-                }
+                    // Обновляем window.userData, если он есть в этом контексте
+                    var uid = null;
+                    if (window.userData && window.userData.id) {
+                        uid = String(window.userData.id);
+                        if (!window.userData.currencies) window.userData.currencies = {};
+                        window.userData.currencies.RUB = (window.userData.currencies.RUB || 0) + amount;
+                    } else {
+                        // Пытаемся взять ID из Telegram initData
+                        try {
+                            var tg2 = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe;
+                            if (tg2 && tg2.user && tg2.user.id) {
+                                uid = String(tg2.user.id);
+                            }
+                        } catch (eId) {}
+                    }
+                    // Сохраняем транзакцию "пополнение" в jetstore_users,
+                    // чтобы она попала во вкладку "Транзакции" в профиле.
+                    try {
+                        var usersKey = 'jetstore_users';
+                        var users = JSON.parse(localStorage.getItem(usersKey) || '{}');
+                        if (uid && users[uid]) {
+                            if (!users[uid].transactions) users[uid].transactions = [];
+                            users[uid].transactions.push({
+                                type: 'deposit',
+                                amount: amount,
+                                currency: 'RUB',
+                                date: new Date().toLocaleString('ru-RU'),
+                                status: 'completed',
+                                source: 'store'
+                            });
+                            // Обновляем и баланс в сохранённом пользователе
+                            if (!users[uid].currencies) users[uid].currencies = {};
+                            users[uid].currencies.RUB = (users[uid].currencies.RUB || cur) + amount;
+                            localStorage.setItem(usersKey, JSON.stringify(users));
+                        }
+                    } catch (eTxStore) {
+                        console.warn('[runDeliveryAfterPayment] cannot persist deposit transaction to users:', eTxStore);
+                    }
             } catch (e) { console.warn('[runDeliveryAfterPayment] balance sync error:', e); }
         }
         message = 'Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽';
