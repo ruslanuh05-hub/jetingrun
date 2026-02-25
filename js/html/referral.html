@@ -1281,8 +1281,8 @@
                 || String(localStorage.getItem('jet_bot_api_url') || '').trim()
                 || String(localStorage.getItem('jet_api_base') || '').trim()
                 || '';
-            // Последний fallback на известный Railway URL
-            if (!apiBase) apiBase = 'https://jet-store-bot-production.up.railway.app';
+            // Последний fallback на известный URL backend-а (Render)
+            if (!apiBase) apiBase = 'https://isxrgtme4d.onrender.com';
             apiBase = apiBase.replace(/\/$/, '');
             if (apiBase && !/^https?:\/\//i.test(apiBase)) apiBase = 'https://' + apiBase;
             return apiBase;

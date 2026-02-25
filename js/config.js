@@ -15,9 +15,9 @@ window.jetShowAlert = function(msg) {
     }
 };
 // URL бота — для API (CryptoBot, курс TON, Fragment и т.д.)
-window.JET_BOT_API_URL = 'https://jet-store-bot-production.up.railway.app';
+window.JET_BOT_API_URL = 'https://isxrgtme4d.onrender.com';
 window.JET_API_BASE = '';
-window.JET_BOT_API_FALLBACK = 'https://jet-store-bot-production.up.railway.app';
+window.JET_BOT_API_FALLBACK = 'https://isxrgtme4d.onrender.com';
 window.getJetApiBase = function() {
     var url = (window.JET_BOT_API_URL || window.JET_API_BASE || localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '').trim();
     if (!url) {
