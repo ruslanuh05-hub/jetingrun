@@ -282,8 +282,78 @@
 
         isSpinning = true;
 
-        // Полностью локальное списание без API:
-        // сразу уменьшаем баланс и запускаем анимацию спина.
+        var apiBase = getApiBase();
+        var initData = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)
+            ? window.Telegram.WebApp.initData
+            : '';
+
+        // Если есть API и Telegram‑подпись — доверяем только серверу.
+        if (apiBase && initData) {
+            fetch(apiBase.replace(/\/$/, '') + '/api/roulette/spin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Telegram-Init-Data': initData
+                },
+                body: JSON.stringify({ amount: currentBet, currency: currentCurrency })
+            }).then(function (r) {
+                return r.json().catch(function () { return {}; }).then(function (d) {
+                    return { ok: r.ok, status: r.status, data: d || {} };
+                });
+            }).then(function (res) {
+                if (!res.ok || !res.data || !res.data.success) {
+                    if (res.status === 400 && res.data && res.data.error === 'insufficient_funds') {
+                        (window.jetShowAlert || alert)('Недостаточно средств на балансе.');
+                    } else {
+                        (window.jetShowAlert || alert)('Ошибка спина. Попробуйте позже.');
+                    }
+                    isSpinning = false;
+                    updateBalanceDisplay();
+                    return;
+                }
+
+                // Сервер уже списал ставку и зачислил выигрыш.
+                // Обновляем баланс только по данным сервера.
+                if (currentCurrency === 'RUB' && typeof res.data.balance_rub === 'number') {
+                    setBalanceRub(res.data.balance_rub);
+                } else if (currentCurrency === 'USDT' && typeof res.data.balance_usdt === 'number') {
+                    setBalanceUsdt(res.data.balance_usdt);
+                }
+
+                // Находим любой сегмент с нужным множителем
+                var mult = typeof res.data.multiplier === 'number' ? res.data.multiplier : null;
+                var winIdx = null;
+                if (mult != null && segments && segments.length) {
+                    var candidates = [];
+                    for (var i = 0; i < segments.length; i++) {
+                        if (segments[i] && Number(segments[i].multiplier) === Number(mult)) {
+                            candidates.push(i);
+                        }
+                    }
+                    if (candidates.length) {
+                        winIdx = candidates[getRandomInt(candidates.length)];
+                    }
+                }
+
+                var winAmountFromServer = typeof res.data.win_amount === 'number'
+                    ? res.data.win_amount
+                    : Math.round(currentBet * (mult || 1));
+
+                runWheelAnimation({
+                    winIndex: winIdx != null ? winIdx : undefined,
+                    winAmount: winAmountFromServer,
+                    multiplier: mult != null ? mult : undefined,
+                    alreadyCredited: true
+                });
+            }).catch(function () {
+                (window.jetShowAlert || alert)('Ошибка сети при спине. Попробуйте позже.');
+                isSpinning = false;
+                updateBalanceDisplay();
+            });
+            return;
+        }
+
+        // Нет API — работаем полностью локально (режим теста).
         var newBal = Math.max(0, balance - currentBet);
         setCurrentBalance(newBal);
         updateBalanceDisplay();
