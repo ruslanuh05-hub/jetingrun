@@ -551,7 +551,7 @@
             font-size: 1.8rem;
             font-weight: 600;
             color: #ffffff;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
         
         .referral-progress-bar {
@@ -560,6 +560,7 @@
             background: rgba(0, 212, 255, 0.1);
             border-radius: 3px;
             overflow: hidden;
+            margin-top: -2px;
             margin-bottom: 12px;
             position: relative;
         }
@@ -628,22 +629,31 @@
         .referral-link-block {
             margin-top: 6px;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: block;
             padding: 10px 12px;
             border-radius: 10px;
             background: rgba(0, 0, 0, 0.7);
             border: 1px solid rgba(0, 212, 255, 0.2);
         }
 
+        .referral-link-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            min-width: 0;
+        }
+
         .referral-link-text {
-            flex: 1;
+            flex: 1 1 auto;
+            min-width: 0;
             font-size: 0.78rem;
             color: rgba(255, 255, 255, 0.8);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            line-height: 1.3;
         }
 
         .referral-link-copy-btn {
@@ -1184,26 +1194,33 @@
     <!-- Модальное окно уровней JetRefs -->
             <div class="jetrefs-levels-overlay" id="jetRefsLevelsOverlay" onclick="closeJetRefsLevelsModal(event)">
         <div class="jetrefs-levels-modal" onclick="event.stopPropagation()">
-            <div class="jetrefs-levels-title">Уровни JetRefs</div>
+            <div class="jetrefs-levels-title">Уровни реферальной программы</div>
             <div class="jetrefs-level-item">
                 <div class="jetrefs-level-badge l1">1</div>
                 <div class="jetrefs-level-info">
-                    <strong>4% JetRefs</strong>
-                    <span>Объём рефералов: 0 – 999 TON</span>
+                    <strong>3% JetRefs</strong>
+                    <span>Объём рефералов: 0 – 49 999 звёзд</span>
                 </div>
             </div>
             <div class="jetrefs-level-item">
                 <div class="jetrefs-level-badge l2">2</div>
                 <div class="jetrefs-level-info">
-                    <strong>8% JetRefs</strong>
-                    <span>Объём рефералов: 1 000 – 4 999 TON</span>
+                    <strong>5% JetRefs</strong>
+                    <span>Объём рефералов: 50 000 – 99 999 звёзд</span>
                 </div>
             </div>
             <div class="jetrefs-level-item">
                 <div class="jetrefs-level-badge l3">3</div>
                 <div class="jetrefs-level-info">
-                    <strong>12% JetRefs</strong>
-                    <span>Объём рефералов: 5 000+ TON (максимум)</span>
+                    <strong>7% JetRefs</strong>
+                    <span>Объём рефералов: 100 000 – 199 999 звёзд</span>
+                </div>
+            </div>
+            <div class="jetrefs-level-item">
+                <div class="jetrefs-level-badge l3">MAX</div>
+                <div class="jetrefs-level-info">
+                    <strong>7% JetRefs</strong>
+                    <span>Объём рефералов: 200 000+ звёзд (максимум)</span>
                 </div>
             </div>
             <button class="jetrefs-levels-close" onclick="closeJetRefsLevelsModal()">Закрыть</button>

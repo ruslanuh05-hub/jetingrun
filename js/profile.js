@@ -1647,7 +1647,7 @@ function showInfo(type) {
             </a>
             
             <!-- Поддержка -->
-            <a href="https://t.me/JetStoreHelper" target="_blank" class="info-menu-item" onclick="openTelegramLink('https://t.me/JetStoreHelper', event)">
+            <a href="https://t.me/ratejet" target="_blank" class="info-menu-item" onclick="openTelegramLink('https://t.me/ratejet', event)">
                 <div class="info-menu-icon support">
                     <i class="fas fa-comment-dots"></i>
                 </div>
