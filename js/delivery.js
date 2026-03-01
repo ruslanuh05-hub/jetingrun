@@ -3,7 +3,9 @@
 // Клиент только проверяет статус оплаты и показывает уведомление пользователю.
 
 // После пополнения баланса — синхронизация с сервером (источник истины — БД)
-function syncBalanceFromApiAfterDelivery() {
+// opts: { skipZeroOverwrite: true } — не перезаписывать локальный баланс нулём (если БД отключена или сервер вернул 0)
+function syncBalanceFromApiAfterDelivery(opts) {
+    opts = opts || {};
     var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     var initData = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) ? window.Telegram.WebApp.initData : '';
     if (!apiBase || !initData) {
@@ -16,6 +18,18 @@ function syncBalanceFromApiAfterDelivery() {
     }).then(function(r) { return r.ok ? r.json() : null; }).then(function(d) {
         if (d && typeof d.balance_rub === 'number') {
             var rub = d.balance_rub;
+            // Если БД отключена, сервер возвращает 0. Не перезаписываем локально добавленные средства.
+            if (opts.skipZeroOverwrite && rub === 0) {
+                try {
+                    var balanceKey = 'jetstore_balance_fixed';
+                    var cur = JSON.parse(localStorage.getItem(balanceKey) || '{}');
+                    var localRub = parseFloat(cur.RUB) || 0;
+                    if (localRub > 0) {
+                        if (typeof window.updateBalanceDisplay === 'function') window.updateBalanceDisplay();
+                        return;
+                    }
+                } catch (e) {}
+            }
             try {
                 var balanceKey = 'jetstore_balance_fixed';
                 var cur = JSON.parse(localStorage.getItem(balanceKey) || '{}');
@@ -131,7 +145,8 @@ function runDeliveryAfterPayment(data, checkResponse) {
                 }
             }
             if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, { status: 'delivered' });
-            syncBalanceFromApiAfterDelivery();
+            // skipZeroOverwrite: если БД отключена, сервер вернёт 0 — не затираем только что добавленные средства
+            syncBalanceFromApiAfterDelivery({ skipZeroOverwrite: true });
             var amountMsg = 'Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽';
             if (typeof showStoreNotification === 'function') {
                 showStoreNotification(amountMsg, 'success');
@@ -280,7 +295,7 @@ function runDeliveryAfterPayment(data, checkResponse) {
         }
         message = 'Баланс пополнен на ' + (amount || 0).toLocaleString('ru-RU') + ' ₽';
         if (typeof recordPurchaseSuccess === 'function') recordPurchaseSuccess(data, { status: 'delivered' });
-        syncBalanceFromApiAfterDelivery();
+        syncBalanceFromApiAfterDelivery({ skipZeroOverwrite: true });
         if (typeof showStoreNotification === 'function') {
             showStoreNotification(message, 'success');
         } else if (typeof showNotification === 'function') {

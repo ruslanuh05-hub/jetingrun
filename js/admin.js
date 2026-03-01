@@ -14,7 +14,18 @@ function initAdmin() {
     console.log('Статус входа:', isLoggedIn);
     
     if (isLoggedIn) {
-        showAdminPanel();
+        // При автовходе проверяем, сохранён ли пароль в sessionStorage
+        var pwd = '';
+        try { pwd = sessionStorage.getItem('jetStoreAdminPassword') || ''; } catch (e) {}
+        
+        if (!pwd) {
+            // Пароль потерян (например, после перезагрузки страницы) — требуем повторный вход
+            console.log('Автовход: пароль не найден в sessionStorage, требуется вход');
+            localStorage.removeItem('jetStoreAdminLoggedIn');
+            showLoginPanel();
+        } else {
+            showAdminPanel();
+        }
     } else {
         showLoginPanel();
     }
@@ -386,6 +397,10 @@ function renderStatsBlock(block, s) {
         '🛍️ Продажи',
         '▸ Всего продаж: ' + (s.totalSales ?? 0),
         '▸ Общий оборот: ' + fmtRub(s.totalTurnoverRub),
+        '',
+        '💰 Пополнения баланса',
+        '▸ Кол-во пополнений: ' + (s.balanceTopupsCount ?? 0),
+        '▸ Сумма пополнений: ' + fmtRub(s.balanceTopupsRub),
         '',
         '⏳ Динамика продаж:',
         '├ Сегодня: ' + (s.salesToday ?? 0) + ' на ' + fmtRub(s.turnoverToday),

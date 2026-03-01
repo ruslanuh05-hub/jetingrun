@@ -283,13 +283,12 @@
             padding-bottom: max(105px, calc(95px + env(safe-area-inset-bottom, 0)));
         }
         
-        /* Шапка магазина — уменьшена в 1.3 раза */
         .store-header {
             grid-row: 1;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 9px max(12px, env(safe-area-inset-left)) 9px max(12px, env(safe-area-inset-right));
+            padding: 14px max(16px, env(safe-area-inset-left)) 14px max(16px, env(safe-area-inset-right));
             min-width: 0;
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(10px);
@@ -314,14 +313,14 @@
         }
         
         .header-jet-logo {
-            width: 43px;
-            height: 43px;
+            width: 56px;
+            height: 56px;
             object-fit: contain;
         }
         
         .roulette-btn {
-            width: 37px;
-            height: 37px;
+            width: 50px;
+            height: 50px;
             border: none;
             background: transparent;
             cursor: pointer;
@@ -413,7 +412,7 @@
         
         .store-title h1 {
             color: #ffffff;
-            font-size: 0.85rem;
+            font-size: 1.05rem;
             font-weight: 700;
             margin: 0;
             white-space: nowrap;
@@ -423,7 +422,7 @@
         
         .store-title span {
             color: #00d4ff;
-            font-size: 0.54rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -4984,11 +4983,11 @@
         
         /* ===== МОБИЛЬНАЯ ОПТИМИЗАЦИЯ (всё в 1.3 раза меньше) ===== */
         @media (max-width: 480px) {
-            .store-header { padding: 8px max(10px, env(safe-area-inset-left)) 8px max(10px, env(safe-area-inset-right)); }
-            .header-jet-logo { width: 37px; height: 37px; }
-            .store-title h1 { font-size: 0.77rem; }
-            .store-title span { font-size: 0.5rem; }
-            .roulette-btn { width: 37px; height: 37px; min-width: 37px; min-height: 37px; }
+            .store-header { padding: 16px max(18px, env(safe-area-inset-left)) 16px max(18px, env(safe-area-inset-right)); }
+            .header-jet-logo { width: 52px; height: 52px; }
+            .store-title h1 { font-size: 1.0rem; }
+            .store-title span { font-size: 0.8rem; }
+            .roulette-btn { width: 48px; height: 48px; min-width: 48px; min-height: 48px; }
             .main-menu-container.active { padding-bottom: max(90px, calc(80px + env(safe-area-inset-bottom, 0))); }
             .main-menu-cards { padding: 10px max(10px, env(safe-area-inset-left)); gap: 8px; }
             .main-menu-card { padding: 9px 11px; min-height: 77px; }
@@ -5005,8 +5004,8 @@
         }
         
         @media (max-width: 360px) {
-            .store-header { padding: 6px max(8px, env(safe-area-inset-left)) 6px max(8px, env(safe-area-inset-right)); }
-            .header-jet-logo { width: 32px; height: 32px; }
+            .store-header { padding: 14px max(16px, env(safe-area-inset-left)) 14px max(16px, env(safe-area-inset-right)); }
+            .header-jet-logo { width: 48px; height: 48px; }
             .main-menu-cards { padding: 8px max(8px, env(safe-area-inset-left)); gap: 6px; }
             .main-menu-card { padding: 8px 10px; min-height: 70px; }
             .main-menu-card-title { font-size: 0.62rem; }
@@ -5128,10 +5127,8 @@
                     </div>
                 </div>
                 
-                <!-- Steam — пополнение через FunPay -->
+                <!-- Steam — только фон без текста -->
                 <div class="main-menu-card steam-card page-block-enter" onclick="if (typeof showSteamTopup === 'function') showSteamTopup();">
-                    <div class="main-menu-card-title">STEAM</div>
-                    <div class="main-menu-card-subtitle">Пополнение</div>
                     <div class="steam-logo-bg">
                         <i class="fab fa-steam" style="font-size: 100px; color: rgba(0, 212, 255, 0.2);"></i>
                     </div>

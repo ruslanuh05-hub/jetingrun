@@ -119,145 +119,272 @@
             margin: 0 auto;
         }
 
-        /* Верхний блок с пояснением, как работает заработок */
-        .referral-how-block {
+        /* Центральная героическая иконка */
+        .referral-hero-icon {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .referral-hero-icon-inner {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.25) 0%, rgba(118, 75, 162, 0.25) 100%);
             display: flex;
             align-items: center;
-            padding: 16px 16px 18px;
-            margin-bottom: 18px;
-            border-radius: 18px;
-            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.16), transparent 55%),
-                        rgba(6, 8, 18, 0.96);
-            border: 1px solid rgba(0, 212, 255, 0.35);
-            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
         }
-        .referral-how-text-title {
-            font-size: 0.92rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .referral-how-text-sub {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.4;
-        }
-        .referral-how-text-sub b {
+        .referral-hero-icon-inner i {
+            font-size: 3rem;
             color: #00d4ff;
-            font-weight: 600;
         }
-        
-        /* Блок как в Portals: один уровень + карточка */
-        .referral-portals-block {
-            max-width: 620px;
-            margin: 0 auto;
+        .referral-hero-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 8px;
         }
-        .referral-level-bar {
+        .referral-hero-subtitle {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+        }
+
+        /* Details (закрывающийся блок статистики) */
+        .referral-details-block {
+            background: rgba(18, 20, 32, 0.98);
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .referral-details-summary {
+            padding: 16px 18px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffffff;
+            cursor: pointer;
+            user-select: none;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 12px 16px;
-            background: rgba(20, 22, 35, 0.95);
-            border-radius: 14px 14px 0 0;
-            border: 1px solid rgba(0, 212, 255, 0.25);
-            border-bottom: none;
+            justify-content: space-between;
+            list-style: none;
         }
-        .referral-level-bar-title {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 0.5px;
+        .referral-details-summary::-webkit-details-marker {
+            display: none;
         }
-        .referral-level-bar-badge {
-            margin-left: auto;
-            padding: 4px 10px;
-            border-radius: 8px;
-            background: rgba(0, 212, 255, 0.25);
-            color: #00d4ff;
-            font-size: 0.8rem;
-            font-weight: 700;
+        .referral-details-arrow {
+            transition: transform 0.3s ease;
         }
-        .referral-level-bar-more {
-            color: #00d4ff;
-            font-size: 0.85rem;
-            text-decoration: none;
+        .referral-details-block[open] .referral-details-arrow {
+            transform: rotate(180deg);
         }
-        .referral-level-bar-more:hover { color: #40e0d0; }
-        .referral-portals-card {
-            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.12), transparent 50%),
-                        rgba(18, 20, 32, 0.98);
-            border: 1px solid rgba(0, 212, 255, 0.35);
-            border-radius: 0 0 20px 20px;
-            padding: 20px 16px 24px;
-            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+        .referral-details-content {
+            padding: 0 18px 20px;
         }
-        .referral-portals-row {
+
+        /* Статистика (сетка 2 колонки) */
+        .referral-stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 22px;
+            gap: 12px;
+            margin-bottom: 20px;
         }
-        .referral-portals-col {
+        .referral-stat-card {
             background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 14px;
             padding: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
+            text-align: center;
         }
-        .referral-portals-icon {
+        .referral-stat-icon {
             width: 44px;
             height: 44px;
+            margin: 0 auto 8px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
         }
-        .referral-portals-icon.earned {
+        .referral-stat-icon.earnings {
             background: rgba(76, 175, 80, 0.3);
             color: #81c784;
         }
-        .referral-portals-icon.refs {
+        .referral-stat-icon.refs {
             background: rgba(156, 39, 176, 0.3);
             color: #ce93d8;
         }
-        .referral-portals-icon.refs img { width: 28px; height: 28px; object-fit: contain; }
-        .referral-portals-label {
+        .referral-stat-label {
             font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.85);
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 6px;
         }
-        .referral-portals-value {
+        .referral-stat-value {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            color: #ffffff;
         }
-        .referral-portals-value .ton-icon { width: 20px; height: 20px; }
-        .referral-portals-sub {
-            font-size: 0.75rem;
-            color: rgba(0, 212, 255, 0.85);
-        }
-        .referral-portals-volume {
+
+        /* Уровень */
+        .referral-level-info {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 14px 16px;
             margin-bottom: 20px;
         }
-        .referral-portals-volume-header {
+        .referral-level-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .referral-level-row:last-of-type {
+            margin-bottom: 10px;
+        }
+        .referral-level-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .referral-level-badge {
+            background: rgba(0, 212, 255, 0.25);
+            color: #00d4ff;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .referral-level-percent {
+            color: #00d4ff;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .referral-level-more {
+            display: inline-block;
+            color: #00d4ff;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .referral-level-more:hover {
+            color: #40e0d0;
+        }
+
+        /* Объем покупок рефералов + прогресс */
+        .referral-volume-block {
+            margin-bottom: 20px;
+        }
+        .referral-volume-header {
             display: flex;
             align-items: center;
             gap: 8px;
+            margin-bottom: 10px;
+        }
+        .referral-volume-icon {
+            color: #00d4ff;
+            font-size: 1rem;
+        }
+        .referral-volume-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .referral-volume-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+        .referral-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
             margin-bottom: 8px;
         }
-        .referral-portals-volume-icon {
+        .referral-progress-fill {
+            height: 100%;
+            background: #00d4ff;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .referral-progress-text {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        /* Реферальная ссылка */
+        .referral-link-block {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+        .referral-link-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.65);
+            margin-bottom: 8px;
+        }
+        .referral-link-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .referral-link-text {
+            flex: 1;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.9);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .referral-link-copy-btn {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(0, 212, 255, 0.2);
             color: #00d4ff;
-            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        .referral-portals-volume-label {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.85);
+        .referral-link-copy-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
         }
+        .referral-link-copy-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Кнопка Пригласить (отдельно) */
+        .referral-invite-main-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #00d4ff 0%, #00a3ff 100%);
+            color: #000000;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.35);
+        }
+        .referral-invite-main-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 212, 255, 0.5);
+        }
+        .referral-invite-main-btn:active {
+            transform: translateY(0);
+        }
+        
         .referral-portals-volume-value {
             font-size: 1.2rem;
             font-weight: 600;
@@ -1105,81 +1232,85 @@
     </div>
     
     <div class="referral-page-content">
-        <!-- Верхний блок-объяснение, как работает заработок -->
-        <div class="referral-how-block page-block-enter">
-            <div class="referral-how-text">
-                <div class="referral-how-text-title">Как работает заработок с JET</div>
-                <div class="referral-how-text-sub">
-                    Приглашайте друзей по вашей <b>личной ссылке</b>. Когда они покупают продукты в JET,
-                    вы получаете <b>процент с их оборота</b> в TON. Вся статистика и накопленный доход
-                    отображаются ниже на этой странице.
-                </div>
+        <!-- Центральная иконка рефералов -->
+        <div class="referral-hero-icon page-block-enter">
+            <div class="referral-hero-icon-inner">
+                <i class="fas fa-users"></i>
             </div>
+            <h2 class="referral-hero-title">Приглашайте друзей</h2>
+            <p class="referral-hero-subtitle">Зарабатывайте с каждой их покупки</p>
         </div>
 
-        <!-- Один блок как в Portals: уровень + статистика + объём + кнопка -->
-        <div class="referral-portals-block page-block-enter">
-            <!-- Верхняя полоса: УРОВЕНЬ JETREFS + процент + Больше > -->
-            <div class="referral-level-bar">
-                <span class="referral-level-bar-title">УРОВЕНЬ JETREFS</span>
-                <span class="referral-level-bar-badge" id="refLevelPercent">4%</span>
-                <a href="#" class="referral-level-bar-more" onclick="showJetRefsLevelsModal(); return false;">Больше &gt;</a>
-            </div>
-
-            <!-- Карточка со статистикой -->
-            <div class="referral-portals-card">
-                <!-- Ряд 1: Заработано | Рефералы -->
-                <div class="referral-portals-row">
-                    <div class="referral-portals-col referral-portals-earned">
-                        <div class="referral-portals-icon earned"><i class="fas fa-coins"></i></div>
-                        <div class="referral-portals-label">Заработано</div>
-                        <div class="referral-portals-value">
-                            <span id="refEarnTon">0</span>
-                            <img class="ton-icon" src="../assets/ton.png" alt="TON">
+        <!-- Блок: статистика + ссылка (закрывающийся) -->
+        <details class="referral-details-block page-block-enter" open>
+            <summary class="referral-details-summary">
+                <span class="referral-details-summary-text">Статистика и реферальная ссылка</span>
+                <i class="fas fa-chevron-down referral-details-arrow"></i>
+            </summary>
+            <div class="referral-details-content">
+                <!-- Статистика -->
+                <div class="referral-stats-grid">
+                    <div class="referral-stat-card">
+                        <div class="referral-stat-icon earnings"><i class="fas fa-coins"></i></div>
+                        <div class="referral-stat-label">Заработано</div>
+                        <div class="referral-stat-value">
+                            <span id="refEarnRub">0</span> ₽
                         </div>
-                        <div class="referral-portals-sub" id="refEarnRubInTon">0 ₽</div>
                     </div>
-                    <div class="referral-portals-col referral-portals-refs">
-                        <div class="referral-portals-icon refs"><img src="../assets/ref-icon.png" alt=""></div>
-                        <div class="referral-portals-label">Рефералы</div>
-                        <div class="referral-portals-value" id="refTotalRefs">0</div>
+                    <div class="referral-stat-card">
+                        <div class="referral-stat-icon refs"><i class="fas fa-users"></i></div>
+                        <div class="referral-stat-label">Рефералы</div>
+                        <div class="referral-stat-value" id="refTotalRefs">0</div>
                     </div>
                 </div>
 
-                <!-- Ряд 2: Объем рефералов + прогресс -->
-                <div class="referral-portals-volume">
-                    <div class="referral-portals-volume-header">
-                        <span class="referral-portals-volume-icon"><i class="fas fa-chart-line"></i></span>
-                        <span class="referral-portals-volume-label">Объем рефералов</span>
+                <!-- Уровень -->
+                <div class="referral-level-info">
+                    <div class="referral-level-row">
+                        <span class="referral-level-label">Уровень</span>
+                        <span class="referral-level-badge" id="refLevelBadge">1</span>
                     </div>
-                    <div class="referral-portals-volume-value" id="refVolumeDisplay">0 <img class="ton-icon small" src="../assets/ton.png" alt="TON"></div>
+                    <div class="referral-level-row">
+                        <span class="referral-level-label">Процент</span>
+                        <span class="referral-level-percent" id="refLevelPercent">3%</span>
+                    </div>
+                    <a href="#" class="referral-level-more" onclick="showJetRefsLevelsModal(); return false;">Подробнее об уровнях →</a>
+                </div>
+
+                <!-- Объем рефералов + прогресс -->
+                <div class="referral-volume-block">
+                    <div class="referral-volume-header">
+                        <span class="referral-volume-icon"><i class="fas fa-chart-line"></i></span>
+                        <span class="referral-volume-label">Объем покупок рефералов</span>
+                    </div>
+                    <div class="referral-volume-value" id="refVolumeStars">0 звёзд</div>
                     <div class="referral-progress-bar">
                         <div class="referral-progress-fill" id="refProgressBar" style="width: 0%;"></div>
-                        <div class="referral-progress-tick l2"></div>
-                        <div class="referral-progress-tick l3"></div>
                     </div>
-                    <div class="referral-progress-text" id="refProgressText">
-                        <span>0</span>
-                        <img class="ton-icon small" src="../assets/ton.png" alt="TON">
-                        <span>осталось до следующего уровня</span>
-                    </div>
+                    <div class="referral-progress-text" id="refProgressText">0 звёзд до следующего уровня</div>
                 </div>
 
-                <!-- Ссылка + копировать -->
+                <!-- Реферальная ссылка -->
                 <div class="referral-link-block">
-                    <div class="referral-link-text" id="referralLinkText">Загрузка ссылки...</div>
-                    <button class="referral-link-copy-btn" id="copyReferralLinkBtn" title="Скопировать ссылку"><i class="fas fa-copy"></i></button>
+                    <div class="referral-link-label">Ваша реферальная ссылка</div>
+                    <div class="referral-link-row">
+                        <div class="referral-link-text" id="referralLinkText">Загрузка...</div>
+                        <button class="referral-link-copy-btn" id="copyReferralLinkBtn" title="Скопировать"><i class="fas fa-copy"></i></button>
+                    </div>
                 </div>
-
-                <button class="referral-invite-btn" id="inviteFriendsBtn">Пригласите друзей</button>
             </div>
-        </div>
-        
+        </details>
+
+        <!-- Кнопка Пригласить (отдельно) -->
+        <button class="referral-invite-main-btn page-block-enter" id="inviteFriendsBtn">
+            <i class="fas fa-paper-plane"></i> Пригласить друзей
+        </button>
+    </div>
     <!-- Нижняя навигация -->
     <!-- Модальное окно уровней JetRefs -->
             <div class="jetrefs-levels-overlay" id="jetRefsLevelsOverlay" onclick="closeJetRefsLevelsModal(event)">
         <div class="jetrefs-levels-modal" onclick="event.stopPropagation()">
-            <div class="jetrefs-levels-title">Уровни JetRefs</div>
+            <div class="jetrefs-levels-title">Уровни реферальной программы</div>
             <div class="jetrefs-level-item">
                 <div class="jetrefs-level-badge l1">1</div>
                 <div class="jetrefs-level-info">
@@ -1369,61 +1500,72 @@
 
         // Обновляем UI с данными статистики
         function updateReferralUI(stats) {
-            // Уровень и процент JetRefs
-            const level = stats.level || 1;
-            // Проценты JetRefs: 1‑й уровень 4%, 2‑й — 8%, 3‑й — 12%
-            const percent = level === 1 ? 4 : level === 2 ? 8 : 12;
-            document.getElementById('refLevelPercent').textContent = `${percent}%`;
+            // Определяем уровень и процент по объёму покупок рефералов (в звёздах)
+            // Примерный курс: 1 звезда ≈ 2.8 ₽
+            const volumeRub = stats.volume_rub || 0;
+            const volumeStars = Math.floor(volumeRub / 2.8);
+            
+            let level = 1;
+            let percent = 3;
+            if (volumeStars >= 200000) {
+                level = 4; // MAX
+                percent = 7;
+            } else if (volumeStars >= 100000) {
+                level = 3;
+                percent = 7;
+            } else if (volumeStars >= 50000) {
+                level = 2;
+                percent = 5;
+            } else {
+                level = 1;
+                percent = 3;
+            }
 
-            // Заработано в TON
-            const earnedTon = (stats.earned_ton || 0).toFixed(2);
-            document.getElementById('refEarnTon').textContent = earnedTon.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            // Заполняем уровень и процент
+            const levelBadgeEl = document.getElementById('refLevelBadge');
+            if (levelBadgeEl) levelBadgeEl.textContent = level === 4 ? 'MAX' : level.toString();
+            const levelPercentEl = document.getElementById('refLevelPercent');
+            if (levelPercentEl) levelPercentEl.textContent = `${percent}%`;
 
-            // Эквивалент в рублях (под суммой в TON)
+            // Заработано в рублях
             const earnedRub = (stats.earned_rub || 0).toFixed(2);
-            const refEarnRubEl = document.getElementById('refEarnRubInTon');
-            if (refEarnRubEl) refEarnRubEl.textContent = `≈ ${earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
+            const refEarnRubEl = document.getElementById('refEarnRub');
+            if (refEarnRubEl) refEarnRubEl.textContent = earnedRub.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
             // Всего рефералов
             const totalRefs = stats.total_referrals || 0;
-            document.getElementById('refTotalRefs').textContent = totalRefs.toLocaleString('ru-RU');
+            const refTotalRefsEl = document.getElementById('refTotalRefs');
+            if (refTotalRefsEl) refTotalRefsEl.textContent = totalRefs.toLocaleString('ru-RU');
 
-            // Объем рефералов (в TON)
-            const volumeTon = stats.volume_ton != null ? Number(stats.volume_ton) : 0;
-            const refVolumeEl = document.getElementById('refVolumeDisplay');
-            if (refVolumeEl) {
-                const vStr = volumeTon.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                refVolumeEl.innerHTML = vStr + ' <img class="ton-icon small" src="../assets/ton.png" alt="TON">';
+            // Объем покупок рефералов (в звёздах)
+            const refVolumeStarsEl = document.getElementById('refVolumeStars');
+            if (refVolumeStarsEl) {
+                refVolumeStarsEl.textContent = `${volumeStars.toLocaleString('ru-RU')} звёзд`;
             }
 
-            // Прогресс-бар — используем progress_percent из API (уровни 1: 0–5k TON, 2: 5k–15k TON, 3: 15k+ TON)
-            const globalPercent = Math.max(0, Math.min(100, stats.progress_percent ?? 0));
-            const progressBar = document.getElementById('refProgressBar');
-            progressBar.style.width = '0%';
-            // Запускаем анимацию прогресс-бара
-            setTimeout(() => {
-                progressBar.style.width = `${globalPercent}%`;
-            }, 100);
-
-            // Текст прогресса - показываем сколько осталось в TON
-            const toNextVolumeTon = stats.to_next_volume_ton || 0;
-            const progressTextEl = document.getElementById('refProgressText');
+            // Прогресс-бар
+            let thresholds = [50000, 100000, 200000];
+            let targetStars = level < 4 ? thresholds[level - 1] : 200000;
+            let progressPercent = level === 4 ? 100 : Math.min(100, (volumeStars / targetStars) * 100);
             
-            if (level >= 3) {
-                progressTextEl.innerHTML = '<span>Максимальный уровень JetRefs</span>';
-            } else {
-                const formattedTon = parseFloat(toNextVolumeTon).toLocaleString('ru-RU', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-                progressTextEl.innerHTML = `
-                    <span>${formattedTon}</span>
-                    <img class="ton-icon small" src="../assets/ton.png" alt="TON">
-                    <span>TON осталось до следующего уровня</span>
-                `;
+            const progressBar = document.getElementById('refProgressBar');
+            if (progressBar) {
+                progressBar.style.width = '0%';
+                setTimeout(() => {
+                    progressBar.style.width = `${progressPercent}%`;
+                }, 100);
             }
 
-            // Обновляем баланс для вывода (вкладка «Вывести средства» удалена — логика оставлена для совместимости)
+            // Текст прогресса
+            const progressTextEl = document.getElementById('refProgressText');
+            if (progressTextEl) {
+                if (level === 4) {
+                    progressTextEl.textContent = 'Максимальный уровень достигнут';
+                } else {
+                    const remaining = targetStars - volumeStars;
+                    progressTextEl.textContent = `${remaining.toLocaleString('ru-RU')} звёзд до следующего уровня`;
+                }
+            }
         }
 
         // Переключение UI для валюты вывода

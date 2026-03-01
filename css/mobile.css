@@ -63,22 +63,22 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; touch-act
     .nav-icon-wrapper { min-width: 26px !important; min-height: 26px !important; }
 }
 
-/* Шапки страниц — мобильная оптимизация */
+/* Шапки страниц — мобильная оптимизация (увеличены размеры) */
 @media (max-width: 480px) {
     .profile-header-top,
     .profile-header,
-    .store-header { padding: 10px max(12px, env(safe-area-inset-left)) 10px max(12px, env(safe-area-inset-right)) !important; }
-    .logo-icon { width: 44px !important; height: 44px !important; }
-    .logo-text h1 { font-size: 1.1rem !important; }
-    .logo-text p { font-size: 0.65rem !important; }
+    .store-header { padding: 16px max(18px, env(safe-area-inset-left)) 16px max(18px, env(safe-area-inset-right)) !important; }
+    .logo-icon { width: 52px !important; height: 52px !important; }
+    .logo-text h1 { font-size: 1.25rem !important; }
+    .logo-text p { font-size: 0.8rem !important; }
 }
 
 @media (max-width: 360px) {
     .profile-header-top,
     .profile-header,
-    .store-header { padding: 8px max(10px, env(safe-area-inset-left)) 8px max(10px, env(safe-area-inset-right)) !important; }
-    .logo-icon { width: 40px !important; height: 40px !important; }
-    .logo-text h1 { font-size: 1rem !important; }
+    .store-header { padding: 14px max(16px, env(safe-area-inset-left)) 14px max(16px, env(safe-area-inset-right)) !important; }
+    .logo-icon { width: 48px !important; height: 48px !important; }
+    .logo-text h1 { font-size: 1.15rem !important; }
 }
 
 /* Store content — мобильная оптимизация */
