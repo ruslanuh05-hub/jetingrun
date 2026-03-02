@@ -1174,6 +1174,12 @@ function checkTelegramUser(inputId, previewId) {
     if (inputId === 'premiumRecipient') setPremiumRecipientState('loading', { username: clean });
 
     const apiBase = (typeof getJetApiBase === 'function' ? getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (!apiBase) {
+        const msg = 'API не настроен (не задан URL бэкенда).';
+        if (inputId === 'starsRecipient') setStarsRecipientState('not_found', { message: msg });
+        if (inputId === 'premiumRecipient') setPremiumRecipientState('not_found', { message: msg });
+        return;
+    }
     const url = (apiBase || '').replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(clean);
 
     fetch(url, { method: 'GET', mode: 'cors' })
@@ -1198,9 +1204,13 @@ function checkTelegramUser(inputId, previewId) {
             if (inputId === 'starsRecipient') setStarsRecipientState('found', userData);
             if (inputId === 'premiumRecipient') setPremiumRecipientState('found', userData);
         })
-        .catch(function() {
-            if (inputId === 'starsRecipient') setStarsRecipientState('not_found');
-            if (inputId === 'premiumRecipient') setPremiumRecipientState('not_found');
+        .catch(function(err) {
+            const telethonConnected = !!(err && (err.telethon_connected === true || err.telethon_connected === 'true'));
+            const msg = (!telethonConnected && err && (err.error === 'not_found'))
+                ? 'Поиск недоступен: настрой Telethon (TELEGRAM_API_ID / TELEGRAM_API_HASH / TELEGRAM_STRING_SESSION).'
+                : (err && err.message) ? err.message : 'Пользователь не найден';
+            if (inputId === 'starsRecipient') setStarsRecipientState('not_found', { message: msg });
+            if (inputId === 'premiumRecipient') setPremiumRecipientState('not_found', { message: msg });
         });
 }
 
@@ -1283,6 +1293,8 @@ function setStarsRecipientState(state, userData) {
 
     if (state === 'not_found') {
         wrapper.classList.add('tg-user-input-error');
+        if (userData && userData.message) errorText.textContent = userData.message;
+        else errorText.textContent = 'Пользователь не найден';
         errorText.style.display = 'block';
     }
 }
@@ -1328,6 +1340,8 @@ function setPremiumRecipientState(state, userData) {
     }
     if (state === 'not_found') {
         wrapper.classList.add('tg-user-input-error');
+        if (userData && userData.message) errorText.textContent = userData.message;
+        else errorText.textContent = 'Пользователь не найден';
         errorText.style.display = 'block';
     }
 }
