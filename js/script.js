@@ -1221,6 +1221,18 @@ function checkTelegramUser(inputId, previewId) {
         });
 }
 
+// Нормализация отображаемого имени (убираем @username из строки имени)
+function normalizeDisplayName(userData) {
+    const rawName = ((userData.firstName || userData.first_name || '') + '').trim();
+    const uname = ((userData.username || '') + '').replace(/^@/, '');
+    let base = rawName || uname;
+    if (!base) return '';
+    // Удаляем в имени куски вида "@Desperado9"
+    base = base.replace(/@[\w\d_]+/g, '').trim();
+    // Если после чистки ничего не осталось — показываем просто username без @
+    return base || uname;
+}
+
 // Отображение превью пользователя
 function showUserPreview(previewId, userData) {
     const preview = document.getElementById(previewId);
@@ -1230,15 +1242,14 @@ function showUserPreview(previewId, userData) {
     const nameEl = preview.querySelector('span');
     
     if (avatarEl) {
-        avatarEl.src = userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.firstName || userData.username)}&background=00d4ff&color=fff&size=128`;
-        avatarEl.alt = userData.firstName || userData.username;
+        const displayName = normalizeDisplayName(userData);
+        avatarEl.src = userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || userData.username || '')}&background=00d4ff&color=fff&size=128`;
+        avatarEl.alt = displayName || userData.username || '';
     }
     
-        if (nameEl) {
-            const fname = (userData.firstName || '').trim();
-            // В chip показываем только имя, без (@username)
-            nameEl.textContent = fname || (userData.username ? userData.username : '');
-        }
+    if (nameEl) {
+        nameEl.textContent = normalizeDisplayName(userData);
+    }
     
     preview.style.display = 'flex';
 }
@@ -1283,13 +1294,12 @@ function setStarsRecipientState(state, userData) {
             avatarImg.src =
                 userData.avatar ||
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    userData.username || userData.firstName || ''
+                    normalizeDisplayName(userData) || userData.username || ''
                 )}&background=00d4ff&color=fff&size=128`;
         }
         if (nameSpan) {
-            // В chip для звёзд показываем только имя (как просили), без (@username) в скобках
-            const fname = (userData.firstName || '').trim();
-            nameSpan.textContent = fname || (userData.username ? userData.username : '');
+            // В chip для звёзд показываем только имя (после очистки), без (@username)
+            nameSpan.textContent = normalizeDisplayName(userData);
         }
 
         chip.style.display = 'flex';
@@ -1336,9 +1346,8 @@ function setPremiumRecipientState(state, userData) {
     if (state === 'found' && userData) {
         if (avatarImg) avatarImg.src = userData.avatar || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(userData.username || userData.firstName || '') + '&background=00d4ff&color=fff&size=128');
         if (nameSpan) {
-            var fname = (userData.firstName || '').trim();
-            // В chip для Premium тоже убираем (@username), оставляем только имя / username
-            nameSpan.textContent = fname || (userData.username ? userData.username : '');
+            // В chip для Premium показываем только имя после очистки
+            nameSpan.textContent = normalizeDisplayName(userData);
         }
         chip.style.display = 'flex';
         input.style.display = 'none';
