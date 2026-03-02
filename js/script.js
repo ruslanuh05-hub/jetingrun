@@ -1192,10 +1192,17 @@ function checkTelegramUser(inputId, previewId) {
         .then(function(u) {
             if (!u || u.error) throw u || new Error('not_found');
 
+            let avatar = u.avatar || '';
+            // Если Fragment вернул HTML тега <img>, аккуратно вытаскиваем src
+            if (avatar && typeof avatar === 'string' && avatar.indexOf('<img') !== -1) {
+                const m = avatar.match(/src=["']([^"']+)["']/i);
+                if (m && m[1]) avatar = m[1];
+            }
+
             const userData = {
                 username: (u.username || clean || '').toString().replace(/^@/, ''),
                 firstName: (u.first_name || u.firstName || '').toString(),
-                avatar: u.avatar || ''
+                avatar: avatar
             };
 
             // Нормализуем поле ввода: всегда @username
@@ -1227,11 +1234,11 @@ function showUserPreview(previewId, userData) {
         avatarEl.alt = userData.firstName || userData.username;
     }
     
-    if (nameEl) {
-        const uname = userData.username ? `@${userData.username}` : '';
-        const fname = (userData.firstName || '').trim();
-        nameEl.textContent = fname ? `${fname} ${uname}`.trim() : uname;
-    }
+        if (nameEl) {
+            const fname = (userData.firstName || '').trim();
+            // В chip показываем только имя, без (@username)
+            nameEl.textContent = fname || (userData.username ? userData.username : '');
+        }
     
     preview.style.display = 'flex';
 }
@@ -1280,10 +1287,9 @@ function setStarsRecipientState(state, userData) {
                 )}&background=00d4ff&color=fff&size=128`;
         }
         if (nameSpan) {
-            // Показываем "Имя @username" (как в Telegram)
-            const uname = userData.username ? `@${userData.username}` : '';
+            // В chip для звёзд показываем только имя (как просили), без (@username) в скобках
             const fname = (userData.firstName || '').trim();
-            nameSpan.textContent = fname ? `${fname} ${uname}`.trim() : uname;
+            nameSpan.textContent = fname || (userData.username ? userData.username : '');
         }
 
         chip.style.display = 'flex';
@@ -1330,9 +1336,9 @@ function setPremiumRecipientState(state, userData) {
     if (state === 'found' && userData) {
         if (avatarImg) avatarImg.src = userData.avatar || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(userData.username || userData.firstName || '') + '&background=00d4ff&color=fff&size=128');
         if (nameSpan) {
-            var uname = userData.username ? '@' + userData.username : '';
             var fname = (userData.firstName || '').trim();
-            nameSpan.textContent = fname ? (fname + ' ' + uname).trim() : uname;
+            // В chip для Premium тоже убираем (@username), оставляем только имя / username
+            nameSpan.textContent = fname || (userData.username ? userData.username : '');
         }
         chip.style.display = 'flex';
         input.style.display = 'none';
