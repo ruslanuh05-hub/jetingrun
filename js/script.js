@@ -1151,11 +1151,57 @@ function fillOwnUsername(inputId) {
     if (inputId === 'premiumRecipient' && typeof setPremiumRecipientState === 'function') {
         setPremiumRecipientState('empty');
     }
+
+    // Как во Fragment: сразу ищем профиль по username
+    if (inputId === 'starsRecipient' || inputId === 'premiumRecipient') {
+        try { checkTelegramUser(inputId); } catch (e) {}
+    }
 }
 
-// Проверка пользователя по API отключена: только ввод @username, без отображения авы и ника.
 function checkTelegramUser(inputId, previewId) {
-    return;
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    const raw = (input.value || '').toString().trim();
+    const clean = sanitizeLogin(raw);
+    if (!clean || clean.length < 3) {
+        if (inputId === 'starsRecipient') setStarsRecipientState('empty');
+        if (inputId === 'premiumRecipient') setPremiumRecipientState('empty');
+        return;
+    }
+
+    if (inputId === 'starsRecipient') setStarsRecipientState('loading', { username: clean });
+    if (inputId === 'premiumRecipient') setPremiumRecipientState('loading', { username: clean });
+
+    const apiBase = (typeof getJetApiBase === 'function' ? getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    const url = (apiBase || '').replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(clean);
+
+    fetch(url, { method: 'GET', mode: 'cors' })
+        .then(function(r) {
+            if (!r.ok) {
+                return r.json().catch(function() { return null; }).then(function(err) { throw err || new Error('not_found'); });
+            }
+            return r.json();
+        })
+        .then(function(u) {
+            if (!u || u.error) throw u || new Error('not_found');
+
+            const userData = {
+                username: (u.username || clean || '').toString().replace(/^@/, ''),
+                firstName: (u.first_name || u.firstName || '').toString(),
+                avatar: u.avatar || ''
+            };
+
+            // Нормализуем поле ввода: всегда @username
+            if (userData.username) input.value = '@' + userData.username;
+
+            if (inputId === 'starsRecipient') setStarsRecipientState('found', userData);
+            if (inputId === 'premiumRecipient') setPremiumRecipientState('found', userData);
+        })
+        .catch(function() {
+            if (inputId === 'starsRecipient') setStarsRecipientState('not_found');
+            if (inputId === 'premiumRecipient') setPremiumRecipientState('not_found');
+        });
 }
 
 // Отображение превью пользователя
@@ -1707,6 +1753,32 @@ function setupEventListeners() {
                 closePopup();
             } else {
                 tg.close();
+            }
+        });
+    }
+
+    // Автопоиск получателя звёзд (как во Fragment): input (debounce) + Enter + blur
+    const starsRecipientInput = document.getElementById('starsRecipient');
+    if (starsRecipientInput) {
+        let lookupTimer = null;
+        const triggerLookup = function() {
+            try { checkTelegramUser('starsRecipient', 'starsUserPreview'); } catch (e) {}
+        };
+
+        starsRecipientInput.addEventListener('input', function() {
+            if (lookupTimer) clearTimeout(lookupTimer);
+            lookupTimer = setTimeout(triggerLookup, 350);
+        });
+        starsRecipientInput.addEventListener('blur', function() {
+            if (lookupTimer) clearTimeout(lookupTimer);
+            triggerLookup();
+        });
+        starsRecipientInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (lookupTimer) clearTimeout(lookupTimer);
+                triggerLookup();
+                try { starsRecipientInput.blur(); } catch (err) {}
             }
         });
     }

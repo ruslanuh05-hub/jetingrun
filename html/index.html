@@ -86,19 +86,24 @@
             text-shadow: 0 1px 4px rgba(0,0,0,0.8);
         }
         
-        .tg-guard-loading-progress-container {
+        .tg-guard-loading-progress-wrap {
             position: absolute;
+            left: 50%;
             z-index: 1;
             width: 160px;
-            max-width: 50%;
+            animation: progressPulse 2s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        .tg-guard-loading-progress-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
             height: 12px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 6px;
             overflow: hidden;
-            top: 44%;
-            left: 50%;
-            transform: translateX(-50%);
-            margin-bottom: 0;
+            margin-top: 8px; /* сразу под текстом */
         }
         
         .tg-guard-loading-progress-bar {
@@ -176,6 +181,21 @@
             opacity: 1;
             transition: opacity 0.5s ease, visibility 0.5s ease;
         }
+
+        /* Для мобильных экранов поднимаем текст+ползунок выше */
+        @media (max-width: 480px) {
+            .loading-screen {
+                justify-content: flex-start;
+                padding-top: 18vh;
+            }
+            /* На телефонах фиксируем ползунок чуть выше центра экрана */
+            .loading-progress-container {
+                position: absolute;
+                top: 56vh;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
         
         .loading-screen.hidden {
             opacity: 0;
@@ -211,6 +231,12 @@
                 opacity: 0.9;
             }
         }
+
+        /* Пульс прогресса: такой же zoom, но с сохранением translateX(-50%) */
+        @keyframes progressPulse {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+            50%      { transform: translateX(-50%) scale(1.05); opacity: 0.9; }
+        }
         
         .loading-text {
             position: relative;
@@ -224,19 +250,24 @@
             text-shadow: 0 1px 4px rgba(0,0,0,0.8);
         }
         
-        .loading-progress-container {
-            position: absolute;
+        .loading-progress-wrap {
+            position: fixed;
+            left: 50%;
             z-index: 1;
+            animation: progressPulse 2s ease-in-out infinite;
+            transform-origin: center;
             width: 160px;
-            max-width: 50%;
+        }
+
+        .loading-progress-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
             height: 12px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 6px;
             overflow: hidden;
-            top: 44%;
-            left: 50%;
-            transform: translateX(-50%);
-            margin-top: 0;
+            margin-top: 8px; /* сразу под текстом */
         }
         
         .loading-progress-bar {
@@ -5047,8 +5078,10 @@
                  style="display: block; opacity: 1; visibility: visible;"
                  onload="console.log('Logo loaded:', this.src); this.style.display='block'; this.style.opacity='1';"
                  onerror="console.error('Failed to load logo_load.png, trying jet-logo.png'); var img = this; img.onerror=null; img.src='../assets/jet-logo.png'; img.onerror=function(){console.error('All logos failed'); this.style.display='none';}">
-            <div class="loading-progress-container">
-                <div class="loading-progress-bar" id="loadingProgressBar"></div>
+            <div class="loading-progress-wrap">
+                <div class="loading-progress-container">
+                    <div class="loading-progress-bar" id="loadingProgressBar"></div>
+                </div>
             </div>
         </div>
         
@@ -5060,8 +5093,10 @@
                      style="display: block; opacity: 1; visibility: visible;"
                      onload="console.log('TG Guard logo loaded:', this.src); this.style.display='block'; this.style.opacity='1';"
                      onerror="console.error('Failed to load logo_load.png, trying jet-logo.png'); var img = this; img.onerror=null; img.src='../assets/jet-logo.png'; img.onerror=function(){console.error('All logos failed'); this.style.display='none';}">
-                <div class="tg-guard-loading-progress-container">
-                    <div class="tg-guard-loading-progress-bar" id="tgGuardLoadingProgressBar"></div>
+                <div class="tg-guard-loading-progress-wrap">
+                    <div class="tg-guard-loading-progress-container">
+                        <div class="tg-guard-loading-progress-bar" id="tgGuardLoadingProgressBar"></div>
+                    </div>
                 </div>
             </div>
             

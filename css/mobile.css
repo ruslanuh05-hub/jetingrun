@@ -5,6 +5,13 @@
 html, body { -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-text-size-adjust: 100%; overflow-x: hidden; max-width: 100vw; }
 button, a, [role="button"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
+/* Загрузочный экран JET STORE — единое правило для ползунка */
+.loading-screen .loading-progress-wrap {
+    position: fixed !important;
+    left: 50% !important;
+    bottom: 35vh !important;  /* чем меньше число, тем выше полоска */
+}
+
 /* Контейнеры с нижней навигацией — отступ под подвал (подвал уменьшен в 2 раза) */
 .profile-container,
 #injectedPageWrap {
