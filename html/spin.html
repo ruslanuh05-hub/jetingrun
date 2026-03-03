@@ -24,14 +24,17 @@
             background: #1a1d24;
         }
         .spin-body {
+            display: none; /* Рулетка временно отключена */
+        }
+        .spin-disabled-message {
             flex: 1;
-            padding: 12px 16px 16px;
-            overflow-y: auto;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.03) 0%, transparent 25%),
-                radial-gradient(circle at 90% 80%, rgba(255,255,255,0.02) 0%, transparent 25%),
-                repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(255,255,255,0.02) 24px, rgba(255,255,255,0.02) 25px),
-                repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(255,255,255,0.015) 24px, rgba(255,255,255,0.015) 25px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+            color: #ffffff;
+            font-size: 0.98rem;
         }
         .spin-header {
             display: flex;
@@ -661,6 +664,10 @@
             <div class="spin-header-right"><i class="fas fa-ellipsis-v"></i></div>
         </header>
         
+        <div class="spin-disabled-message">
+            Рулетка временно недоступна. Пожалуйста, загляните позже.
+        </div>
+
         <div class="spin-body">
             <!-- Новая рулетка-кейс -->
             <div class="roulette-wrapper spin-entrance spin-entrance-2">
