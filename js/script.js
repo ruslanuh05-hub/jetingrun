@@ -806,9 +806,18 @@ function initRatingSection() {
         const saved = localStorage.getItem('jetstore_rating_show_me');
         if (saved !== null) toggle.checked = saved === 'true';
         toggle.addEventListener('change', function() {
-            localStorage.setItem('jetstore_rating_show_me', String(this.checked));
-            saveRatingAnonymity(this.checked);
-            loadRatingLeaderboard(currentRatingPeriod);
+            const checked = this.checked;
+            localStorage.setItem('jetstore_rating_show_me', String(checked));
+            // Ждём, пока сервер сохранит настройку, чтобы рейтинг не "мигал через раз"
+            saveRatingAnonymity(checked)
+                .then(function(ok) {
+                    if (!ok) {
+                        // В случае ошибки откатываем переключатель
+                        toggle.checked = !checked;
+                        localStorage.setItem('jetstore_rating_show_me', String(!checked));
+                    }
+                    loadRatingLeaderboard(currentRatingPeriod);
+                });
         });
     }
     
@@ -817,15 +826,17 @@ function initRatingSection() {
 
 function saveRatingAnonymity(show) {
     const apiBase = (typeof getJetApiBase === 'function' ? getJetApiBase() : '') || window.JET_API_BASE || '';
-    if (!apiBase) return;
+    if (!apiBase) return Promise.resolve(false);
     const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user || window.userData;
     const userId = tgUser?.id || window.userData?.id;
-    if (!userId) return;
-    fetch(apiBase.replace(/\/$/, '') + '/api/rating/anonymity', {
+    if (!userId) return Promise.resolve(false);
+    return fetch(apiBase.replace(/\/$/, '') + '/api/rating/anonymity', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ show: !!show, userId: userId })
-    }).catch(function() {});
+    })
+        .then(function(r) { return r.ok; })
+        .catch(function() { return false; });
 }
 
 function loadRatingLeaderboard(period) {
@@ -1212,10 +1223,8 @@ function checkTelegramUser(inputId, previewId) {
             if (inputId === 'premiumRecipient') setPremiumRecipientState('found', userData);
         })
         .catch(function(err) {
-            const telethonConnected = !!(err && (err.telethon_connected === true || err.telethon_connected === 'true'));
-            const msg = (!telethonConnected && err && (err.error === 'not_found'))
-                ? 'Поиск недоступен: настрой Telethon (TELEGRAM_API_ID / TELEGRAM_API_HASH / TELEGRAM_STRING_SESSION).'
-                : (err && err.message) ? err.message : 'Пользователь не найден';
+            // Для пользователя всегда показываем простое сообщение "Пользователь не найден"
+            const msg = 'Пользователь не найден';
             if (inputId === 'starsRecipient') setStarsRecipientState('not_found', { message: msg });
             if (inputId === 'premiumRecipient') setPremiumRecipientState('not_found', { message: msg });
         });
@@ -1257,26 +1266,33 @@ function showUserPreview(previewId, userData) {
 // Состояния поля получателя в покупке звёзд
 function setStarsRecipientState(state, userData) {
     const wrapper = document.getElementById('starsRecipientWrapper');
-    const input = document.getElementById('starsRecipient');
     const chip = document.getElementById('starsUserPreview');
     const errorText = document.getElementById('starsUserError');
     const avatarImg = document.getElementById('starsUserAvatar');
     const nameSpan = document.getElementById('starsUserName');
 
-    if (!wrapper || !input || !chip || !errorText) return;
+    if (!wrapper || !chip || !errorText) return;
 
     // Сброс
     wrapper.classList.remove('tg-user-input-error');
-    chip.style.display = 'none';
+    chip.classList.remove('visible');
     errorText.style.display = 'none';
-    input.style.display = 'block';
 
     if (state === 'empty') {
+        if (avatarImg) {
+            avatarImg.src = '';
+            avatarImg.style.display = 'none';
+        }
+        if (nameSpan) {
+            nameSpan.textContent = '';
+        }
+        chip.classList.remove('visible');
         return;
     }
 
     if (state === 'loading') {
         if (avatarImg) {
+            avatarImg.style.display = 'block';
             avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
                 userData?.username || ''
             )}&background=00d4ff&color=fff&size=128`;
@@ -1284,13 +1300,13 @@ function setStarsRecipientState(state, userData) {
         if (nameSpan) {
             nameSpan.textContent = 'Поиск пользователя...';
         }
-        chip.style.display = 'flex';
-        input.style.display = 'none';
+        chip.classList.add('visible');
         return;
     }
 
     if (state === 'found' && userData) {
         if (avatarImg) {
+            avatarImg.style.display = 'block';
             avatarImg.src =
                 userData.avatar ||
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(
@@ -1302,8 +1318,7 @@ function setStarsRecipientState(state, userData) {
             nameSpan.textContent = normalizeDisplayName(userData);
         }
 
-        chip.style.display = 'flex';
-        input.style.display = 'none';
+        chip.classList.add('visible');
         return;
     }
 
@@ -1317,9 +1332,9 @@ function setStarsRecipientState(state, userData) {
 
 function clearStarsRecipient() {
     const input = document.getElementById('starsRecipient');
-    if (input) {
-        input.value = '';
-    }
+    if (input) input.value = '';
+    const nameSpan = document.getElementById('starsUserName');
+    if (nameSpan) nameSpan.textContent = '';
     setStarsRecipientState('empty');
 }
 
@@ -1332,24 +1347,40 @@ function setPremiumRecipientState(state, userData) {
     var nameSpan = document.getElementById('premiumUserName');
     if (!wrapper || !input || !chip || !errorText) return;
     wrapper.classList.remove('tg-user-input-error');
-    chip.style.display = 'none';
+    chip.classList.remove('visible');
     errorText.style.display = 'none';
     input.style.display = 'block';
-    if (state === 'empty') return;
+    if (state === 'empty') {
+        if (avatarImg) {
+            avatarImg.src = '';
+            avatarImg.style.display = 'none';
+        }
+        if (nameSpan) {
+            nameSpan.textContent = '';
+        }
+        chip.classList.remove('visible');
+        return;
+    }
     if (state === 'loading') {
-        if (avatarImg) avatarImg.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userData?.username || '') + '&background=00d4ff&color=fff&size=128';
+        if (avatarImg) {
+            avatarImg.style.display = 'block';
+            avatarImg.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userData?.username || '') + '&background=00d4ff&color=fff&size=128';
+        }
         if (nameSpan) nameSpan.textContent = 'Поиск пользователя...';
-        chip.style.display = 'flex';
+        chip.classList.add('visible');
         input.style.display = 'none';
         return;
     }
     if (state === 'found' && userData) {
-        if (avatarImg) avatarImg.src = userData.avatar || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(userData.username || userData.firstName || '') + '&background=00d4ff&color=fff&size=128');
+        if (avatarImg) {
+            avatarImg.style.display = 'block';
+            avatarImg.src = userData.avatar || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(userData.username || userData.firstName || '') + '&background=00d4ff&color=fff&size=128');
+        }
         if (nameSpan) {
             // В chip для Premium показываем только имя после очистки
             nameSpan.textContent = normalizeDisplayName(userData);
         }
-        chip.style.display = 'flex';
+        chip.classList.add('visible');
         input.style.display = 'none';
         return;
     }
