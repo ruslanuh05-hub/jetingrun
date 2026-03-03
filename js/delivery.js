@@ -180,9 +180,18 @@ function runDeliveryAfterPayment(data, checkResponse) {
     }
 
     // Для CryptoBot и других методов: выдача выполняется на бэкенде через вебхуки
-    // Клиент только показывает сообщение о том, что оплата подтверждена и товар будет выдан автоматически
+    // Клиент показывает статус \"ожидание выдачи\" в истории и сообщение пользователю
     var message = 'Оплата подтверждена. ';
-    
+
+    // Этап 2: \"Ожидание\" в истории заказов (звёзды / Premium)
+    var pendingOptions = null;
+    if (purchaseType === 'stars' || purchaseType === 'premium') {
+        pendingOptions = { status: 'pending_delivery' };
+    }
+    if (typeof recordPurchaseSuccess === 'function') {
+        recordPurchaseSuccess(data, pendingOptions);
+    }
+
     if (purchaseType === 'stars') {
         message += 'Звёзды будут отправлены автоматически после обработки на сервере.';
     } else if (purchaseType === 'premium') {

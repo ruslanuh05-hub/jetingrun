@@ -53,13 +53,13 @@ function recordPurchaseSuccess(data, deliveryOptions) {
     }
 
     // Статус по умолчанию
-    var statusText = 'успешно';
-    // Для звёзд учитываем дополнительные статусы, приходящие из delivery.js
-    if (type === 'stars' && deliveryOptions && typeof deliveryOptions === 'object') {
+    var statusText = 'Успешно выдан';
+    // Дополнительные статусы, приходящие из delivery.js
+    if (deliveryOptions && typeof deliveryOptions === 'object') {
         if (deliveryOptions.status === 'delivered') {
-            statusText = 'Звёзды выданы';
+            statusText = 'Успешно выдан';
         } else if (deliveryOptions.status === 'pending_delivery') {
-            statusText = 'Звёзды отправляются';
+            statusText = 'Ожидание выдачи';
         }
     }
 
