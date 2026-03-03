@@ -1842,6 +1842,32 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Автопоиск получателя Premium: input (debounce) + Enter + blur
+    const premiumRecipientInput = document.getElementById('premiumRecipient');
+    if (premiumRecipientInput) {
+        let premiumLookupTimer = null;
+        const triggerPremiumLookup = function() {
+            try { checkTelegramUser('premiumRecipient', 'premiumUserPreview'); } catch (e) {}
+        };
+
+        premiumRecipientInput.addEventListener('input', function() {
+            if (premiumLookupTimer) clearTimeout(premiumLookupTimer);
+            premiumLookupTimer = setTimeout(triggerPremiumLookup, 350);
+        });
+        premiumRecipientInput.addEventListener('blur', function() {
+            if (premiumLookupTimer) clearTimeout(premiumLookupTimer);
+            triggerPremiumLookup();
+        });
+        premiumRecipientInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (premiumLookupTimer) clearTimeout(premiumLookupTimer);
+                triggerPremiumLookup();
+                try { premiumRecipientInput.blur(); } catch (err) {}
+            }
+        });
+    }
 }
 
 // Функции для взаимодействия с ботом
@@ -3622,8 +3648,7 @@ function openPaymentPage() {
                 if (primaryBtn) primaryBtn.disabled = false;
                 if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
                 if (!result.ok) {
-                    var errMsg = (result.json && (result.json.message || result.json.error)) || result.text || ('Ошибка ' + result.status);
-                    if (result.json && result.json.error === 'not_configured') errMsg = 'Platega не настроен (укажите PLATEGA_MERCHANT_ID и PLATEGA_SECRET на сервере).';
+                    var errMsg = (result.json && result.json.message) || (result.json && result.json.error) || result.text || ('Ошибка ' + result.status);
                     if (typeof showStoreNotification === 'function') showStoreNotification(errMsg, 'error');
                     console.error('[Platega] create-transaction failed:', result.status, result.json || result.text);
                     return;

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Telegram Premium — JET</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="../js/config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -125,6 +126,27 @@
             min-width: 0;
         }
         .store-input::placeholder { color: rgba(255, 255, 255, 0.35); }
+        /* Чип получателя с анимацией */
+        .tg-user-chip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-radius: 12px;
+            background: transparent;
+            border: none;
+            max-height: 0;
+            opacity: 0;
+            transform: translateY(4px);
+            overflow: hidden;
+            transition: max-height 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+        }
+        .tg-user-chip.visible {
+            max-height: 60px;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .store-input-wrapper.tg-user-input-error { border-color: rgba(255, 107, 107, 0.9); }
         .store-input-action {
             border: none;
             background: none;
@@ -295,23 +317,21 @@
                         <label class="store-label">Получатель</label>
                         <button type="button" class="store-input-action" onclick="fillOwnUsername()">/купить себе</button>
                     </div>
-                    <div class="store-input-row">
-                        <div class="store-input-wrapper" id="premiumRecipientWrapper">
-                            <i class="fas fa-user store-input-icon"></i>
-                            <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя" autocomplete="off">
-                            <!-- Резерв под галочку / крестик валидации username -->
-                            <div class="premium-status-icons" id="premiumStatusIcons">
-                                <i class="fas fa-check-circle ok"></i>
-                                <i class="fas fa-times-circle err"></i>
+                        <!-- 1-я строка: ввод @username + ошибка в одном блоке -->
+                        <div class="store-input-row">
+                            <div class="store-input-wrapper" id="premiumRecipientWrapper" style="flex-direction: column; align-items: stretch; padding: 12px 16px;">
+                                <input type="text" id="premiumRecipient" class="store-input" placeholder="@username получателя" maxlength="32" autocomplete="off" pattern="[a-zA-Z0-9_@]*" style="padding: 4px 0; font-size: 1.05rem;">
+                                <span id="premiumUserError" class="store-field-error" style="display:none;color:#ff4757;font-size:0.8rem;margin-top:4px;">Пользователь не найден</span>
                             </div>
-                            <div id="premiumUserPreview" class="tg-user-chip" style="display:none;align-items:center;gap:8px;flex:1;min-width:0;">
-                                <img id="premiumUserAvatar" src="" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                        </div>
+                        <!-- 2-я строка: превью найденного пользователя (аватар + имя без @username) -->
+                        <div class="store-input-row" style="margin-top:6px;">
+                            <div id="premiumUserPreview" class="tg-user-chip" style="align-items:center;gap:10px;flex:1;min-width:0;">
+                                <img id="premiumUserAvatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;display:none;">
                                 <span id="premiumUserName" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
                                 <button type="button" onclick="clearPremiumRecipientPage()" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;padding:4px;"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
-                        <span id="premiumUserError" class="store-field-error" style="display:none;color:#ff4757;font-size:0.8rem;">Пользователь не найден</span>
-                    </div>
                     <p class="store-field-hint">Если указан неверный @username — ответственность несёт покупатель.</p>
                 </div>
                 <div class="store-field">
@@ -409,6 +429,14 @@
                 if (target) target.classList.add('selected');
                 updatePayButton();
             };
+            // Локальная версия очистки username (как sanitizeLogin в script.js)
+            function sanitizeLoginLocal(val) {
+                if (val == null || typeof val !== 'string') return '';
+                var s = val.trim().replace(/^@/, '');
+                s = s.replace(/[^a-zA-Z0-9_]/g, '');
+                return s.slice(0, 32);
+            }
+
             window.fillOwnUsername = function() {
                 var input = document.getElementById('premiumRecipient');
                 if (!input) return;
@@ -425,6 +453,15 @@
                 }
                 setPremiumRecipientStatePage('empty');
             };
+            function normalizeDisplayNameLocal(userData) {
+                if (!userData) return '';
+                var rawName = ((userData.firstName || userData.first_name || '') + '').trim();
+                var uname = ((userData.username || '') + '').replace(/^@/, '');
+                var base = rawName || uname;
+                if (!base) return '';
+                base = base.replace(/@[\w\d_]+/g, '').trim();
+                return base || uname;
+            }
             function setPremiumRecipientStatePage(state, userData) {
                 var w = document.getElementById('premiumRecipientWrapper');
                 var inp = document.getElementById('premiumRecipient');
@@ -434,32 +471,96 @@
                 var nm = document.getElementById('premiumUserName');
                 if (!w || !inp || !chip || !err) return;
                 w.classList.remove('tg-user-input-error');
-                chip.style.display = 'none';
+                chip.classList.remove('visible');
                 err.style.display = 'none';
-                inp.style.display = 'block';
-                if (state === 'empty') return;
+                if (state === 'empty') {
+                    if (av) { av.src = ''; av.style.display = 'none'; }
+                    if (nm) nm.textContent = '';
+                    return;
+                }
                 if (state === 'loading') {
-                    if (av) av.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent((userData && userData.username) || '') + '&background=00d4ff&color=fff&size=128';
-                    if (nm) nm.textContent = 'Поиск...';
-                    chip.style.display = 'flex';
-                    inp.style.display = 'none';
+                    if (av) {
+                        av.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent((userData && userData.username) || '') + '&background=00d4ff&color=fff&size=128';
+                        av.style.display = 'block';
+                    }
+                    if (nm) nm.textContent = 'Поиск пользователя...';
+                    chip.classList.add('visible');
                     return;
                 }
                 if (state === 'found' && userData) {
-                    if (av) av.src = (userData.avatar) || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(userData.username || userData.firstName || '') + '&background=00d4ff&color=fff&size=128');
-                    if (nm) nm.textContent = (userData.firstName || '').trim() ? ((userData.firstName || '').trim() + ' ' + (userData.username ? '@' + userData.username : '')).trim() : (userData.username ? '@' + userData.username : '');
-                    chip.style.display = 'flex';
-                    inp.style.display = 'none';
+                    var displayName = normalizeDisplayNameLocal(userData);
+                    if (av) {
+                        av.src = (userData.avatar) || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName || userData.username || '') + '&background=00d4ff&color=fff&size=128');
+                        av.style.display = 'block';
+                    }
+                    if (nm) nm.textContent = displayName;
+                    chip.classList.add('visible');
                     return;
                 }
-                if (state === 'not_found') { w.classList.add('tg-user-input-error'); err.style.display = 'block'; }
+                if (state === 'not_found') {
+                    w.classList.add('tg-user-input-error');
+                    err.textContent = (userData && userData.message) ? userData.message : 'Пользователь не найден';
+                    err.style.display = 'block';
+                }
             }
             window.clearPremiumRecipientPage = function() {
                 var inp = document.getElementById('premiumRecipient');
                 if (inp) inp.value = '';
                 setPremiumRecipientStatePage('empty');
             };
-            window.lookupPremiumRecipientPage = function() { /* поиск @username отключён */ };
+
+            // Поиск пользователя для Premium — логика скопирована из checkTelegramUser
+            window.lookupPremiumRecipientPage = function() {
+                var inp = document.getElementById('premiumRecipient');
+                if (!inp) return;
+
+                var raw = (inp.value || '').toString().trim();
+                var clean = sanitizeLoginLocal(raw);
+                if (!clean || clean.length < 3) {
+                    setPremiumRecipientStatePage('empty');
+                    return;
+                }
+
+                setPremiumRecipientStatePage('loading', { username: clean });
+
+                var apiBase = (typeof getJetApiBase === 'function' ? getJetApiBase() : (window.JET_API_BASE || ''));
+                if (!apiBase) {
+                    setPremiumRecipientStatePage('not_found', { message: 'API не настроен (не задан URL бэкенда).' });
+                    return;
+                }
+
+                var url = (apiBase || '').replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(clean);
+
+                fetch(url, { method: 'GET', mode: 'cors' })
+                    .then(function(r) {
+                        if (!r.ok) {
+                            return r.json().catch(function() { return null; }).then(function(err) { throw err || new Error('not_found'); });
+                        }
+                        return r.json();
+                    })
+                    .then(function(u) {
+                        if (!u || u.error) throw u || new Error('not_found');
+
+                        var avatar = u.avatar || '';
+                        if (avatar && typeof avatar === 'string' && avatar.indexOf('<img') !== -1) {
+                            var m = avatar.match(/src=[\"']([^\"']+)[\"']/i);
+                            if (m && m[1]) avatar = m[1];
+                        }
+
+                        var userData = {
+                            username: (u.username || clean || '').toString().replace(/^@/, ''),
+                            firstName: (u.first_name || u.firstName || '').toString(),
+                            avatar: avatar
+                        };
+
+                        if (userData.username) inp.value = '@' + userData.username;
+
+                        setPremiumRecipientStatePage('found', userData);
+                    })
+                    .catch(function() {
+                        setPremiumRecipientStatePage('not_found', { message: 'Пользователь не найден' });
+                    });
+            };
             window.proceedPay = function() {
                 if (selectedPremium.months <= 0) return;
                 var recipient = (document.getElementById('premiumRecipient') && document.getElementById('premiumRecipient').value) ? document.getElementById('premiumRecipient').value.trim() : '';
@@ -472,6 +573,32 @@
                 e.preventDefault();
                 window.location.href = 'index.html';
             });
+
+            // Автопоиск получателя Premium: ввод + blur + Enter
+            (function() {
+                var inp = document.getElementById('premiumRecipient');
+                if (!inp) return;
+                var timer = null;
+                var trigger = function() {
+                    try { window.lookupPremiumRecipientPage(); } catch (e) {}
+                };
+                inp.addEventListener('input', function() {
+                    if (timer) clearTimeout(timer);
+                    timer = setTimeout(trigger, 350);
+                });
+                inp.addEventListener('blur', function() {
+                    if (timer) clearTimeout(timer);
+                    trigger();
+                });
+                inp.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (timer) clearTimeout(timer);
+                        trigger();
+                        try { inp.blur(); } catch (err) {}
+                    }
+                });
+            })();
             updatePricesDisplay();
             updatePayButton();
         })();
