@@ -461,6 +461,14 @@ function updateProfileDisplay() {
 
 // Обновление отображения баланса (приоритет: API с проверкой Telegram, затем localStorage)
 function updateBalanceDisplay() {
+    function shouldHideBalanceInProfileUi() {
+        // "Окно профиля" идентифицируем по наличию основного элемента баланса профиля.
+        // Данные и расчёты баланса сохраняем как есть — скрываем только отображение.
+        return !!document.getElementById('profileBalance');
+    }
+    function formatBalanceText(rub) {
+        return rub.toFixed(2) + ' ₽';
+    }
     function applyBalance(rub) {
         rub = (rub != null) ? (typeof rub === 'number' ? rub : parseFloat(rub) || 0) : 0;
         if (!userData.currencies) userData.currencies = {};
@@ -469,10 +477,12 @@ function updateBalanceDisplay() {
             if (!window.userData.currencies) window.userData.currencies = {};
             window.userData.currencies.RUB = rub;
         }
+        var hideUi = shouldHideBalanceInProfileUi();
+        var uiText = hideUi ? '•••• ₽' : formatBalanceText(rub);
         var balanceElement = document.getElementById('profileBalance');
-        if (balanceElement) balanceElement.textContent = rub.toFixed(2) + ' ₽';
+        if (balanceElement) balanceElement.textContent = uiText;
         var headerBalanceEl = document.getElementById('headerBalance');
-        if (headerBalanceEl) headerBalanceEl.textContent = rub.toFixed(2) + ' ₽';
+        if (headerBalanceEl) headerBalanceEl.textContent = uiText;
     }
     loadBalanceFromStorage(applyBalance);
     var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
