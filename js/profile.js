@@ -1663,7 +1663,7 @@ function showInfo(type) {
                 </div>
                 <div class="info-menu-text">
                     <p class="info-menu-title">Поддержка</p>
-                    <p class="info-menu-subtitle">Связаться с нами</p>
+                    <p class="info-menu-subtitle">Опишите проблему + Payment ID + что покупали</p>
                 </div>
                 <i class="fas fa-chevron-right info-menu-arrow"></i>
             </a>

@@ -1677,6 +1677,46 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* Блок принятия оферты/политики перед оплатой */
+.payment-terms-block {
+    margin: 18px 0 20px;
+    text-align: left;
+}
+
+.payment-terms-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.payment-terms-label input[type="checkbox"] {
+    margin-top: 2px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.payment-terms-text {
+    line-height: 1.4;
+}
+
+.payment-terms-link {
+    color: #00d4ff;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.payment-terms-link:hover {
+    color: #40e0d0;
+}
+
+.payment-waiting-btn.primary.disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
 .btn-primary,
 .btn-secondary {
     flex: 1;

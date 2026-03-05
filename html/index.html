@@ -5716,6 +5716,18 @@
                         <i class="fas fa-hourglass-half"></i>
                     </div>
                     <p class="payment-waiting-description" id="paymentWaitingDescription">Оплатите 0 ₽ через СБП (+10%)</p>
+
+                    <div class="payment-terms-block">
+                        <label class="payment-terms-label">
+                            <input type="checkbox" id="paymentTermsCheckbox">
+                            <span class="payment-terms-text">
+                                Я принимаю
+                                <span class="payment-terms-link" onclick="openLegalDocument('offer')">Оферту</span>
+                                и
+                                <span class="payment-terms-link" onclick="openLegalDocument('privacy')">Политику конфиденциальности</span>
+                            </span>
+                        </label>
+                    </div>
                     
                     <div class="payment-waiting-details">
                         <div class="payment-detail-row">
@@ -5740,8 +5752,8 @@
                         </div>
                     </div>
                     
-                    <button class="payment-waiting-btn primary" id="paymentWaitingPrimaryBtn" onclick="openPaymentPage()">
-                        Перейти на страницу оплаты
+                    <button class="payment-waiting-btn primary disabled" id="paymentWaitingPrimaryBtn" onclick="openPaymentPage()">
+                        Оплатить
                     </button>
                     <p class="payment-waiting-hint">После оплаты статус обновится автоматически. Пожалуйста, подождите...</p>
                     <button class="payment-waiting-btn secondary" onclick="closePaymentWaiting()">

@@ -3335,14 +3335,9 @@ function selectPaymentMethod(method, bonusPercent, plategaMethod) {
     
     console.log('[selectPaymentMethod] window.paymentData.purchase:', window.paymentData.purchase);
     
+    // Перед оплатой всегда показываем экран с приёмом Оферты и Политики.
+    // Кнопка "Оплатить" на этом экране становится доступна только после галочки.
     showPaymentWaiting();
-    
-    // Для FreeKassa и Platega сразу создаём заказ и открываем страницу оплаты, чтобы проверка оплаты могла стартовать
-    if (method === 'sbp' || method === 'card' || method === 'platega') {
-        setTimeout(function() {
-            if (typeof openPaymentPage === 'function') openPaymentPage();
-        }, 100);
-    }
 }
 
 // Показать экран ожидания оплаты
@@ -3368,10 +3363,25 @@ function showPaymentWaiting() {
     if (statusEl) statusEl.textContent = 'Ожидание оплаты...';
 
     const primaryBtn = document.getElementById('paymentWaitingPrimaryBtn');
+    const termsCheckbox = document.getElementById('paymentTermsCheckbox');
     if (primaryBtn) {
-        primaryBtn.disabled = false;
-        primaryBtn.textContent = 'Перейти на страницу оплаты';
+        primaryBtn.textContent = 'Оплатить';
     }
+
+    // Изначально скрываем/блокируем кнопку до принятия оферты и политики
+    function updateTermsState() {
+        const accepted = !!(termsCheckbox && termsCheckbox.checked);
+        if (primaryBtn) {
+            primaryBtn.disabled = !accepted;
+            primaryBtn.classList.toggle('disabled', !accepted);
+            primaryBtn.style.visibility = accepted ? 'visible' : 'hidden';
+        }
+    }
+    if (termsCheckbox) {
+        termsCheckbox.checked = false;
+        termsCheckbox.onchange = updateTermsState;
+    }
+    updateTermsState();
 
     // Обновляем данные на экране
     const steamCur = data.purchase?.currency || 'RUB';
@@ -4243,6 +4253,24 @@ window.showGameProducts = showGameProducts;
 window.closeGameProducts = closeGameProducts;
 window.buyGameProduct = buyGameProduct;
 window.showPaymentMethodSelection = showPaymentMethodSelection;
+
+// Открыть юридические документы (оферта, политика) из любого экрана
+function openLegalDocument(type) {
+    var urls = {
+        offer: 'https://telegra.ph/Dogovor-Oferty-02-11-4',
+        agreement: 'https://telegra.ph/Polzovatelskoe-soglashenie-02-11-33',
+        privacy: 'https://telegra.ph/Politika-konfidecialnosti-02-11'
+    };
+    var url = urls[type] || null;
+    if (!url) return;
+    var tg = window.Telegram && window.Telegram.WebApp;
+    if (tg && tg.openLink) {
+        tg.openLink(url);
+    } else {
+        window.open(url, '_blank');
+    }
+}
+window.openLegalDocument = openLegalDocument;
 window.closePaymentMethodPopup = closePaymentMethodPopup;
 window.selectPaymentMethod = selectPaymentMethod;
 window.showPaymentWaiting = showPaymentWaiting;
