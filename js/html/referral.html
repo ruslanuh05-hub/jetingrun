@@ -1799,12 +1799,12 @@
             modal.className = 'popup active';
             modal.id = 'withdrawStarsPopup';
             modal.innerHTML = `
-                <div class="popup-content" style="max-width: 640px;">
+                <div class="popup-content" style="max-width: 640px; max-height: calc(100vh - 160px); display:flex; flex-direction:column; margin-bottom: 90px;">
                     <div class="popup-header">
                         <h2 class="popup-title">Вывести в звёзды</h2>
                         <button class="close-btn" onclick="closeWithdrawStarsModal()">×</button>
                     </div>
-                    <div class="popup-body">
+                    <div class="popup-body" style="overflow-y:auto; padding-bottom: 16px;">
                         <div class="withdraw-balance-info" style="margin-bottom: 14px;">
                             <div class="withdraw-balance-label">Доступно (реф. баланс)</div>
                             <div class="withdraw-balance-value" id="refStarsBalanceText">—</div>
