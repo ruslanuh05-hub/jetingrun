@@ -1679,13 +1679,19 @@ body {
 
 /* Блок принятия оферты/политики перед оплатой */
 .payment-terms-block {
-    margin: 18px 0 20px;
-    text-align: left;
+    margin: 20px 0 22px;
+    padding: 12px 14px;
+    text-align: center;
+    border-radius: 12px;
+    background: radial-gradient(circle at top, rgba(0, 212, 255, 0.16) 0%, rgba(0, 0, 0, 0) 70%);
+    border: 1px solid rgba(0, 212, 255, 0.45);
+    box-shadow: 0 0 18px rgba(0, 212, 255, 0.45);
 }
 
 .payment-terms-label {
-    display: flex;
+    display: inline-flex;
     align-items: flex-start;
+    justify-content: center;
     gap: 10px;
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.8);
@@ -1712,9 +1718,34 @@ body {
     color: #40e0d0;
 }
 
+.payment-waiting-btn {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease,
+        color 0.2s ease, opacity 0.2s ease;
+}
+
+.payment-waiting-btn.primary {
+    background: linear-gradient(135deg, #00d4ff 0%, #00a3ff 40%, #0066ff 100%);
+    color: #000000;
+    box-shadow: 0 6px 16px rgba(0, 212, 255, 0.55);
+}
+
+.payment-waiting-btn.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 9px 22px rgba(0, 212, 255, 0.7);
+}
+
 .payment-waiting-btn.primary.disabled {
-    opacity: 0.4;
+    opacity: 0.35;
     cursor: default;
+    box-shadow: none;
+    transform: none;
 }
 
 .btn-primary,
