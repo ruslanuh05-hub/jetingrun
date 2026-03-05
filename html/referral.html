@@ -1008,6 +1008,17 @@
             transition: border-color 0.2s, background 0.2s;
         }
 
+        /* Убираем стрелки у числового инпута суммы вывода звёзд */
+        .withdraw-form-input::-webkit-outer-spin-button,
+        .withdraw-form-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .withdraw-form-input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
         .withdraw-form-select {
             /* Строгий внешний вид селекта в наших тонах */
             -webkit-appearance: none;
