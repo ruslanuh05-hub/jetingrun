@@ -1217,6 +1217,26 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Чип чек-юзера (как в звёздах/премиуме) */
+        .tg-user-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-height: 0;
+            opacity: 0;
+            transform: translateY(4px);
+            overflow: hidden;
+            transition: max-height 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+        }
+        .tg-user-chip.visible {
+            max-height: 60px;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .tg-user-input-error {
+            border-color: rgba(255, 107, 107, 0.9) !important;
+        }
     </style>
     <link rel="stylesheet" href="../css/mobile.css?v=3">
 </head>
@@ -1262,9 +1282,9 @@
                 <div class="referral-stats-grid">
                     <div class="referral-stat-card">
                         <div class="referral-stat-icon earnings"><i class="fas fa-coins"></i></div>
-                        <div class="referral-stat-label">Заработано</div>
+                        <div class="referral-stat-label">Заработано всего</div>
                         <div class="referral-stat-value">
-                            <span id="refEarnRub">0</span> ₽
+                            <span id="refEarnRubTotal">0</span> ₽
                         </div>
                     </div>
                     <div class="referral-stat-card">
@@ -1273,6 +1293,14 @@
                         <div class="referral-stat-value" id="refTotalRefs">0</div>
                     </div>
                 </div>
+
+                <button
+                    class="copy-referral-btn"
+                    id="withdrawStarsBtn"
+                    type="button"
+                    style="margin-top: 8px; width:100%; padding: 14px; background: rgba(0, 212, 255, 0.14); color: #00d4ff; border: 1px solid rgba(0, 212, 255, 0.35); border-radius: 12px; font-weight: 800; cursor: pointer;">
+                    <i class="fas fa-star"></i> Вывести в звёзды
+                </button>
 
                 <!-- Уровень -->
                 <div class="referral-level-info">
@@ -1414,6 +1442,19 @@
             return null;
         }
 
+        function getTelegramInitData() {
+            try {
+                return String(window.Telegram?.WebApp?.initData || '').trim();
+            } catch (e) { return ''; }
+        }
+
+        function withTelegramHeaders(headers) {
+            var h = headers || {};
+            var initData = getTelegramInitData();
+            if (initData) h['X-Telegram-Init-Data'] = initData;
+            return h;
+        }
+
         // Безопасно получаем базовый URL API (Railway) даже если config.js не загрузился
         function getApiBaseSafe() {
             let apiBase = '';
@@ -1470,7 +1511,7 @@
             try {
                 const apiBase = getApiBaseSafe();
                 const url = apiBase.replace(/\/$/, '') + `/api/referral/stats?user_id=${userId}`;
-                const response = await fetch(url);
+                const response = await fetch(url, { headers: withTelegramHeaders({}) });
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
@@ -1495,7 +1536,7 @@
             try {
                 const apiBase = getApiBaseSafe();
                 const url = apiBase.replace(/\/$/, '') + `/api/referral/link?user_id=${userId}`;
-                const response = await fetch(url);
+                const response = await fetch(url, { headers: withTelegramHeaders({}) });
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
@@ -1517,6 +1558,14 @@
 
         // Обновляем UI с данными статистики
         function updateReferralUI(stats) {
+            // «Заработано всего» и текущий реферальный баланс
+            var totalEarn = (stats.total_earned_rub != null ? stats.total_earned_rub : stats.earned_rub || 0);
+            var curEarn = stats.earned_rub || 0;
+            var totalEl = document.getElementById('refEarnRubTotal');
+            var balEl = document.getElementById('refEarnRub');
+            if (totalEl) totalEl.textContent = totalEarn.toFixed(2);
+            if (balEl) balEl.textContent = curEarn.toFixed(2);
+
             // Определяем уровень и процент по объёму покупок рефералов (в звёздах)
             // Примерный курс: 1 звезда ≈ 2.8 ₽
             const volumeRub = stats.volume_rub || 0;
@@ -1770,7 +1819,7 @@
                 const apiBase = getApiBaseSafe();
                 const response = await fetch(apiBase.replace(/\/$/, '') + '/api/referral/withdraw', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withTelegramHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({
                         user_id: userId,
                         amount_rub: amountRub,
@@ -1796,6 +1845,227 @@
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Вывести средства';
             }
+        }
+
+        function normalizeDisplayNameLocal(userData) {
+            if (!userData) return '';
+            var rawName = ((userData.firstName || userData.first_name || '') + '').trim();
+            var uname = ((userData.username || '') + '').replace(/^@/, '');
+            var base = rawName || uname;
+            if (!base) return '';
+            base = base.replace(/@[\w\d_]+/g, '').trim();
+            return base || uname;
+        }
+
+        function sanitizeLoginLocal(val) {
+            if (val == null || typeof val !== 'string') return '';
+            var s = val.trim().replace(/^@/, '');
+            s = s.replace(/[^a-zA-Z0-9_]/g, '');
+            return s.slice(0, 32);
+        }
+
+        async function lookupWithdrawRecipient(usernameRaw) {
+            var clean = sanitizeLoginLocal(usernameRaw || '');
+            if (!clean || clean.length < 3) return null;
+            var apiBase = getApiBaseSafe();
+            if (!apiBase) return null;
+            var url = apiBase.replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(clean);
+            var r = await fetch(url, { headers: withTelegramHeaders({}) });
+            var data = await r.json().catch(function() { return {}; });
+            if (!r.ok || !data || data.error) return null;
+            var avatar = data.avatar || '';
+            if (avatar && typeof avatar === 'string' && avatar.indexOf('<img') !== -1) {
+                var m = avatar.match(/src=[\"']([^\"']+)[\"']/i);
+                if (m && m[1]) avatar = m[1];
+            }
+            return {
+                username: (data.username || clean || '').toString().replace(/^@/, ''),
+                firstName: (data.first_name || data.firstName || '').toString(),
+                avatar: avatar
+            };
+        }
+
+        function setWithdrawRecipientState(state, userData) {
+            var w = document.getElementById('refStarsRecipientWrapper');
+            var err = document.getElementById('refStarsUserError');
+            var chip = document.getElementById('refStarsUserPreview');
+            var av = document.getElementById('refStarsUserAvatar');
+            var nm = document.getElementById('refStarsUserName');
+            if (!w || !err || !chip) return;
+            w.classList.remove('tg-user-input-error');
+            chip.classList.remove('visible');
+            err.style.display = 'none';
+            if (state === 'empty') {
+                if (av) { av.src = ''; av.style.display = 'none'; }
+                if (nm) nm.textContent = '';
+                return;
+            }
+            if (state === 'loading') {
+                if (av) {
+                    av.style.display = 'block';
+                    av.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent((userData && userData.username) || '') + '&background=00d4ff&color=fff&size=128';
+                }
+                if (nm) nm.textContent = 'Поиск пользователя...';
+                chip.classList.add('visible');
+                return;
+            }
+            if (state === 'found' && userData) {
+                var dn = normalizeDisplayNameLocal(userData);
+                if (av) {
+                    av.style.display = 'block';
+                    av.src = userData.avatar || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(dn || userData.username || '') + '&background=00d4ff&color=fff&size=128');
+                }
+                if (nm) nm.textContent = dn;
+                chip.classList.add('visible');
+                return;
+            }
+            if (state === 'not_found') {
+                w.classList.add('tg-user-input-error');
+                err.textContent = 'Пользователь не найден';
+                err.style.display = 'block';
+            }
+        }
+
+        function openWithdrawStarsModal() {
+            var existing = document.getElementById('withdrawStarsPopup');
+            if (existing) existing.remove();
+            var modal = document.createElement('div');
+            modal.className = 'popup active';
+            modal.id = 'withdrawStarsPopup';
+            modal.innerHTML = `
+                <div class="popup-content" style="max-width: 640px;">
+                    <div class="popup-header">
+                        <h2 class="popup-title">Вывести в звёзды</h2>
+                        <button class="close-btn" onclick="closeWithdrawStarsModal()">×</button>
+                    </div>
+                    <div class="popup-body">
+                        <div class="withdraw-balance-info" style="margin-bottom: 14px;">
+                            <div class="withdraw-balance-label">Доступно (реф. баланс)</div>
+                            <div class="withdraw-balance-value" id="refStarsBalanceText">—</div>
+                        </div>
+
+                        <div class="withdraw-form">
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Какую сумму конвертировать в звёзды</label>
+                                <input id="refStarsAmount" class="withdraw-form-input" type="number" min="150" step="1" placeholder="Например: 150">
+                                <div class="withdraw-form-label" style="font-size:0.78rem;color:rgba(255,255,255,0.55);">Минимальный вывод: 150 ⭐</div>
+                            </div>
+
+                            <div class="withdraw-form-group">
+                                <label class="withdraw-form-label">Кому вывести в звёзды</label>
+                                <div id="refStarsRecipientWrapper" class="withdraw-form-input" style="display:flex;flex-direction:column;gap:6px;padding:10px 14px;">
+                                    <input id="refStarsRecipient" class="withdraw-form-input" type="text" placeholder="@username получателя" style="padding:0;border:none;background:transparent;">
+                                    <span id="refStarsUserError" class="withdraw-form-label" style="display:none;color:#ff4757;font-size:0.8rem;">Пользователь не найден</span>
+                                </div>
+                            </div>
+
+                            <div class="withdraw-form-group">
+                                <div id="refStarsUserPreview" class="tg-user-chip" style="align-items:center;">
+                                    <img id="refStarsUserAvatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;display:none;">
+                                    <span id="refStarsUserName" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                                </div>
+                            </div>
+
+                            <button class="withdraw-submit-btn" id="refStarsConfirmBtn" type="button">Подтвердить</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Анимация открытия
+            (function() {
+                var content = modal.querySelector('.popup-content');
+                if (!content) return;
+                content.style.opacity = '0';
+                content.style.transform = 'translateY(15px) scale(0.97)';
+                // следующий кадр — включаем transition и показываем
+                requestAnimationFrame(function() {
+                    content.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+                    content.style.opacity = '1';
+                    content.style.transform = 'translateY(0) scale(1)';
+                });
+            })();
+
+            var balEl = document.getElementById('refStarsBalanceText');
+            var bal = (referralStats && referralStats.earned_rub != null) ? referralStats.earned_rub : 0;
+            if (balEl) balEl.textContent = (parseFloat(bal || 0).toFixed(2) + ' ₽');
+
+            var inp = document.getElementById('refStarsRecipient');
+            var timer = null;
+            var trigger = async function() {
+                var raw = (inp.value || '').toString().trim();
+                var clean = sanitizeLoginLocal(raw);
+                if (!clean || clean.length < 3) { setWithdrawRecipientState('empty'); return; }
+                setWithdrawRecipientState('loading', { username: clean });
+                try {
+                    var u = await lookupWithdrawRecipient(clean);
+                    if (!u) { setWithdrawRecipientState('not_found'); return; }
+                    inp.value = '@' + u.username;
+                    setWithdrawRecipientState('found', u);
+                } catch (e) { setWithdrawRecipientState('not_found'); }
+            };
+            if (inp) {
+                inp.addEventListener('input', function() {
+                    if (timer) clearTimeout(timer);
+                    timer = setTimeout(trigger, 350);
+                });
+                inp.addEventListener('blur', function() {
+                    if (timer) clearTimeout(timer);
+                    trigger();
+                });
+                inp.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); if (timer) clearTimeout(timer); trigger(); try { inp.blur(); } catch (err) {} }
+                });
+            }
+
+            var btn = document.getElementById('refStarsConfirmBtn');
+            if (btn) {
+                btn.onclick = async function() {
+                    var userId = getUserId();
+                    if (!userId) { alert('Ошибка: не удалось определить пользователя'); return; }
+                    var starsAmount = parseInt(document.getElementById('refStarsAmount').value || '0', 10) || 0;
+                    var rec = sanitizeLoginLocal((document.getElementById('refStarsRecipient').value || '').toString());
+                    if (starsAmount < 150) { alert('Минимальный вывод 150 звёзд'); return; }
+                    if (!rec || rec.length < 3) { alert('Укажите получателя'); return; }
+                    btn.disabled = true;
+                    btn.textContent = 'Отправка...';
+                    try {
+                        var apiBase = getApiBaseSafe();
+                        var r = await fetch(apiBase.replace(/\/$/, '') + '/api/referral/withdraw-stars', {
+                            method: 'POST',
+                            headers: withTelegramHeaders({ 'Content-Type': 'application/json' }),
+                            body: JSON.stringify({ user_id: userId, stars_amount: starsAmount, recipient: rec })
+                        });
+                        var res = await r.json().catch(function() { return {}; });
+                        if (r.ok && res.success) {
+                            alert('Звёзды отправлены!');
+                            closeWithdrawStarsModal();
+                            await loadReferralStats();
+                        } else {
+                            alert((res && res.message) ? res.message : 'Ошибка. Попробуйте позже.');
+                        }
+                    } catch (e) {
+                        alert('Ошибка. Попробуйте позже.');
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = 'Подтвердить';
+                    }
+                };
+            }
+        }
+
+        function closeWithdrawStarsModal() {
+            var popup = document.getElementById('withdrawStarsPopup');
+            if (!popup) return;
+            var content = popup.querySelector('.popup-content');
+            if (!content) { popup.remove(); return; }
+            content.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+            content.style.opacity = '0';
+            content.style.transform = 'translateY(15px) scale(0.97)';
+            setTimeout(function() {
+                if (popup && popup.parentNode) popup.parentNode.removeChild(popup);
+            }, 200);
         }
 
         // Инициализация страницы "Заработать"
@@ -1828,6 +2098,10 @@
             const copyBtn = document.getElementById('copyReferralLinkBtn');
             if (copyBtn) {
                 copyBtn.addEventListener('click', copyReferralLink);
+            }
+            const withdrawStarsBtn = document.getElementById('withdrawStarsBtn');
+            if (withdrawStarsBtn) {
+                withdrawStarsBtn.addEventListener('click', openWithdrawStarsModal);
             }
 
             // Обновляем индикатор навигации после инициализации
