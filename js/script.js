@@ -4152,13 +4152,21 @@ function fillMarch8Recipient() {
 
 function submitMarch8Gift() {
     var starsInput = parseInt(document.getElementById('march8StarsAmount')?.value || '0', 10) || 0;
-    if (starsInput < 50) {
-        if (typeof showStoreNotification === 'function') showStoreNotification('Минимум 50 Stars', 'error');
-        return;
-    }
     var giftRub = 0;
     for (var k in MARCH8_GIFTS) {
         giftRub += (MARCH8_GIFTS[k].priceRub || 0) * (march8Quantities[k] || 0);
+    }
+    // Должны быть либо звёзды, либо хотя бы один подарок
+    if (starsInput <= 0 && giftRub <= 0) {
+        if (typeof showStoreNotification === 'function') {
+            showStoreNotification('Выберите Stars или хотя бы один подарок', 'error');
+        }
+        return;
+    }
+    // Если звёзды покупаются, минимальное количество — 50
+    if (starsInput > 0 && starsInput < 50) {
+        if (typeof showStoreNotification === 'function') showStoreNotification('Минимум 50 Stars', 'error');
+        return;
     }
     var totalStars = starsInput;
     var starRate = (typeof getStarRate === 'function') ? getStarRate() : 1.37;
