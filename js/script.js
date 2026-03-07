@@ -4068,15 +4068,16 @@ var MARCH8_GIFTS = {
     diamond: { priceRub: 140, name: 'Алмаз' },
     bouquet: { priceRub: 70,  name: 'Букет' },
     heart:   { priceRub: 30,  name: 'Сердечко' },
-    ring:    { priceRub: 140, name: 'Кольцо' }
+    ring:    { priceRub: 140, name: 'Кольцо' },
+    bear:    { priceRub: 70,  name: 'Розовый мишка' }
 };
 
-var march8Quantities = { rose: 0, diamond: 0, bouquet: 0, heart: 0, ring: 0 };
+var march8Quantities = { rose: 0, diamond: 0, bouquet: 0, heart: 0, ring: 0, bear: 0 };
 
 function openMarch8Popup() {
     var popup = document.getElementById('nftGiftsPopup');
     if (!popup) return;
-    march8Quantities = { rose: 0, diamond: 0, bouquet: 0, heart: 0, ring: 0 };
+    march8Quantities = { rose: 0, diamond: 0, bouquet: 0, heart: 0, ring: 0, bear: 0 };
     var starsEl = document.getElementById('march8StarsAmount');
     var recipientEl = document.getElementById('march8Recipient');
     var messageEl = document.getElementById('march8Message');
@@ -4088,6 +4089,8 @@ function openMarch8Popup() {
     document.getElementById('march8QtyBouquet').textContent = '0';
     document.getElementById('march8QtyHeart').textContent = '0';
     document.getElementById('march8QtyRing').textContent = '0';
+    var bearEl = document.getElementById('march8QtyBear');
+    if (bearEl) bearEl.textContent = '0';
     popup.classList.add('active');
     if (typeof loadStarRateFromApi === 'function') {
         loadStarRateFromApi(updateMarch8Summary);
@@ -4177,7 +4180,8 @@ function submitMarch8Gift() {
             diamond: march8Quantities.diamond || 0,
             bouquet: march8Quantities.bouquet || 0,
             heart: march8Quantities.heart || 0,
-            ring: march8Quantities.ring || 0
+            ring: march8Quantities.ring || 0,
+            bear: march8Quantities.bear || 0
         },
         message: message,
         productName: 'Подарок на 8 марта'
