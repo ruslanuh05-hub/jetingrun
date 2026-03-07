@@ -1966,3 +1966,242 @@ body {
     content: " ₽";
     font-weight: bold;
 }
+
+/* Попап подарка на 8 марта */
+#nftGiftsPopup.popup {
+    padding: 56px 16px max(100px, calc(64px + env(safe-area-inset-bottom, 0)));
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Переопределяем .supercell-popup-content — убираем бирюзовый, делаем розовое окно */
+#nftGiftsPopup .march8-popup-content {
+    max-width: 420px;
+    width: 100%;
+    height: auto;
+    max-height: calc(100vh - 170px);
+    margin: auto;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #ffd1d8 0%, #ffc0cb 50%, #ffa8af 100%) !important;
+    border: 1px solid rgba(255, 168, 175, 0.9);
+    border-radius: 20px !important;
+    display: block !important;
+    flex-direction: unset !important;
+}
+
+/* Шапка и элементы окна 8 марта — розовые тона */
+.march8-popup-content .steam-popup-header {
+    border-bottom: 1px solid rgba(255, 168, 175, 0.5);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.march8-popup-content .steam-popup-title,
+.march8-popup-content .steam-back-btn {
+    color: #5a3a3d;
+}
+
+.march8-popup-body {
+    padding: 20px 20px 32px;
+}
+
+.march8-subtitle {
+    color: rgba(90, 58, 61, 0.85);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+}
+
+.march8-field {
+    margin-bottom: 16px;
+}
+
+.march8-message-field {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 168, 175, 0.8);
+    padding: 10px 14px 12px;
+}
+
+.march8-message-field .store-label {
+    color: #ff4f7b;
+}
+
+.march8-popup-body .store-label {
+    color: rgba(90, 58, 61, 0.9);
+}
+
+.march8-popup-body .store-input-wrapper {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 168, 175, 0.5);
+}
+
+.march8-popup-body .store-input {
+    color: #4a3540;
+}
+
+.march8-popup-body .store-input::placeholder {
+    color: rgba(90, 58, 61, 0.6);
+}
+
+.march8-popup-body .store-input-action {
+    color: #c95a6a;
+}
+
+.march8-popup-body .store-input-icon {
+    color: rgba(90, 58, 61, 0.6);
+}
+
+.march8-gift-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 168, 175, 0.4);
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.march8-gift-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #4a3540;
+}
+
+.march8-gift-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.march8-gift-price {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    color: #5a3a3d;
+}
+
+.march8-gift-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.march8-gift-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(255, 168, 175, 0.6);
+    background: rgba(255, 255, 255, 0.7);
+    color: #5a3a3d;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.march8-gift-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.march8-gift-qty {
+    min-width: 24px;
+    text-align: center;
+    color: #4a3540;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.march8-gift-qty.qty-update {
+    animation: march8-qty-bump 0.35s ease;
+}
+
+@keyframes march8-qty-bump {
+    0% { transform: scale(1); opacity: 1; }
+    40% { transform: scale(1.2); opacity: 0.9; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.march8-summary {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 168, 175, 0.5);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+
+.march8-summary-title {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin-bottom: 8px;
+    color: #5a3a3d;
+}
+
+.march8-summary-stars, .march8-summary-gifts {
+    font-size: 0.9rem;
+    color: #4a3540;
+}
+
+.march8-summary-total {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-top: 8px;
+    color: #5a3a3d;
+}
+
+.march8-message-input {
+    resize: vertical;
+    min-height: 60px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 6px 0 0;
+    color: #ff4f7b;
+    box-sizing: border-box;
+}
+
+.march8-message-input::placeholder {
+    color: #ff8fb0;
+}
+
+.march8-popup-body input[type="number"]::-webkit-outer-spin-button,
+.march8-popup-body input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.march8-popup-body input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* Кнопка оплаты в окне 8 марта */
+.march8-popup-body .continue-btn {
+    background: #ff0033;
+    color: #fff;
+    border: 1px solid #ff0033;
+}
+
+.march8-popup-body .continue-btn:hover:not(:disabled) {
+    background: #e0002e;
+}
+
+.march8-popup-body .continue-btn:disabled {
+    background: rgba(255, 168, 175, 0.5);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Превью получателя в окне 8 марта */
+.march8-popup-body #march8UserName,
+.march8-popup-body .tg-user-chip span {
+    color: #4a3540 !important;
+}
+
+.march8-popup-body .tg-user-chip button {
+    color: rgba(90, 58, 61, 0.7) !important;
+}
+
+.march8-popup-body .tg-user-chip button:hover {
+    color: #5a3a3d !important;
+}

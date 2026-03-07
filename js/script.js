@@ -1178,17 +1178,23 @@ function checkTelegramUser(inputId, previewId) {
     if (!clean || clean.length < 3) {
         if (inputId === 'starsRecipient') setStarsRecipientState('empty');
         if (inputId === 'premiumRecipient') setPremiumRecipientState('empty');
+        if (inputId === 'march8Recipient') setMarch8RecipientState('empty');
         return;
     }
 
     if (inputId === 'starsRecipient') setStarsRecipientState('loading', { username: clean });
     if (inputId === 'premiumRecipient') setPremiumRecipientState('loading', { username: clean });
+    if (inputId === 'march8Recipient') setMarch8RecipientState('loading', { username: clean });
 
     const apiBase = (typeof getJetApiBase === 'function' ? getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) {
-        const msg = 'API не настроен (не задан URL бэкенда).';
-        if (inputId === 'starsRecipient') setStarsRecipientState('not_found', { message: msg });
-        if (inputId === 'premiumRecipient') setPremiumRecipientState('not_found', { message: msg });
+        // Если backend не настроен, не показываем ошибку — просто оставляем введённый @username
+        if (clean) {
+            input.value = '@' + clean.replace(/^@/, '');
+        }
+        if (inputId === 'starsRecipient') setStarsRecipientState('empty');
+        if (inputId === 'premiumRecipient') setPremiumRecipientState('empty');
+        if (inputId === 'march8Recipient') setMarch8RecipientState('empty');
         return;
     }
     const url = (apiBase || '').replace(/\/$/, '') + '/api/telegram/user?username=' + encodeURIComponent(clean);
@@ -1221,12 +1227,14 @@ function checkTelegramUser(inputId, previewId) {
 
             if (inputId === 'starsRecipient') setStarsRecipientState('found', userData);
             if (inputId === 'premiumRecipient') setPremiumRecipientState('found', userData);
+            if (inputId === 'march8Recipient') setMarch8RecipientState('found', userData);
         })
         .catch(function(err) {
             // Для пользователя всегда показываем простое сообщение "Пользователь не найден"
             const msg = 'Пользователь не найден';
             if (inputId === 'starsRecipient') setStarsRecipientState('not_found', { message: msg });
             if (inputId === 'premiumRecipient') setPremiumRecipientState('not_found', { message: msg });
+            if (inputId === 'march8Recipient') setMarch8RecipientState('not_found', { message: msg });
         });
 }
 
@@ -1396,6 +1404,66 @@ function clearPremiumRecipient() {
     var input = document.getElementById('premiumRecipient');
     if (input) input.value = '';
     setPremiumRecipientState('empty');
+}
+
+function setMarch8RecipientState(state, userData) {
+    const wrapper = document.getElementById('march8RecipientWrapper');
+    const chip = document.getElementById('march8UserPreview');
+    const errorText = document.getElementById('march8UserError');
+    const avatarImg = document.getElementById('march8UserAvatar');
+    const nameSpan = document.getElementById('march8UserName');
+    if (!wrapper || !chip || !errorText) return;
+    wrapper.classList.remove('tg-user-input-error');
+    chip.classList.remove('visible');
+    errorText.style.display = 'none';
+
+    if (state === 'empty') {
+        if (avatarImg) {
+            avatarImg.src = '';
+            avatarImg.style.display = 'none';
+        }
+        if (nameSpan) {
+            nameSpan.textContent = '';
+        }
+        chip.classList.remove('visible');
+        return;
+    }
+    if (state === 'loading') {
+        if (avatarImg) {
+            avatarImg.style.display = 'block';
+            avatarImg.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userData?.username || '') + '&background=ff6bc2&color=fff&size=128';
+        }
+        if (nameSpan) nameSpan.textContent = 'Поиск пользователя...';
+        chip.classList.add('visible');
+        return;
+    }
+    if (state === 'found' && userData) {
+        if (avatarImg) {
+            avatarImg.style.display = 'block';
+            avatarImg.src =
+                userData.avatar ||
+                'https://ui-avatars.com/api/?name=' +
+                    encodeURIComponent(normalizeDisplayName(userData) || userData.username || '') +
+                    '&background=ff6bc2&color=fff&size=128';
+        }
+        if (nameSpan) {
+            nameSpan.textContent = normalizeDisplayName(userData);
+        }
+        chip.classList.add('visible');
+        return;
+    }
+    if (state === 'not_found') {
+        wrapper.classList.add('tg-user-input-error');
+        if (userData && userData.message) errorText.textContent = userData.message;
+        else errorText.textContent = 'Пользователь не найден';
+        errorText.style.display = 'block';
+    }
+}
+
+function clearMarch8Recipient() {
+    const input = document.getElementById('march8Recipient');
+    if (input) input.value = '';
+    setMarch8RecipientState('empty');
 }
 
 // Уведомления в магазине
@@ -1839,6 +1907,32 @@ function setupEventListeners() {
                 if (lookupTimer) clearTimeout(lookupTimer);
                 triggerLookup();
                 try { starsRecipientInput.blur(); } catch (err) {}
+            }
+        });
+    }
+
+    // Автопоиск получателя подарка на 8 марта
+    const march8RecipientInput = document.getElementById('march8Recipient');
+    if (march8RecipientInput) {
+        let march8LookupTimer = null;
+        const triggerMarch8Lookup = function() {
+            try { checkTelegramUser('march8Recipient', 'march8UserPreview'); } catch (e) {}
+        };
+
+        march8RecipientInput.addEventListener('input', function() {
+            if (march8LookupTimer) clearTimeout(march8LookupTimer);
+            march8LookupTimer = setTimeout(triggerMarch8Lookup, 350);
+        });
+        march8RecipientInput.addEventListener('blur', function() {
+            if (march8LookupTimer) clearTimeout(march8LookupTimer);
+            triggerMarch8Lookup();
+        });
+        march8RecipientInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (march8LookupTimer) clearTimeout(march8LookupTimer);
+                triggerMarch8Lookup();
+                try { march8RecipientInput.blur(); } catch (err) {}
             }
         });
     }
@@ -3510,6 +3604,13 @@ function openPaymentPage() {
                 purchaseMinimal.login = p.login;
             } else if (p.type === 'spin') {
                 purchaseMinimal.amount_usdt = 1.5;
+            } else if (p.type === 'gift_pack') {
+                purchaseMinimal.pack_id = p.pack_id;
+            } else if (p.type === 'march8') {
+                purchaseMinimal.stars_amount = p.stars_amount;
+                purchaseMinimal.login = p.login;
+                purchaseMinimal.gifts = p.gifts || {};
+                purchaseMinimal.message = p.message || '';
             }
             bodyPayload = {
                 context: 'purchase',
@@ -3959,6 +4060,138 @@ window.closeSteamLoginHelpModal = closeSteamLoginHelpModal;
 window.showAssetsView = showAssetsView;
 window.showNFTGifts = showNFTGifts;
 window.closeNFTGifts = closeNFTGifts;
+
+// -------- Подарок на 8 марта --------
+
+var MARCH8_GIFTS = {
+    rose:    { priceRub: 40,  name: 'Роза' },
+    diamond: { priceRub: 140, name: 'Алмаз' },
+    bouquet: { priceRub: 70,  name: 'Букет' },
+    heart:   { priceRub: 30,  name: 'Сердечко' },
+    ring:    { priceRub: 140, name: 'Кольцо' }
+};
+
+var march8Quantities = { rose: 0, diamond: 0, bouquet: 0, heart: 0, ring: 0 };
+
+function openMarch8Popup() {
+    var popup = document.getElementById('nftGiftsPopup');
+    if (!popup) return;
+    march8Quantities = { rose: 0, diamond: 0, bouquet: 0, heart: 0, ring: 0 };
+    var starsEl = document.getElementById('march8StarsAmount');
+    var recipientEl = document.getElementById('march8Recipient');
+    var messageEl = document.getElementById('march8Message');
+    if (starsEl) starsEl.value = '';
+    if (recipientEl) recipientEl.value = '';
+    if (messageEl) messageEl.value = '';
+    document.getElementById('march8QtyRose').textContent = '0';
+    document.getElementById('march8QtyDiamond').textContent = '0';
+    document.getElementById('march8QtyBouquet').textContent = '0';
+    document.getElementById('march8QtyHeart').textContent = '0';
+    document.getElementById('march8QtyRing').textContent = '0';
+    popup.classList.add('active');
+    if (typeof loadStarRateFromApi === 'function') {
+        loadStarRateFromApi(updateMarch8Summary);
+    } else {
+        updateMarch8Summary();
+    }
+}
+
+function changeMarch8GiftQty(id, delta) {
+    if (!MARCH8_GIFTS[id]) return;
+    var q = (march8Quantities[id] || 0) + delta;
+    if (q < 0) q = 0;
+    march8Quantities[id] = q;
+    var el = document.getElementById('march8Qty' + (id.charAt(0).toUpperCase() + id.slice(1)));
+    if (el) {
+        el.textContent = String(q);
+        el.classList.remove('qty-update');
+        el.offsetHeight;
+        el.classList.add('qty-update');
+        setTimeout(function() { el.classList.remove('qty-update'); }, 350);
+    }
+    updateMarch8Summary();
+}
+
+function updateMarch8Summary() {
+    var starsInput = parseInt(document.getElementById('march8StarsAmount')?.value || '0', 10) || 0;
+    var giftRub = 0;
+    var parts = [];
+    for (var k in MARCH8_GIFTS) {
+        var q = march8Quantities[k] || 0;
+        if (q > 0) {
+            var gr = (MARCH8_GIFTS[k].priceRub || 0) * q;
+            giftRub += gr;
+            parts.push(q + ' × ' + (MARCH8_GIFTS[k].name || ''));
+        }
+    }
+    var totalStars = starsInput;
+    var starRate = (typeof getStarRate === 'function') ? getStarRate() : 1.37;
+    var starsRub = totalStars > 0 ? totalStars * starRate : 0;
+    var totalRub = Math.round((starsRub + giftRub) * 100) / 100;
+    document.getElementById('march8SummaryStars').textContent = totalStars + '⭐ Stars';
+    document.getElementById('march8SummaryGifts').textContent = parts.length ? parts.join(', ') : '—';
+    document.getElementById('march8SummaryTotal').textContent = 'Итого: ' + totalRub.toLocaleString('ru-RU') + ' ₽';
+    var payBtn = document.getElementById('march8PayBtn');
+    var payAmount = document.getElementById('march8PayAmount');
+    if (payAmount) payAmount.textContent = totalRub.toLocaleString('ru-RU');
+    if (payBtn) {
+        payBtn.disabled = totalRub <= 0;
+    }
+}
+
+function fillMarch8Recipient() {
+    var tg = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user;
+    var el = document.getElementById('march8Recipient');
+    if (el && tg && tg.username) {
+        el.value = tg.username.startsWith('@') ? tg.username : '@' + tg.username;
+    }
+}
+
+function submitMarch8Gift() {
+    var starsInput = parseInt(document.getElementById('march8StarsAmount')?.value || '0', 10) || 0;
+    if (starsInput < 50) {
+        if (typeof showStoreNotification === 'function') showStoreNotification('Минимум 50 Stars', 'error');
+        return;
+    }
+    var giftRub = 0;
+    for (var k in MARCH8_GIFTS) {
+        giftRub += (MARCH8_GIFTS[k].priceRub || 0) * (march8Quantities[k] || 0);
+    }
+    var totalStars = starsInput;
+    var starRate = (typeof getStarRate === 'function') ? getStarRate() : 1.37;
+    var starsRub = totalStars * starRate;
+    var totalRub = Math.round((starsRub + giftRub) * 100) / 100;
+    var recipient = (document.getElementById('march8Recipient')?.value || '').trim().replace(/^@/, '');
+    if (!recipient) {
+        if (typeof showStoreNotification === 'function') showStoreNotification('Укажите получателя', 'error');
+        return;
+    }
+    var message = (document.getElementById('march8Message')?.value || '').trim();
+    currentPurchase = {
+        type: 'march8',
+        amount: totalRub,
+        stars_amount: totalStars,
+        login: recipient,
+        gifts: {
+            rose: march8Quantities.rose || 0,
+            diamond: march8Quantities.diamond || 0,
+            bouquet: march8Quantities.bouquet || 0,
+            heart: march8Quantities.heart || 0,
+            ring: march8Quantities.ring || 0
+        },
+        message: message,
+        productName: 'Подарок на 8 марта'
+    };
+    previousView = { type: 'store', gameCategory: 'steam', supercellGame: null };
+    closeNFTGifts();
+    showPaymentMethodSelection('march8');
+}
+
+window.openMarch8Popup = openMarch8Popup;
+window.changeMarch8GiftQty = changeMarch8GiftQty;
+window.updateMarch8Summary = updateMarch8Summary;
+window.fillMarch8Recipient = fillMarch8Recipient;
+window.submitMarch8Gift = submitMarch8Gift;
 
 // Функция для перехода в реферальную программу с активным состоянием
 function goToReferral() {
