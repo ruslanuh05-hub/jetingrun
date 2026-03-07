@@ -4069,7 +4069,7 @@ var MARCH8_GIFTS = {
     bouquet: { priceRub: 70,  name: 'Букет' },
     heart:   { priceRub: 30,  name: 'Сердечко' },
     ring:    { priceRub: 140, name: 'Кольцо' },
-    bear:    { priceRub: 70,  name: 'Розовый мишка' }
+    bear:    { priceRub: 70,  name: 'Мишка' }
 };
 
 var march8Quantities = { rose: 0, diamond: 0, bouquet: 0, heart: 0, ring: 0, bear: 0 };
