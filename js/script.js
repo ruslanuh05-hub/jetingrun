@@ -773,11 +773,12 @@ function switchStoreTab(tab) {
     if (tab === 'stars') dots[0]?.classList.add('active');
     if (tab === 'rating') dots[1]?.classList.add('active');
     
-    // Фон: фото звёзд только во вкладке «Звёзды»
+    // Фон: разные картинки для вкладок магазина
     const storeView = document.getElementById('storeView');
     if (storeView) {
+        storeView.classList.remove('stars-bg', 'rating-bg');
         if (tab === 'stars') storeView.classList.add('stars-bg');
-        else storeView.classList.remove('stars-bg');
+        if (tab === 'rating') storeView.classList.add('rating-bg');
     }
     
     // Обновляем цены при переключении
