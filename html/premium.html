@@ -287,6 +287,16 @@
             cursor: default;
         }
         .continue-btn.disabled:hover { transform: none; }
+        /* Появление блоков по рядам (как в главном меню) */
+        .page-block-enter {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page-block-enter.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
         @media (max-width: 400px) {
             .steam-popup-body {
                 padding-left: 12px;
@@ -312,7 +322,7 @@
         </header>
         <div class="steam-popup-body">
             <div class="store-form">
-                <div class="store-field">
+                <div class="store-field page-block-enter">
                     <div class="store-field-label-row">
                         <label class="store-label">Получатель</label>
                         <button type="button" class="store-input-action" onclick="fillOwnUsername()">/купить себе</button>
@@ -334,10 +344,10 @@
                         </div>
                     <p class="store-field-hint">Если указан неверный @username — ответственность несёт покупатель.</p>
                 </div>
-                <div class="store-field">
+                <div class="store-field page-block-enter">
                     <span class="store-label">Продолжительность</span>
                 </div>
-                <div class="premium-card-compact" data-months="3" onclick="selectPremium(3)">
+                <div class="premium-card-compact page-block-enter" data-months="3" onclick="selectPremium(3)">
                     <div class="premium-card-left">
                         <div class="premium-card-duration">3 мес.</div>
                     </div>
@@ -347,7 +357,7 @@
                     </div>
                     <div class="premium-card-radio"></div>
                 </div>
-                <div class="premium-card-compact" data-months="6" onclick="selectPremium(6)">
+                <div class="premium-card-compact page-block-enter" data-months="6" onclick="selectPremium(6)">
                     <div class="premium-card-left">
                         <div class="premium-card-duration">6 мес.</div>
                     </div>
@@ -357,7 +367,7 @@
                     </div>
                     <div class="premium-card-radio"></div>
                 </div>
-                <div class="premium-card-compact" data-months="12" onclick="selectPremium(12)">
+                <div class="premium-card-compact page-block-enter" data-months="12" onclick="selectPremium(12)">
                     <div class="premium-card-left">
                         <span class="premium-card-badge-above-compact">Выгодно</span>
                         <div class="premium-card-duration">12 мес.</div>
@@ -368,12 +378,27 @@
                     </div>
                     <div class="premium-card-radio"></div>
                 </div>
-                <button class="continue-btn disabled" id="payBtn" onclick="proceedPay()">Выберите период</button>
+                <button class="continue-btn disabled page-block-enter" id="payBtn" onclick="proceedPay()">Выберите период</button>
             </div>
         </div>
     </div>
     <script>
         (function() {
+            // Анимация появления блоков по рядам (как в главном меню)
+            function runPremiumBlocksAnimation() {
+                var blocks = document.querySelectorAll('.page-block-enter');
+                blocks.forEach(function(el, i) {
+                    setTimeout(function() { el.classList.add('visible'); }, i * 70);
+                });
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(runPremiumBlocksAnimation, 50);
+                });
+            } else {
+                setTimeout(runPremiumBlocksAnimation, 50);
+            }
+
             function getPremiumPrices() {
                 try {
                     var prices = JSON.parse(localStorage.getItem('jetstore_premium_prices') || '{}');

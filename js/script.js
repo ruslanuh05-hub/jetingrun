@@ -773,6 +773,13 @@ function switchStoreTab(tab) {
     if (tab === 'stars') dots[0]?.classList.add('active');
     if (tab === 'rating') dots[1]?.classList.add('active');
     
+    // Фон: фото звёзд только во вкладке «Звёзды»
+    const storeView = document.getElementById('storeView');
+    if (storeView) {
+        if (tab === 'stars') storeView.classList.add('stars-bg');
+        else storeView.classList.remove('stars-bg');
+    }
+    
     // Обновляем цены при переключении
     updatePricesDisplay();
     
@@ -2430,6 +2437,7 @@ function showMainMenuView() {
     if (mainMenuView) mainMenuView.classList.remove('hidden');
     if (storeView) {
         storeView.classList.remove('active');
+        storeView.classList.remove('stars-bg');
         // Сбрасываем inline-стили секций, иначе при 2-м заходе остаётся пустой экран
         document.querySelectorAll('.store-section').forEach(function(s) {
             s.style.height = '';
@@ -2500,6 +2508,7 @@ function showStoreView(section) {
     
     // Переключаем на нужную вкладку / окно
     if (section === 'stars') {
+        if (storeView) storeView.classList.add('stars-bg');
         // Сбрасываем inline-стили секций (важно при 2-м заходе — иначе пустой экран)
         document.querySelectorAll('.store-section').forEach(function(s) {
             s.style.height = '';
