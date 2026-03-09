@@ -1972,17 +1972,28 @@
             pointer-events: none;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        /* Ограничиваем высоту и блокируем скролл — нельзя листать ниже контента, чёрная полоса не видна */
-        body.store-open .main-menu-container {
+        /* Магазин фиксируем на весь экран:
+           - нельзя пролистать ниже и увидеть «чёрную полосу»
+           - скролл работает только внутри .store-content (и не ломается при 2-м заходе) */
+        body.store-open {
+            overflow: hidden;
+        }
+        /* В режиме магазина прячем верхнюю шапку главного меню,
+           иначе она перекрывает кнопку «Назад» в storeView */
+        body.store-open .store-header {
+            display: none;
+        }
+        body.store-open #storeView {
+            position: fixed;
+            inset: 0;
             height: 100vh;
             height: 100dvh;
             max-height: 100dvh;
-            overflow: hidden;
-            padding-bottom: max(20px, env(safe-area-inset-bottom, 20px)) !important;
+            z-index: 1000;
         }
-        /* store-content должен ужиматься, чтобы его overflow-y: auto работал */
         body.store-open .store-content {
             min-height: 0;
+            overscroll-behavior-y: contain;
         }
         /* В окне пополнения Steam скрываем подвал и пузырь меню (Главная, Заработать, Активы, Профиль) */
         body.steam-popup-open .bottom-nav,
@@ -2248,7 +2259,21 @@
         }
         .store-view.stars-bg {
             background: url('../assets/background_stars.jpg') center bottom/cover no-repeat;
-            background-color: #080c18;
+            background-color: #050814;
+            position: relative;
+            isolation: isolate;
+        }
+        .store-view.stars-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .store-view.stars-bg > * {
+            position: relative;
+            z-index: 1;
         }
         .store-view.rating-bg {
             background: url('../assets/back_rait.jpg') center bottom/cover no-repeat;
