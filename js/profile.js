@@ -111,79 +111,8 @@ function initProfilePage() {
     }, 500);
     
 }
-// ==================== ВКЛАДКИ "ИСТОРИЯ / ТРАНЗАКЦИИ" ====================
-function switchTab(tab) {
-    var purchasesBtn = document.querySelector('.tabs-container .tab-btn:nth-child(1)');
-    var txBtn = document.querySelector('.tabs-container .tab-btn:nth-child(2)');
-    var purchasesPane = document.getElementById('purchasesTab');
-    var txPane = document.getElementById('transactionsTab');
-    if (!purchasesBtn || !txBtn || !purchasesPane || !txPane) return;
-
-    if (tab === 'transactions') {
-        purchasesBtn.classList.remove('active');
-        purchasesPane.classList.remove('active');
-        txBtn.classList.add('active');
-        txPane.classList.add('active');
-        renderTransactions();
-    } else {
-        txBtn.classList.remove('active');
-        txPane.classList.remove('active');
-        purchasesBtn.classList.add('active');
-        purchasesPane.classList.add('active');
-    }
-}
-
-// Рендерим список транзакций (вкладка "Транзакции")
-function renderTransactions() {
-    const container = document.getElementById('transactionsTab');
-    if (!container) return;
-
-    const listId = 'transactionsList';
-    let list = document.getElementById(listId);
-    if (!list) {
-        list = document.createElement('div');
-        list.id = listId;
-        list.className = 'transactions-list';
-        container.innerHTML = '';
-        container.appendChild(list);
-    }
-
-    const txs = (userData.transactions || []).slice().sort(function (a, b) {
-        return new Date(b.date || 0) - new Date(a.date || 0);
-    });
-
-    if (!txs.length) {
-        list.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-exchange-alt"></i>
-                <p>Пока нет транзакций</p>
-            </div>
-        `;
-        return;
-    }
-
-    list.innerHTML = txs.map(function (tx) {
-        var sign = tx.type === 'deposit' || tx.type === 'promo' ? '+' : '-';
-        var color = tx.type === 'deposit' || tx.type === 'promo' ? '#22c55e' : '#ef4444';
-        var title = tx.type === 'deposit' ? 'Пополнение баланса' :
-                    tx.type === 'promo' ? 'Бонус по промокоду' :
-                    tx.type === 'spin' ? 'Игра в рулетку' :
-                    'Транзакция';
-        var amount = (tx.amount || 0).toLocaleString('ru-RU');
-        var dateStr = tx.date || '';
-        return `
-            <div class="transaction-item">
-                <div class="transaction-main">
-                    <div class="transaction-title">${title}</div>
-                    <div class="transaction-date">${dateStr}</div>
-                </div>
-                <div class="transaction-amount" style="color:${color};">
-                    ${sign}${amount} ₽
-                </div>
-            </div>
-        `;
-    }).join('');
-}
+// Раньше здесь были вкладки "История / Транзакции".
+// Сейчас в профиле оставляем только историю покупок, дополнительный код не нужен.
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initProfilePage);

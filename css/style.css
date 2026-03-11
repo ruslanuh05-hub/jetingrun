@@ -256,8 +256,8 @@ body {
 
 /* Стили для истории заказов */
 .orders-list {
-    max-height: 300px;
-    overflow-y: auto;
+    max-height: none; /* на странице профиля показываем шире, без обрезки по высоте */
+    overflow-y: visible;
 }
 
 .order-item {
