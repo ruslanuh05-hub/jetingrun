@@ -1651,6 +1651,7 @@ function showHistoryOverlay() {
                 z-index: 9999;
                 overflow-y: auto;
                 animation: historySlideIn 0.3s ease;
+                max-width: 100vw;
             }
             @keyframes historySlideIn {
                 from { transform: translateY(100%); opacity: 0; }
@@ -1692,7 +1693,7 @@ function showHistoryOverlay() {
                 color: rgba(255,255,255,0.9);
             }
             .history-content {
-                padding: 18px max(18px, env(safe-area-inset-right)) 24px max(18px, env(safe-area-inset-left));
+                padding: 18px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left));
                 max-width: 640px;
                 margin: 0 auto;
             }
@@ -1707,6 +1708,12 @@ function showHistoryOverlay() {
                 background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(5,10,20,0.9) 100%);
                 border: 1px solid rgba(0,212,255,0.25);
                 box-shadow: 0 8px 22px rgba(0,0,0,0.5);
+                cursor: pointer;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            }
+            .history-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 28px rgba(0,0,0,0.65);
             }
             .history-item-main {
                 display: flex;
@@ -1814,6 +1821,9 @@ function renderHistoryOverlay() {
 
     emptyEl.style.display = 'none';
 
+    // Сохраняем список покупок глобально, чтобы можно было открыть детали
+    window._historyPurchases = purchases.slice();
+
     purchases.sort(function(a, b) {
         const da = a.date || a.created_at || '';
         const db = b.date || b.created_at || '';
@@ -1828,7 +1838,7 @@ function renderHistoryOverlay() {
         'Звёзды отправляются': '#f1c40f'
     };
 
-    listEl.innerHTML = purchases.map(function(purchase) {
+    listEl.innerHTML = purchases.map(function(purchase, index) {
         const type = (purchase.type || '').toLowerCase();
         const iconClass = type === 'steam'
             ? 'fab fa-steam'
@@ -1841,8 +1851,15 @@ function renderHistoryOverlay() {
         const productName = (purchase.productName || purchase.name || 'Товар').toString();
         const amountRub = purchase.amount_rub || purchase.amount || 0;
         const amountStr = `${Number(amountRub || 0).toLocaleString('ru-RU')} ₽`;
+        const isDelivered = status === 'успешно' || status === 'Звёзды выданы';
+        const baseBorder = isDelivered ? 'rgba(39,174,96,0.95)' : 'rgba(0,212,255,0.25)';
+        const hoverBorder = isDelivered ? 'rgba(39,174,96,1)' : 'rgba(0,212,255,0.5)';
         return `
-            <div class="history-item">
+            <div class="history-item"
+                 style="border-color:${baseBorder};"
+                 onclick="showHistoryPurchaseDetails(${index})"
+                 onmouseenter="this.style.borderColor='${hoverBorder}'"
+                 onmouseleave="this.style.borderColor='${baseBorder}'">
                 <div class="history-item-main">
                     <div class="history-item-icon" style="background:${statusColor}20;color:${statusColor};">
                         <i class="${iconClass}" style="font-size:1.1rem;"></i>
@@ -1853,12 +1870,106 @@ function renderHistoryOverlay() {
                     </div>
                 </div>
                 <div class="history-item-footer">
-                    <span class="history-item-status" style="background:${statusColor}22;color:${statusColor};">${status}</span>
+                    <span class="history-item-status" style="background:${statusColor}22;color:${statusColor};">
+                        ${status}
+                    </span>
                     <span class="history-item-amount">${amountStr}</span>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+// Открыть детальное окно покупки (старый попап деталей)
+function showHistoryPurchaseDetails(index) {
+    try {
+        const list = Array.isArray(window._historyPurchases) ? window._historyPurchases : [];
+        const purchase = list[index];
+        if (!purchase || typeof purchase !== 'object') return;
+        if (typeof showPurchaseDetails === 'function') {
+            showPurchaseDetails(purchase);
+        }
+    } catch (e) {
+        console.error('showHistoryPurchaseDetails error:', e);
+    }
+}
+
+// Профиль пользователя — шторка с личной статистикой
+function showUserStatsOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'history-page-fullscreen user-stats-fullscreen';
+    const username = userData.username ? `@${userData.username}` : '';
+    // Плейсхолдеры для статистики — считаем по локальным данным, без запросов к серверу
+    let starsTotal = 0;
+    let refs = 0;
+    try {
+        const allPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+        const currentId = userData.id ? String(userData.id) : null;
+        const purchases = currentId
+            ? allPurchases.filter(p => p && p.userId && String(p.userId) === currentId)
+            : allPurchases;
+        purchases.forEach(p => {
+            if (!p || typeof p !== 'object') return;
+            const t = (p.type || '').toLowerCase();
+            if (t === 'stars') {
+                const s = Number(p.stars_amount || p.starsAmount || 0);
+                if (!Number.isNaN(s)) starsTotal += s;
+            }
+        });
+    } catch (e) {
+        console.warn('user stats: failed to read purchases', e);
+    }
+    let balance = 0;
+    try {
+        balance = Number(userData.currencies?.RUB || 0);
+    } catch (e) {
+        balance = 0;
+    }
+    // Рефералы/ранг пока как 0/—, их можно будет заполнить из API позже
+    const rank = '—';
+    const joined = (userData.registrationDate || '').toString();
+
+    overlay.innerHTML = `
+        <div class="history-header">
+            <button class="history-back-btn" type="button" onclick="this.closest('.history-page-fullscreen').remove()">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h1 class="history-title">Профиль пользователя</h1>
+        </div>
+        <div class="history-content">
+            <div class="history-item" style="margin-bottom:16px;display:flex;align-items:center;gap:14px;">
+                <div class="history-item-icon" style="background:rgba(0,212,255,0.18);color:#00d4ff;">
+                    ${userData.photoUrl
+                        ? `<img src="${userData.photoUrl}" alt="Avatar" style="width:100%;height:100%;border-radius:10px;object-fit:cover;">`
+                        : `<span style="font-size:1.4rem;">${(userData.firstName || 'U')[0].toUpperCase()}</span>`}
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="color:#ffffff;font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        ${[userData.firstName, userData.lastName].filter(Boolean).join(' ') || 'Пользователь'}
+                    </div>
+                    <div style="color:#00d4ff;font-size:0.9rem;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        ${username || ''}
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-item">
+                <div style="display:flex;flex-direction:column;gap:8px;font-size:0.95rem;">
+                    <div>⭐️ <b>Всего куплено звёзд:</b> ${starsTotal.toLocaleString('ru-RU')}</div>
+                    <div>💰 <b>Баланс:</b> ${balance.toLocaleString('ru-RU')} ₽</div>
+                    <div>👥 <b>Приглашено друзей:</b> ${refs}</div>
+                    <div>🏆 <b>Место в рейтинге:</b> ${rank}</div>
+                    <div>🎮 <b>Пополнено в Steam:</b> —</div>
+                    <div>📅 <b>С нами с:</b> ${joined || '—'}</div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px;color:rgba(255,255,255,0.8);font-size:0.95rem;line-height:1.5;text-align:left;">
+                Спасибо, что пользуешься нашим ботом, мы тебе благодарны ❤️
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
 }
 
 // Открыть ссылку Telegram
