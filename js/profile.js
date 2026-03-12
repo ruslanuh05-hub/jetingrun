@@ -1873,7 +1873,7 @@ function renderHistoryOverlay() {
         const statusColor = statusColors[status] || '#888';
         const dateStr = purchase.date || purchase.created_at || '';
         const productName = (purchase.productName || purchase.name || 'Товар').toString();
-        const amountRub = purchase.amount_rub || purchase.amount || 0;
+        const amountRub = purchase.amount_rub || purchase.amount || purchase.price || 0;
         const amountStr = `${Number(amountRub || 0).toLocaleString('ru-RU')} ₽`;
         const isDelivered = status === 'успешно' || status === 'Звёзды выданы';
         const baseBorder = isDelivered ? 'rgba(39,174,96,0.95)' : 'rgba(0,212,255,0.25)';
@@ -1936,22 +1936,43 @@ function showUserStatsOverlay() {
         purchases.forEach(p => {
             if (!p || typeof p !== 'object') return;
             const t = (p.type || '').toLowerCase();
+            // Звёзды: берём сохранённое количество, при отсутствии — считаем по сумме
             if (t === 'stars') {
-                const s = Number(p.stars_amount || p.starsAmount || 0);
+                let s = Number(p.stars_amount || p.starsAmount || 0);
+                if (!s || Number.isNaN(s)) {
+                    const rub = Number(p.amount_rub || p.amount || p.price || 0);
+                    if (rub > 0) {
+                        s = Math.round(rub / 0.65);
+                    }
+                }
                 if (!Number.isNaN(s)) starsTotal += s;
             }
         });
     } catch (e) {
         console.warn('user stats: failed to read purchases', e);
     }
-    let balance = 0;
+    // Рефералы и Steam‑пополнения считаем по данным пользователя/покупок
+    const refs = Number(userData.referrals?.count || 0);
+    let steamTotalRub = 0;
     try {
-        balance = Number(userData.currencies?.RUB || 0);
+        const allPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+        const currentId = userData.id ? String(userData.id) : null;
+        const purchases = currentId
+            ? allPurchases.filter(p => p && p.userId && String(p.userId) === currentId)
+            : allPurchases;
+        purchases.forEach(p => {
+            if (!p || typeof p !== 'object') return;
+            const t = (p.type || '').toLowerCase();
+            if (t === 'steam') {
+                const rub = Number(p.amount_rub || p.amount || p.price || 0);
+                if (!Number.isNaN(rub)) steamTotalRub += rub;
+            }
+        });
     } catch (e) {
-        balance = 0;
+        console.warn('user stats: failed to calculate steam total', e);
     }
-    // Рефералы/ранг пока как 0/—, их можно будет заполнить из API позже
-    const rank = '—';
+    // Место в рейтинге пока берём из userData, если есть, иначе "—"
+    const rank = userData.ratingPosition || userData.rating_rank || userData.rank || '—';
     const joined = (userData.registrationDate || '').toString();
 
     overlay.innerHTML = `
@@ -1974,10 +1995,9 @@ function showUserStatsOverlay() {
             <div class="history-item">
                 <div style="display:flex;flex-direction:column;gap:8px;font-size:0.95rem;">
                     <div>⭐️ <b>Всего куплено звёзд:</b> ${starsTotal.toLocaleString('ru-RU')}</div>
-                    <div>💰 <b>Баланс:</b> ${balance.toLocaleString('ru-RU')} ₽</div>
                     <div>👥 <b>Приглашено друзей:</b> ${refs}</div>
                     <div>🏆 <b>Место в рейтинге:</b> ${rank}</div>
-                    <div>🎮 <b>Пополнено в Steam:</b> —</div>
+                    <div>🎮 <b>Пополнено в Steam:</b> ${steamTotalRub > 0 ? steamTotalRub.toLocaleString('ru-RU') + ' ₽' : '—'}</div>
                     <div>📅 <b>С нами с:</b> ${joined || '—'}</div>
                 </div>
             </div>

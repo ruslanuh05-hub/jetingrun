@@ -130,7 +130,12 @@ function recordPurchaseSuccess(data, deliveryOptions) {
         orderId: orderId,                                  // внешний ID для пользователя
         type: type,
         productName: productName,
+        // Итоговая сумма в рублях
         price: amountRub,
+        amount_rub: amountRub,
+        // Количество звёзд (для статистики профиля)
+        starsAmount: starsAmount,
+        stars_amount: starsAmount,
         status: statusText,
         date: new Date().toISOString(),
         userId: uid,
