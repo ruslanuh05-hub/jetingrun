@@ -1638,6 +1638,229 @@ function showInfo(type) {
     document.body.appendChild(infoPage);
 }
 
+// Полноэкранная история покупок (шторка с анимацией)
+function showHistoryOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'history-page-fullscreen';
+    overlay.innerHTML = `
+        <style>
+            .history-page-fullscreen {
+                position: fixed;
+                inset: 0;
+                background: linear-gradient(180deg, #05060a 0%, #0c0f1a 50%, #05060a 100%);
+                z-index: 9999;
+                overflow-y: auto;
+                animation: historySlideIn 0.3s ease;
+            }
+            @keyframes historySlideIn {
+                from { transform: translateY(100%); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            .history-header {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 16px 20px;
+                background: rgba(5, 7, 15, 0.96);
+                backdrop-filter: blur(14px);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                border-bottom: 1px solid rgba(0, 212, 255, 0.25);
+            }
+            .history-back-btn {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                background: rgba(0, 212, 255, 0.12);
+                border: 1px solid rgba(0, 212, 255, 0.3);
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .history-back-btn:hover {
+                background: rgba(0, 212, 255, 0.18);
+                border-color: rgba(0, 212, 255, 0.5);
+            }
+            .history-title {
+                margin: 0;
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: rgba(255,255,255,0.9);
+            }
+            .history-content {
+                padding: 18px max(18px, env(safe-area-inset-right)) 24px max(18px, env(safe-area-inset-left));
+                max-width: 640px;
+                margin: 0 auto;
+            }
+            .history-list {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .history-item {
+                padding: 14px 16px;
+                border-radius: 14px;
+                background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(5,10,20,0.9) 100%);
+                border: 1px solid rgba(0,212,255,0.25);
+                box-shadow: 0 8px 22px rgba(0,0,0,0.5);
+            }
+            .history-item-main {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .history-item-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .history-item-title {
+                color: #ffffff;
+                font-weight: 600;
+                font-size: 0.95rem;
+                line-height: 1.3;
+            }
+            .history-item-meta {
+                color: rgba(255,255,255,0.6);
+                font-size: 0.78rem;
+                margin-top: 2px;
+            }
+            .history-item-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 8px;
+                font-size: 0.82rem;
+            }
+            .history-item-status {
+                padding: 4px 10px;
+                border-radius: 999px;
+                font-weight: 600;
+                font-size: 0.78rem;
+            }
+            .history-item-amount {
+                color: #00d4ff;
+                font-weight: 700;
+                font-size: 0.9rem;
+            }
+            .history-empty {
+                padding: 40px 16px;
+                text-align: center;
+                color: rgba(255,255,255,0.7);
+            }
+            .history-empty i {
+                font-size: 2.4rem;
+                margin-bottom: 12px;
+                color: rgba(0,212,255,0.4);
+            }
+        </style>
+        <div class="history-header">
+            <button class="history-back-btn" type="button" onclick="this.closest('.history-page-fullscreen').remove()">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h1 class="history-title">История покупок</h1>
+        </div>
+        <div class="history-content">
+            <div id="historyPurchasesList" class="history-list"></div>
+            <div id="historyEmptyState" class="history-empty" style="display:none;">
+                <i class="fas fa-shopping-bag"></i>
+                <div>Пока нет покупок</div>
+                <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-top:4px;">Все ваши заказы по звёздам, Premium и Steam появятся здесь.</div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    renderHistoryOverlay();
+}
+
+function renderHistoryOverlay() {
+    const listEl = document.getElementById('historyPurchasesList');
+    const emptyEl = document.getElementById('historyEmptyState');
+    if (!listEl || !emptyEl) return;
+
+    let purchases = [];
+    try {
+        const allPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+        let currentId = null;
+        try {
+            const tg = window.Telegram?.WebApp;
+            const initData = tg?.initDataUnsafe;
+            if (initData?.user?.id) {
+                currentId = String(initData.user.id);
+            }
+        } catch (e) {
+            console.warn('history overlay: cannot detect user id', e);
+        }
+        purchases = currentId
+            ? allPurchases.filter(p => p && p.userId && String(p.userId) === currentId)
+            : allPurchases;
+    } catch (e) {
+        console.error('history overlay: failed to read purchases', e);
+    }
+
+    if (!purchases || !purchases.length) {
+        listEl.innerHTML = '';
+        emptyEl.style.display = 'block';
+        return;
+    }
+
+    emptyEl.style.display = 'none';
+
+    purchases.sort(function(a, b) {
+        const da = a.date || a.created_at || '';
+        const db = b.date || b.created_at || '';
+        return (db || '').localeCompare(da || '');
+    });
+
+    const statusColors = {
+        'успешно': '#27ae60',
+        'в процессе': '#f1c40f',
+        'отменен': '#e74c3c',
+        'Звёзды выданы': '#27ae60',
+        'Звёзды отправляются': '#f1c40f'
+    };
+
+    listEl.innerHTML = purchases.map(function(purchase) {
+        const type = (purchase.type || '').toLowerCase();
+        const iconClass = type === 'steam'
+            ? 'fab fa-steam'
+            : type === 'premium'
+                ? 'fas fa-crown'
+                : 'fas fa-star';
+        const status = purchase.status || 'успешно';
+        const statusColor = statusColors[status] || '#888';
+        const dateStr = purchase.date || purchase.created_at || '';
+        const productName = (purchase.productName || purchase.name || 'Товар').toString();
+        const amountRub = purchase.amount_rub || purchase.amount || 0;
+        const amountStr = `${Number(amountRub || 0).toLocaleString('ru-RU')} ₽`;
+        return `
+            <div class="history-item">
+                <div class="history-item-main">
+                    <div class="history-item-icon" style="background:${statusColor}20;color:${statusColor};">
+                        <i class="${iconClass}" style="font-size:1.1rem;"></i>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div class="history-item-title">${productName}</div>
+                        <div class="history-item-meta">${dateStr || ''}</div>
+                    </div>
+                </div>
+                <div class="history-item-footer">
+                    <span class="history-item-status" style="background:${statusColor}22;color:${statusColor};">${status}</span>
+                    <span class="history-item-amount">${amountStr}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 // Открыть ссылку Telegram
 function openTelegramLink(url, e) {
     if (e) e.preventDefault();
