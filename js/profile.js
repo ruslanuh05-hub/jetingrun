@@ -1638,138 +1638,148 @@ function showInfo(type) {
     document.body.appendChild(infoPage);
 }
 
+// Общие стили для полноэкранных шторок истории/профиля
+function ensureHistoryStyles() {
+    if (document.getElementById('history-page-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'history-page-styles';
+    style.textContent = `
+        .history-page-fullscreen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, #05060a 0%, #0c0f1a 50%, #05060a 100%);
+            z-index: 9999;
+            overflow-y: auto;
+            animation: historySlideIn 0.3s ease;
+            max-width: 100vw;
+        }
+        @keyframes historySlideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .history-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: rgba(5, 7, 15, 0.96);
+            backdrop-filter: blur(14px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.25);
+        }
+        .history-back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(0, 212, 255, 0.12);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .history-back-btn:hover {
+            background: rgba(0, 212, 255, 0.18);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+        .history-title {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+        }
+        .history-content {
+            padding: 18px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left));
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .history-item {
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(5,10,20,0.9) 100%);
+            border: 1px solid rgba(0,212,255,0.25);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.65);
+        }
+        .history-item-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .history-item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .history-item-title {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+        .history-item-meta {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.78rem;
+            margin-top: 2px;
+        }
+        .history-item-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 8px;
+            font-size: 0.82rem;
+            gap: 2px;
+        }
+        .history-item-status {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.78rem;
+            white-space: nowrap;
+        }
+        .history-item-amount {
+            color: #00d4ff;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .history-empty {
+            padding: 40px 16px;
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+        }
+        .history-empty i {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+            color: rgba(0,212,255,0.4);
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 // Полноэкранная история покупок (шторка с анимацией)
 function showHistoryOverlay() {
+    ensureHistoryStyles();
     const overlay = document.createElement('div');
     overlay.className = 'history-page-fullscreen';
     overlay.innerHTML = `
-        <style>
-            .history-page-fullscreen {
-                position: fixed;
-                inset: 0;
-                background: linear-gradient(180deg, #05060a 0%, #0c0f1a 50%, #05060a 100%);
-                z-index: 9999;
-                overflow-y: auto;
-                animation: historySlideIn 0.3s ease;
-                max-width: 100vw;
-            }
-            @keyframes historySlideIn {
-                from { transform: translateY(100%); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
-            }
-            .history-header {
-                display: flex;
-                align-items: center;
-                gap: 16px;
-                padding: 16px 20px;
-                background: rgba(5, 7, 15, 0.96);
-                backdrop-filter: blur(14px);
-                position: sticky;
-                top: 0;
-                z-index: 10;
-                border-bottom: 1px solid rgba(0, 212, 255, 0.25);
-            }
-            .history-back-btn {
-                width: 40px;
-                height: 40px;
-                border-radius: 10px;
-                background: rgba(0, 212, 255, 0.12);
-                border: 1px solid rgba(0, 212, 255, 0.3);
-                color: #ffffff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            .history-back-btn:hover {
-                background: rgba(0, 212, 255, 0.18);
-                border-color: rgba(0, 212, 255, 0.5);
-            }
-            .history-title {
-                margin: 0;
-                font-size: 1.1rem;
-                font-weight: 700;
-                color: rgba(255,255,255,0.9);
-            }
-            .history-content {
-                padding: 18px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left));
-                max-width: 640px;
-                margin: 0 auto;
-            }
-            .history-list {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-            .history-item {
-                padding: 14px 16px;
-                border-radius: 14px;
-                background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(5,10,20,0.9) 100%);
-                border: 1px solid rgba(0,212,255,0.25);
-                box-shadow: 0 8px 22px rgba(0,0,0,0.5);
-                cursor: pointer;
-                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-            }
-            .history-item:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 12px 28px rgba(0,0,0,0.65);
-            }
-            .history-item-main {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
-            .history-item-icon {
-                width: 40px;
-                height: 40px;
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-            }
-            .history-item-title {
-                color: #ffffff;
-                font-weight: 600;
-                font-size: 0.95rem;
-                line-height: 1.3;
-            }
-            .history-item-meta {
-                color: rgba(255,255,255,0.6);
-                font-size: 0.78rem;
-                margin-top: 2px;
-            }
-            .history-item-footer {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-top: 8px;
-                font-size: 0.82rem;
-            }
-            .history-item-status {
-                padding: 4px 10px;
-                border-radius: 999px;
-                font-weight: 600;
-                font-size: 0.78rem;
-                white-space: nowrap;
-            }
-            .history-item-amount {
-                color: #00d4ff;
-                font-weight: 700;
-                font-size: 0.9rem;
-            }
-            .history-empty {
-                padding: 40px 16px;
-                text-align: center;
-                color: rgba(255,255,255,0.7);
-            }
-            .history-empty i {
-                font-size: 2.4rem;
-                margin-bottom: 12px;
-                color: rgba(0,212,255,0.4);
-            }
-        </style>
         <div class="history-header">
             <button class="history-back-btn" type="button" onclick="this.closest('.history-page-fullscreen').remove()">
                 <i class="fas fa-chevron-left"></i>
@@ -1910,6 +1920,7 @@ function showHistoryPurchaseDetails(index) {
 
 // Профиль пользователя — шторка с личной статистикой
 function showUserStatsOverlay() {
+    ensureHistoryStyles();
     const overlay = document.createElement('div');
     overlay.className = 'history-page-fullscreen user-stats-fullscreen';
     const username = userData.username ? `@${userData.username}` : '';
@@ -1951,19 +1962,12 @@ function showUserStatsOverlay() {
             <h1 class="history-title">Профиль пользователя</h1>
         </div>
         <div class="history-content">
-            <div class="history-item" style="margin-bottom:16px;display:flex;align-items:center;gap:14px;">
-                <div class="history-item-icon" style="background:rgba(0,212,255,0.18);color:#00d4ff;">
-                    ${userData.photoUrl
-                        ? `<img src="${userData.photoUrl}" alt="Avatar" style="width:100%;height:100%;border-radius:10px;object-fit:cover;">`
-                        : `<span style="font-size:1.4rem;">${(userData.firstName || 'U')[0].toUpperCase()}</span>`}
+            <div class="history-item" style="margin-bottom:16px;">
+                <div style="color:#ffffff;font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    ${[userData.firstName, userData.lastName].filter(Boolean).join(' ') || 'Пользователь'}
                 </div>
-                <div style="flex:1;min-width:0;">
-                    <div style="color:#ffffff;font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                        ${[userData.firstName, userData.lastName].filter(Boolean).join(' ') || 'Пользователь'}
-                    </div>
-                    <div style="color:#00d4ff;font-size:0.9rem;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                        ${username || ''}
-                    </div>
+                <div style="color:#00d4ff;font-size:0.9rem;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    ${username || ''}
                 </div>
             </div>
 
