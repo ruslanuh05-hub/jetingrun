@@ -1752,6 +1752,7 @@ function showHistoryOverlay() {
                 border-radius: 999px;
                 font-weight: 600;
                 font-size: 0.78rem;
+                white-space: nowrap;
             }
             .history-item-amount {
                 color: #00d4ff;
@@ -1845,7 +1846,20 @@ function renderHistoryOverlay() {
             : type === 'premium'
                 ? 'fas fa-crown'
                 : 'fas fa-star';
-        const status = purchase.status || 'успешно';
+        const rawStatus = (purchase.status || 'успешно').toString();
+        let status = rawStatus;
+        // Нормализуем подписи статуса для красивого отображения
+        if (type === 'stars') {
+            if (rawStatus.toLowerCase().includes('выдан')) {
+                status = 'Звёзды выданы';
+            } else if (rawStatus.toLowerCase().includes('ожидан') || rawStatus.toLowerCase().includes('отправ')) {
+                status = 'Ожидание выдачи';
+            }
+        } else if (type === 'steam') {
+            if (rawStatus.toLowerCase().includes('усп')) {
+                status = 'Успешно';
+            }
+        }
         const statusColor = statusColors[status] || '#888';
         const dateStr = purchase.date || purchase.created_at || '';
         const productName = (purchase.productName || purchase.name || 'Товар').toString();
@@ -1971,6 +1985,10 @@ function showUserStatsOverlay() {
     `;
     document.body.appendChild(overlay);
 }
+
+// Экспортируем функции в глобальный scope для inline-обработчиков
+window.showHistoryOverlay = showHistoryOverlay;
+window.showUserStatsOverlay = showUserStatsOverlay;
 
 // Открыть ссылку Telegram
 function openTelegramLink(url, e) {
