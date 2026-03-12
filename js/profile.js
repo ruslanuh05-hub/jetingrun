@@ -1926,7 +1926,7 @@ function showUserStatsOverlay() {
     const username = userData.username ? `@${userData.username}` : '';
     // Плейсхолдеры для статистики — считаем по локальным данным, без запросов к серверу
     let starsTotal = 0;
-    let refs = 0;
+    var refs = 0;
     try {
         const allPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
         const currentId = userData.id ? String(userData.id) : null;
