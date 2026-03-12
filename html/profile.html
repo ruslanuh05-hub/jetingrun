@@ -2890,7 +2890,7 @@
         <!-- Основной контент -->
         <div class="profile-content">
             <!-- Карточка пользователя -->
-            <div class="user-card page-block-enter" onclick="showUserStatsOverlay()">
+            <div class="user-card page-block-enter" onclick="window.showUserStatsOverlay && window.showUserStatsOverlay()">
                 <div class="user-avatar-wrapper">
                     <div class="user-avatar" id="profileAvatar">
                         <i class="fas fa-user"></i>
@@ -2976,7 +2976,7 @@
             
             <!-- Секция информации и реферальная программа -->
             <div class="info-section page-block-enter">
-                <div class="info-item" onclick="showInfo('about')">
+            <div class="info-item" onclick="window.showInfo && window.showInfo('about')">
                     <div class="info-icon purple">
                         <i class="fas fa-info-circle"></i>
                 </div>
@@ -2987,7 +2987,7 @@
             <!-- История покупок — отдельная страница по кнопке -->
             <div class="tab-content page-block-enter">
                 <button type="button"
-                        onclick="showHistoryOverlay()"
+                        onclick="window.showHistoryOverlay && window.showHistoryOverlay()"
                         style="width:100%;border:none;border-radius:16px;padding:16px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(10,16,30,0.95) 100%);box-shadow:0 10px 32px rgba(0,0,0,0.6);">
                     <div style="display:flex;align-items:center;gap:12px;">
                         <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,212,255,0.18);display:flex;align-items:center;justify-content:center;color:#00d4ff;">
