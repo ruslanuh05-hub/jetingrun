@@ -1952,7 +1952,7 @@ function showUserStatsOverlay() {
         console.warn('user stats: failed to read purchases', e);
     }
     // Рефералы и Steam‑пополнения считаем по данным пользователя/покупок
-    const refs = Number(userData.referrals?.count || 0);
+    refs = Number(userData.referrals?.count || 0);
     let steamTotalRub = 0;
     try {
         const allPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
