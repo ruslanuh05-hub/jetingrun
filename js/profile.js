@@ -1273,6 +1273,65 @@ function togglePromoPanel() {
     }
 }
 
+// Выдвижная панель статистики пользователя (как промокод, снизу)
+function toggleUserStatsPanel() {
+    const panel = document.getElementById('userStatsPanel');
+    const contentEl = document.getElementById('userStatsContent');
+    if (!panel || !contentEl || !window.userData) return;
+
+    // Если панель ещё не открыта — пересчитываем статистику и заполняем
+    if (!panel.classList.contains('active')) {
+        try {
+            const username = userData.username ? '@' + userData.username : '';
+            let starsTotal = 0;
+            let steamTotal = 0;
+            let refsCount = Number(userData.referrals?.count || 0);
+            const joined = (userData.registrationDate || '').toString();
+            const rank = userData.ratingPosition || userData.rating_rank || userData.rank || '—';
+
+            try {
+                const allPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
+                const currentId = userData.id ? String(userData.id) : null;
+                const purchases = currentId
+                    ? allPurchases.filter(p => p && p.userId && String(p.userId) === currentId)
+                    : allPurchases;
+                purchases.forEach(p => {
+                    if (!p || typeof p !== 'object') return;
+                    const t = (p.type || '').toLowerCase();
+                    if (t === 'stars') {
+                        let s = Number(p.stars_amount || p.starsAmount || 0);
+                        if (!s || Number.isNaN(s)) {
+                            const rub = Number(p.amount_rub || p.amount || p.price || 0);
+                            if (rub > 0) s = Math.round(rub / 0.65);
+                        }
+                        if (!Number.isNaN(s)) starsTotal += s;
+                    } else if (t === 'steam') {
+                        const rub = Number(p.amount_rub || p.amount || p.price || 0);
+                        if (!Number.isNaN(rub)) steamTotal += rub;
+                    }
+                });
+            } catch (e) {
+                console.warn('user stats panel: failed to read purchases', e);
+            }
+
+            const referralBalance = Number(userData.referrals?.earnings || 0);
+
+            contentEl.innerHTML = `
+                <div class="user-stats-row">⭐️ <b>Всего куплено звёзд:</b> ${starsTotal.toLocaleString('ru-RU')}</div>
+                <div class="user-stats-row">💰 <b>Баланс рефералки:</b> ${referralBalance.toLocaleString('ru-RU')} ₽</div>
+                <div class="user-stats-row">👥 <b>Приглашено друзей:</b> ${refsCount}</div>
+                <div class="user-stats-row">🏆 <b>Место в рейтинге:</b> ${rank}</div>
+                <div class="user-stats-row">🎮 <b>Пополнено Steam:</b> ${steamTotal > 0 ? steamTotal.toLocaleString('ru-RU') + ' ₽' : '—'}</div>
+                <div class="user-stats-row">📅 <b>С нами с:</b> ${joined || '—'}</div>
+            `;
+        } catch (e) {
+            console.error('user stats panel: failed to build stats', e);
+        }
+    }
+
+    panel.classList.toggle('active');
+}
+
 // Закрытие панели промокода
 function closePromoPanel() {
     const panel = document.getElementById('promoPanel');
@@ -2013,6 +2072,7 @@ function showUserStatsOverlay() {
 // Экспортируем функции в глобальный scope для inline-обработчиков
 window.showHistoryOverlay = showHistoryOverlay;
 window.showUserStatsOverlay = showUserStatsOverlay;
+window.toggleUserStatsPanel = toggleUserStatsPanel;
 
 // Открыть ссылку Telegram
 function openTelegramLink(url, e) {

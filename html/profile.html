@@ -1556,7 +1556,7 @@
             white-space: nowrap;
         }
         
-        /* Выдвижная панель промокода */
+        /* Выдвижная панель промокода / статистики */
         .promo-panel {
             max-height: 0;
             overflow: hidden;
@@ -1575,6 +1575,30 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+        }
+
+        /* Панель статистики пользователя (расширенная высота) */
+        .promo-panel.user-stats-panel.active {
+            max-height: 260px;
+        }
+
+        .user-stats-title {
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .user-stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .user-stats-row b {
+            font-weight: 600;
         }
         
         .promo-code-input {
@@ -2890,7 +2914,7 @@
         <!-- Основной контент -->
         <div class="profile-content">
             <!-- Карточка пользователя -->
-            <div class="user-card page-block-enter" onclick="window.showUserStatsOverlay && window.showUserStatsOverlay()">
+            <div class="user-card page-block-enter" onclick="window.toggleUserStatsPanel && window.toggleUserStatsPanel()">
                 <div class="user-avatar-wrapper">
                     <div class="user-avatar" id="profileAvatar">
                         <i class="fas fa-user"></i>
@@ -2924,6 +2948,19 @@
                         <button class="promo-apply-btn" id="promoApplyBtn" onclick="activatePromoCode()" disabled>
                             Применить
                         </button>
+                    </div>
+                </div>
+                
+                <!-- Выдвижная панель статистики пользователя -->
+                <div id="userStatsPanel" class="promo-panel user-stats-panel">
+                    <div class="promo-panel-content">
+                        <div class="user-stats-title">👤 Профиль пользователя</div>
+                        <div id="userStatsContent" class="user-stats-list">
+                            <!-- Контент заполняется из profile.js -->
+                        </div>
+                        <div style="margin-top:6px;color:rgba(255,255,255,0.75);font-size:0.85rem;line-height:1.4;">
+                            Спасибо, что пользуешься нашим ботом ❤️
+                        </div>
                     </div>
                 </div>
             </div>
