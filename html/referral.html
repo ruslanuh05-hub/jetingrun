@@ -114,7 +114,7 @@
         }
         
         .referral-page-content {
-            padding: 20px 18px 26px;
+            padding: 8px 14px 18px;
             max-width: 620px;
             margin: 0 auto;
         }
@@ -122,12 +122,12 @@
         /* Центральная героическая иконка (компактнее, чтобы на первом экране была видна кнопка пригласить) */
         .referral-hero-icon {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 6px;
         }
         .referral-hero-icon-inner {
-            width: 78px;
-            height: 78px;
-            margin: 0 auto 12px;
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 6px;
             border-radius: 50%;
             background: linear-gradient(135deg, rgba(0, 212, 255, 0.25) 0%, rgba(118, 75, 162, 0.25) 100%);
             display: flex;
@@ -136,35 +136,35 @@
             box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
         }
         .referral-hero-icon-inner i {
-            font-size: 3rem;
+            font-size: 2rem;
             color: #00d4ff;
         }
         .referral-hero-title {
-            font-size: 1.3rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: #ffffff;
-            margin: 0 0 8px;
+            margin: 0 0 2px;
         }
         .referral-hero-subtitle {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: rgba(255, 255, 255, 0.7);
             margin: 0;
         }
 
-        /* Details (закрывающийся блок статистики) */
+        /* Блок статистики (теперь всегда открыт) */
         .referral-details-block {
             background: rgba(18, 20, 32, 0.98);
             border: 1px solid rgba(0, 212, 255, 0.35);
             border-radius: 16px;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
         .referral-details-summary {
-            padding: 12px 16px;
-            font-size: 1rem;
+            padding: 6px 12px 2px;
+            font-size: 0.9rem;
             font-weight: 700;
             color: #ffffff;
-            cursor: pointer;
+            cursor: default;
             user-select: none;
             display: flex;
             align-items: center;
@@ -175,53 +175,40 @@
             display: none;
         }
         .referral-details-arrow {
-            transition: transform 0.3s ease;
-        }
-        .referral-details-block[open] .referral-details-arrow {
-            transform: rotate(180deg);
+            display: none;
         }
         .referral-details-content {
-            padding: 0 16px 0;
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(-4px);
-            transition:
-                max-height 0.3s ease,
-                opacity 0.25s ease,
-                transform 0.25s ease,
-                padding-bottom 0.3s ease;
-        }
-        .referral-details-block[open] .referral-details-content {
-            max-height: 1200px; /* достаточно, чтобы уместить весь контент */
-            padding-bottom: 12px;
+            padding: 0 12px 8px;
+            max-height: none;
+            overflow: visible;
             opacity: 1;
-            transform: translateY(0);
+            transform: none;
+            transition: none;
         }
 
         /* Статистика (сетка 2 колонки) */
         .referral-stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 6px;
+            margin-bottom: 8px;
         }
         .referral-stat-card {
             background: rgba(0, 0, 0, 0.35);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 14px;
-            padding: 16px;
+            padding: 6px;
             text-align: center;
         }
         .referral-stat-icon {
-            width: 44px;
-            height: 44px;
-            margin: 0 auto 8px;
+            width: 28px;
+            height: 28px;
+            margin: 0 auto 6px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 0.9rem;
         }
         .referral-stat-icon.earnings {
             background: rgba(76, 175, 80, 0.3);
@@ -232,12 +219,12 @@
             color: #ce93d8;
         }
         .referral-stat-label {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: rgba(255, 255, 255, 0.7);
             margin-bottom: 6px;
         }
         .referral-stat-value {
-            font-size: 1.5rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: #ffffff;
         }
@@ -246,8 +233,8 @@
         .referral-level-info {
             background: rgba(0, 0, 0, 0.25);
             border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 20px;
+            padding: 6px 10px;
+            margin-bottom: 6px;
         }
         .referral-level-row {
             display: flex;
@@ -259,15 +246,15 @@
             margin-bottom: 10px;
         }
         .referral-level-label {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: rgba(255, 255, 255, 0.7);
         }
         .referral-level-badge {
             background: rgba(0, 212, 255, 0.25);
             color: #00d4ff;
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 700;
         }
         .referral-level-percent {
@@ -288,7 +275,7 @@
 
         /* Объем покупок рефералов + прогресс */
         .referral-volume-block {
-            margin-bottom: 20px;
+            margin-bottom: 4px;
         }
         .referral-volume-header {
             display: flex;
@@ -333,12 +320,12 @@
         .referral-link-block {
             background: rgba(0, 0, 0, 0.25);
             border-radius: 12px;
-            padding: 14px 16px;
+            padding: 10px 12px;
         }
         .referral-link-label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: rgba(255, 255, 255, 0.65);
-            margin-bottom: 18px;
+            margin-bottom: 10px;
         }
         .referral-link-row {
             display: flex;
@@ -377,12 +364,12 @@
         /* Кнопка Пригласить (отдельно) */
         .referral-invite-main-btn {
             width: 100%;
-            padding: 18px;
+            padding: 12px 14px;
             background: linear-gradient(135deg, #00d4ff 0%, #00a3ff 100%);
             color: #000000;
             border: none;
             border-radius: 14px;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
             display: flex;
@@ -399,7 +386,7 @@
         .referral-invite-main-btn:active {
             transform: translateY(0);
         }
-        
+
         .referral-portals-volume-value {
             font-size: 1.2rem;
             font-weight: 600;
@@ -1297,12 +1284,11 @@
             <p class="referral-hero-subtitle">Зарабатывайте с каждой их покупки</p>
         </div>
 
-        <!-- Блок: статистика + ссылка (закрывающийся, по умолчанию свернут для компактности) -->
-        <details class="referral-details-block page-block-enter">
-            <summary class="referral-details-summary">
-                <span class="referral-details-summary-text">Статистика и реферальная ссылка</span>
-                <i class="fas fa-chevron-down referral-details-arrow"></i>
-            </summary>
+        <!-- Блок: статистика и реферальная ссылка (теперь без открытия/закрытия) -->
+        <div class="referral-details-block page-block-enter">
+            <div class="referral-details-summary">
+                <span class="referral-details-summary-text"></span>
+            </div>
             <div class="referral-details-content">
                 <!-- Статистика -->
                 <div class="referral-stats-grid">
@@ -1324,7 +1310,7 @@
                     class="copy-referral-btn"
                     id="withdrawStarsBtn"
                     type="button"
-                    style="margin-top: 8px; width:100%; padding: 14px; background: rgba(0, 212, 255, 0.14); color: #00d4ff; border: 1px solid rgba(0, 212, 255, 0.35); border-radius: 12px; font-weight: 800; cursor: pointer;">
+                    style="margin-top: 2px; width:100%; padding: 14px; background: rgba(0, 212, 255, 0.14); color: #00d4ff; border: 1px solid rgba(0, 212, 255, 0.35); border-radius: 12px; font-weight: 800; cursor: pointer;">
                     <i class="fas fa-star"></i> Вывести в звёзды
                 </button>
 
@@ -1363,7 +1349,7 @@
                     </div>
                 </div>
             </div>
-        </details>
+        </div>
 
         <!-- Кнопка Пригласить (отдельно) -->
         <button class="referral-invite-main-btn page-block-enter" id="inviteFriendsBtn">
