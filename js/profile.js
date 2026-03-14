@@ -1853,6 +1853,16 @@ function showHistoryOverlay() {
                 <div>Пока нет покупок</div>
                 <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-top:4px;">Все ваши заказы по звёздам, Premium и Steam появятся здесь.</div>
             </div>
+            <div class="history-footer-info" style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.86rem;line-height:1.45;color:rgba(255,255,255,0.78);">
+                <div style="margin-bottom:6px;">Здесь отображается ваша история:</div>
+                <ul style="margin:0 0 6px 18px;padding:0;list-style:disc;">
+                    <li>покупки звёзд</li>
+                    <li>покупки Telegram Premium</li>
+                    <li>пополнения Steam</li>
+                    <li>другие операции в боте</li>
+                </ul>
+                <div>В этом разделе вы можете посмотреть все свои прошлые заказы и операции.</div>
+            </div>
         </div>
     `;
     document.body.appendChild(overlay);
