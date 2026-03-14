@@ -1432,10 +1432,16 @@
 
         // Обновляем UI с данными статистики
         function updateReferralUI(stats) {
-            // Определяем уровень и процент по объёму покупок рефералов (в звёздах)
-            // Примерный курс: 1 звезда ≈ 2.8 ₽
+            // Объём покупок рефералов в рублях (сервер копит сумму всех покупок рефералов)
             const volumeRub = stats.volume_rub || 0;
-            const volumeStars = Math.floor(volumeRub / 2.8);
+            // Объём в звёздах нам теперь отдаёт сам сервер по курсу из админки.
+            // Если по какой‑то причине его нет, делаем фоллбек по среднему курсу 0.65 ₽.
+            let volumeStars = 0;
+            if (typeof stats.volume_stars === 'number' && !isNaN(stats.volume_stars)) {
+                volumeStars = Math.floor(stats.volume_stars);
+            } else {
+                volumeStars = Math.floor(volumeRub / 0.65);
+            }
             
             let level = 1;
             let percent = 3;
@@ -1479,7 +1485,7 @@
                 }));
             } catch (e) {}
 
-            // Объем покупок рефералов (в звёздах)
+            // Объем покупок рефералов (в звёздах, пересчитанных из реальных ₽ по курсу 0.65 ₽ за звезду)
             const refVolumeStarsEl = document.getElementById('refVolumeStars');
             if (refVolumeStarsEl) {
                 refVolumeStarsEl.textContent = `${volumeStars.toLocaleString('ru-RU')} звёзд`;
