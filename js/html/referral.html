@@ -1469,6 +1469,16 @@
             const refTotalRefsEl = document.getElementById('refTotalRefs');
             if (refTotalRefsEl) refTotalRefsEl.textContent = totalRefs.toLocaleString('ru-RU');
 
+            // Кэшируем ключевые цифры для других экранов (профиль)
+            try {
+                localStorage.setItem('jetstore_referral_stats_cache', JSON.stringify({
+                    total_referrals: totalRefs,
+                    earned_rub: parseFloat(earnedRub),
+                    volume_rub: volumeRub,
+                    ts: Date.now()
+                }));
+            } catch (e) {}
+
             // Объем покупок рефералов (в звёздах)
             const refVolumeStarsEl = document.getElementById('refVolumeStars');
             if (refVolumeStarsEl) {

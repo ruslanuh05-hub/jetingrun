@@ -1322,7 +1322,32 @@ function toggleUserStatsPanel() {
             let steamTotal = 0;
             let refsCount = Number(data.referrals?.count || 0);
             const joined = (data.registrationDate || '').toString();
-            const rank = data.ratingPosition || data.rating_rank || data.rank || '—';
+            let rank = data.ratingPosition || data.rating_rank || data.rank || '—';
+
+            // Пытаемся взять кэш реферальной статистики из localStorage (страница «Заработать»)
+            try {
+                const cachedRaw = localStorage.getItem('jetstore_referral_stats_cache');
+                if (cachedRaw) {
+                    const cached = JSON.parse(cachedRaw);
+                    if (cached && typeof cached === 'object') {
+                        if (!refsCount && cached.total_referrals != null) {
+                            refsCount = Number(cached.total_referrals) || refsCount;
+                        }
+                        if (cached.earned_rub != null && isFinite(cached.earned_rub)) {
+                            // Заполним referralBalance позже, после его объявления
+                            data._cachedReferralBalance = Number(cached.earned_rub);
+                        }
+                    }
+                }
+                // Кэш позиции в рейтинге из вкладки "Рейтинг"
+                const ratingRaw = localStorage.getItem('jetstore_rating_me_cache');
+                if (ratingRaw) {
+                    const rating = JSON.parse(ratingRaw);
+                    if (rating && typeof rating.rank === 'number' && rating.rank > 0) {
+                        rank = '#' + rating.rank;
+                    }
+                }
+            } catch (e) {}
 
             try {
                 const allPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
@@ -1350,6 +1375,9 @@ function toggleUserStatsPanel() {
             }
 
             let referralBalance = Number(data.referrals?.earnings || 0);
+            if (!referralBalance && typeof data._cachedReferralBalance === 'number') {
+                referralBalance = data._cachedReferralBalance;
+            }
 
             // Если в локальных данных всё ещё нули — пробуем подтянуть актуальную статистику рефералок из API
             if ((!refsCount && !referralBalance) || !window._userStatsReferralLoaded) {

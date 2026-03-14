@@ -904,6 +904,18 @@ function loadRatingLeaderboard(period) {
                 '</div>' +
                 '<div class="rating-entry-score">' + (item.score || 0).toLocaleString('ru-RU') + ' <i class="fas fa-star"></i></div>';
             listEl.appendChild(div);
+
+            // Если это текущий пользователь — кэшируем его позицию в рейтинге для профиля
+            if (isMe) {
+                try {
+                    localStorage.setItem('jetstore_rating_me_cache', JSON.stringify({
+                        rank: rank,
+                        score: item.score || 0,
+                        period: period,
+                        ts: Date.now()
+                    }));
+                } catch (e) {}
+            }
         });
     }
     
