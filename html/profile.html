@@ -169,11 +169,12 @@
         .user-card {
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.9) 100%);
             border-radius: 20px;
-            padding: 24px;
+            padding: 20px 24px 18px 24px;
             margin: 16px 20px;
             display: flex;
-            align-items: center;
-            gap: 16px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
             border: 1px solid rgba(0, 212, 255, 0.2);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             position: relative;
@@ -195,6 +196,13 @@
         .user-avatar-wrapper {
             position: relative;
             z-index: 1;
+        }
+
+        .user-card-main {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
         }
         
         .user-avatar {
@@ -2922,28 +2930,28 @@
         
         <!-- Основной контент -->
         <div class="profile-content">
-            <!-- Карточка пользователя -->
+            <!-- Карточка пользователя + выдвижная статистика внутри одной карточки -->
             <div class="user-card page-block-enter" onclick="window.toggleUserStatsPanel && window.toggleUserStatsPanel()">
-                <div class="user-avatar-wrapper">
-                    <div class="user-avatar" id="profileAvatar">
-                        <i class="fas fa-user"></i>
+                <div class="user-card-main">
+                    <div class="user-avatar-wrapper">
+                        <div class="user-avatar" id="profileAvatar">
+                            <i class="fas fa-user"></i>
+                        </div>
                     </div>
-                </div>
-                <div class="user-info-main">
-                    <h2 id="profileName">Загрузка...</h2>
+                    <div class="user-info-main">
+                        <h2 id="profileName">Загрузка...</h2>
                         <p id="profileUsername">@username</p>
                     </div>
                 </div>
-
-            <!-- Выдвижная панель статистики пользователя (под карточкой) -->
-            <div id="userStatsPanel" class="promo-panel user-stats-panel" style="margin: 0 20px 0 20px;">
-                <div class="promo-panel-content">
-                    <div class="user-stats-title">👤 Профиль пользователя</div>
-                    <div id="userStatsContent" class="user-stats-list">
-                        <!-- Контент заполняется из profile.js -->
-                    </div>
-                    <div style="margin-top:6px;color:rgba(255,255,255,0.75);font-size:0.85rem;line-height:1.4;">
-                        Спасибо, что пользуешься нашим ботом ❤️
+                <div id="userStatsPanel" class="promo-panel user-stats-panel" style="margin-top: 10px; width:100%;">
+                    <div class="promo-panel-content">
+                        <div class="user-stats-title">👤 Профиль пользователя</div>
+                        <div id="userStatsContent" class="user-stats-list">
+                            <!-- Контент заполняется из profile.js -->
+                        </div>
+                        <div style="margin-top:6px;color:rgba(255,255,255,0.75);font-size:0.85rem;line-height:1.4;">
+                            Спасибо, что пользуешься нашим ботом ❤️
+                        </div>
                     </div>
                 </div>
             </div>
