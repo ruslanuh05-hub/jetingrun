@@ -1582,6 +1582,11 @@
             max-height: 260px;
         }
 
+        /* Панель истории покупок (повыше, с прокруткой списка) */
+        .promo-panel.history-panel.active {
+            max-height: 420px;
+        }
+
         .user-stats-title {
             font-weight: 700;
             font-size: 0.98rem;
@@ -1860,6 +1865,10 @@
             cursor: pointer;
             transition: all 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-item + .info-item {
+            margin-top: 10px;
         }
         
         .info-item:hover {
@@ -2925,6 +2934,19 @@
                         <p id="profileUsername">@username</p>
                     </div>
                 </div>
+
+            <!-- Выдвижная панель статистики пользователя (под карточкой) -->
+            <div id="userStatsPanel" class="promo-panel user-stats-panel" style="margin: 0 20px 0 20px;">
+                <div class="promo-panel-content">
+                    <div class="user-stats-title">👤 Профиль пользователя</div>
+                    <div id="userStatsContent" class="user-stats-list">
+                        <!-- Контент заполняется из profile.js -->
+                    </div>
+                    <div style="margin-top:6px;color:rgba(255,255,255,0.75);font-size:0.85rem;line-height:1.4;">
+                        Спасибо, что пользуешься нашим ботом ❤️
+                    </div>
+                </div>
+            </div>
             
             <!-- Секция баланса -->
             <div class="balance-section page-block-enter" style="display:none;">
@@ -2948,19 +2970,6 @@
                         <button class="promo-apply-btn" id="promoApplyBtn" onclick="activatePromoCode()" disabled>
                             Применить
                         </button>
-                    </div>
-                </div>
-                
-                <!-- Выдвижная панель статистики пользователя -->
-                <div id="userStatsPanel" class="promo-panel user-stats-panel">
-                    <div class="promo-panel-content">
-                        <div class="user-stats-title">👤 Профиль пользователя</div>
-                        <div id="userStatsContent" class="user-stats-list">
-                            <!-- Контент заполняется из profile.js -->
-                        </div>
-                        <div style="margin-top:6px;color:rgba(255,255,255,0.75);font-size:0.85rem;line-height:1.4;">
-                            Спасибо, что пользуешься нашим ботом ❤️
-                        </div>
                     </div>
                 </div>
             </div>
@@ -3011,36 +3020,24 @@
                 </button>
             </div>
             
-            <!-- Секция информации и реферальная программа -->
+            <!-- Секция информации и история (отдельное окно) -->
             <div class="info-section page-block-enter">
-            <div class="info-item" onclick="window.showInfo && window.showInfo('about')">
+                <div class="info-item" onclick="window.showInfo && window.showInfo('about')">
                     <div class="info-icon purple">
                         <i class="fas fa-info-circle"></i>
-                </div>
+                    </div>
                     <span class="info-text">Информация</span>
                     <i class="fas fa-chevron-right info-arrow"></i>
                 </div>
-            
-            <!-- История покупок — отдельная страница по кнопке -->
-            <div class="tab-content page-block-enter">
-                <button type="button"
-                        onclick="window.showHistoryOverlay && window.showHistoryOverlay()"
-                        style="width:100%;border:none;border-radius:16px;padding:16px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(10,16,30,0.95) 100%);box-shadow:0 10px 32px rgba(0,0,0,0.6);">
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,212,255,0.18);display:flex;align-items:center;justify-content:center;color:#00d4ff;">
-                            <i class="fas fa-receipt" style="font-size:1.1rem;"></i>
-                        </div>
-                        <div style="display:flex;flex-direction:column;gap:2px;text-align:left;">
-                            <span style="color:#ffffff;font-weight:700;font-size:0.95rem;">История покупок</span>
-                            <span style="color:rgba(255,255,255,0.7);font-size:0.8rem;">Открыть все заказы</span>
-                        </div>
+
+                <div class="info-item" onclick="window.showHistoryOverlay && window.showHistoryOverlay()">
+                    <div class="info-icon" style="background:linear-gradient(135deg, rgba(0,212,255,0.35) 0%, rgba(0,128,255,0.45) 100%);">
+                        <i class="fas fa-receipt"></i>
                     </div>
-                    <div style="flex-shrink:0;color:rgba(255,255,255,0.6);">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </button>
+                    <span class="info-text">История</span>
+                    <i class="fas fa-chevron-right info-arrow"></i>
+                </div>
             </div>
-        </div>
     </div>
     
     <!-- Нижняя навигация (вне profile-container, чтобы position:fixed работал) -->

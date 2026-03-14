@@ -1332,6 +1332,7 @@ function toggleUserStatsPanel() {
     panel.classList.toggle('active');
 }
 
+
 // Закрытие панели промокода
 function closePromoPanel() {
     const panel = document.getElementById('promoPanel');
@@ -1833,7 +1834,6 @@ function ensureHistoryStyles() {
     document.head.appendChild(style);
 }
 
-// Полноэкранная история покупок (шторка с анимацией)
 function showHistoryOverlay() {
     ensureHistoryStyles();
     const overlay = document.createElement('div');
