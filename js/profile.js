@@ -1273,6 +1273,40 @@ function togglePromoPanel() {
     }
 }
 
+// Вспомогательные функции для работы с API (как в referral.html)
+function getTelegramInitData() {
+    try {
+        return String(window.Telegram?.WebApp?.initData || '').trim();
+    } catch (e) { return ''; }
+}
+
+function withTelegramHeaders(headers) {
+    var h = headers || {};
+    var initData = getTelegramInitData();
+    if (initData) h['X-Telegram-Init-Data'] = initData;
+    return h;
+}
+
+function getApiBaseSafe() {
+    let apiBase = '';
+    try {
+        if (typeof window.getJetApiBase === 'function') {
+            apiBase = String(window.getJetApiBase() || '').trim();
+        }
+    } catch (_) {}
+    apiBase = apiBase
+        || (window.JET_BOT_API_URL ? String(window.JET_BOT_API_URL).trim() : '')
+        || (window.JET_BOT_API_FALLBACK ? String(window.JET_BOT_API_FALLBACK).trim() : '')
+        || (window.JET_API_BASE ? String(window.JET_API_BASE).trim() : '')
+        || String(localStorage.getItem('jet_bot_api_url') || '').trim()
+        || String(localStorage.getItem('jet_api_base') || '').trim()
+        || '';
+    if (!apiBase) apiBase = 'https://isxrgtme4d.onrender.com';
+    apiBase = apiBase.replace(/\/$/, '');
+    if (apiBase && !/^https?:\/\//i.test(apiBase)) apiBase = 'https://' + apiBase;
+    return apiBase;
+}
+
 // Выдвижная панель статистики пользователя (как промокод, снизу)
 function toggleUserStatsPanel() {
     const panel = document.getElementById('userStatsPanel');
@@ -1315,7 +1349,44 @@ function toggleUserStatsPanel() {
                 console.warn('user stats panel: failed to read purchases', e);
             }
 
-            const referralBalance = Number(data.referrals?.earnings || 0);
+            let referralBalance = Number(data.referrals?.earnings || 0);
+
+            // Если в локальных данных всё ещё нули — пробуем подтянуть актуальную статистику рефералок из API
+            if ((!refsCount && !referralBalance) || !window._userStatsReferralLoaded) {
+                contentEl.innerHTML = '<div style="font-size:0.86rem;color:rgba(255,255,255,0.7);">Загружаем реферальную статистику...</div>';
+                (async function() {
+                    try {
+                        const uid = data.id || (window.Telegram?.WebApp?.initDataUnsafe?.user?.id);
+                        if (!uid) return;
+                        const apiBase = getApiBaseSafe();
+                        const url = apiBase.replace(/\/$/, '') + `/api/referral/stats?user_id=${encodeURIComponent(uid)}`;
+                        const resp = await fetch(url, { headers: withTelegramHeaders({}) });
+                        if (resp.ok) {
+                            const stats = await resp.json();
+                            window._userStatsReferralLoaded = true;
+                            if (stats) {
+                                refsCount = Number(stats.total_referrals || stats.totalRefs || refsCount || 0);
+                                referralBalance = Number(stats.earned_rub || stats.earnedRub || referralBalance || 0);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('user stats panel: referral stats load failed', e);
+                    } finally {
+                        // Пересобираем контент с учётом возможно обновлённых значений
+                        contentEl.innerHTML = `
+                <div class="user-stats-row">⭐️ <b>Всего куплено звёзд:</b> ${starsTotal.toLocaleString('ru-RU')}</div>
+                <div class="user-stats-row">💰 <b>Баланс рефералки:</b> ${referralBalance.toLocaleString('ru-RU')} ₽</div>
+                <div class="user-stats-row">👥 <b>Приглашено друзей:</b> ${refsCount}</div>
+                <div class="user-stats-row">🏆 <b>Место в рейтинге:</b> ${rank}</div>
+                <div class="user-stats-row">🎮 <b>Пополнено Steam:</b> ${steamTotal > 0 ? steamTotal.toLocaleString('ru-RU') + ' ₽' : '—'}</div>
+                <div class="user-stats-row">📅 <b>С нами с:</b> ${joined || '—'}</div>
+            `;
+                    }
+                })();
+                // Выходим, остальное отрисует async-блок
+                panel.classList.toggle('active');
+                return;
+            }
 
             contentEl.innerHTML = `
                 <div class="user-stats-row">⭐️ <b>Всего куплено звёзд:</b> ${starsTotal.toLocaleString('ru-RU')}</div>
