@@ -1277,7 +1277,7 @@ function togglePromoPanel() {
 function toggleUserStatsPanel() {
     const panel = document.getElementById('userStatsPanel');
     const contentEl = document.getElementById('userStatsContent');
-    if (!panel || !contentEl || !window.userData) return;
+    if (!panel || !contentEl) return;
 
     // Если панель ещё не открыта — пересчитываем статистику и заполняем
     if (!panel.classList.contains('active')) {
