@@ -1282,16 +1282,17 @@ function toggleUserStatsPanel() {
     // Если панель ещё не открыта — пересчитываем статистику и заполняем
     if (!panel.classList.contains('active')) {
         try {
-            const username = userData.username ? '@' + userData.username : '';
+            const data = (window.userData && Object.keys(window.userData).length ? window.userData : userData) || {};
+            const username = data.username ? '@' + data.username : '';
             let starsTotal = 0;
             let steamTotal = 0;
-            let refsCount = Number(userData.referrals?.count || 0);
-            const joined = (userData.registrationDate || '').toString();
-            const rank = userData.ratingPosition || userData.rating_rank || userData.rank || '—';
+            let refsCount = Number(data.referrals?.count || 0);
+            const joined = (data.registrationDate || '').toString();
+            const rank = data.ratingPosition || data.rating_rank || data.rank || '—';
 
             try {
                 const allPurchases = JSON.parse(localStorage.getItem('jetstore_purchases') || '[]');
-                const currentId = userData.id ? String(userData.id) : null;
+                const currentId = data.id ? String(data.id) : null;
                 const purchases = currentId
                     ? allPurchases.filter(p => p && p.userId && String(p.userId) === currentId)
                     : allPurchases;
@@ -1314,7 +1315,7 @@ function toggleUserStatsPanel() {
                 console.warn('user stats panel: failed to read purchases', e);
             }
 
-            const referralBalance = Number(userData.referrals?.earnings || 0);
+            const referralBalance = Number(data.referrals?.earnings || 0);
 
             contentEl.innerHTML = `
                 <div class="user-stats-row">⭐️ <b>Всего куплено звёзд:</b> ${starsTotal.toLocaleString('ru-RU')}</div>
