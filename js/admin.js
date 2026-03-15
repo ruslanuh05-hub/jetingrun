@@ -5,37 +5,55 @@ let currentCategory = 'telegram';
 let currentEditingProduct = null;
 let currentEditingUser = null;
 
+// Сессия админки: токен хранится 1 час (бэкенд выдаёт при входе)
+var ADMIN_SESSION_KEY = 'jetStoreAdminToken';
+var ADMIN_EXPIRES_KEY = 'jetStoreAdminExpiresAt';
+
+/** Возвращает Bearer-значение для заголовка Authorization (токен сессии), если сессия ещё действительна. Иначе очищает сохранённую сессию и возвращает null. */
+function getAdminAuth() {
+    try {
+        var token = localStorage.getItem(ADMIN_SESSION_KEY) || '';
+        var expiresStr = localStorage.getItem(ADMIN_EXPIRES_KEY) || '0';
+        var expiresAt = parseInt(expiresStr, 10) || 0;
+        var nowSec = Math.floor(Date.now() / 1000);
+        if (token && expiresAt > nowSec) {
+            return token;
+        }
+    } catch (e) {}
+    clearAdminSession();
+    return null;
+}
+
+function clearAdminSession() {
+    localStorage.removeItem('jetStoreAdminLoggedIn');
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+    localStorage.removeItem(ADMIN_EXPIRES_KEY);
+    try { sessionStorage.removeItem('jetStoreAdminPassword'); } catch (e) {}
+}
+
+/** Если ответ 401 — сбрасываем сессию и показываем форму входа */
+function checkAdminAuthResponse(response) {
+    if (response && response.status === 401) {
+        clearAdminSession();
+        showLoginPanel();
+        showNotification('Сессия истекла. Войдите снова.', 'error');
+        return true;
+    }
+    return false;
+}
+
 // Инициализация админки
 function initAdmin() {
     console.log('Админка инициализируется...');
     
-    // Проверяем, авторизован ли админ
-    const isLoggedIn = localStorage.getItem('jetStoreAdminLoggedIn') === 'true';
-    console.log('Статус входа:', isLoggedIn);
-    
-    if (isLoggedIn) {
-        // При автовходе проверяем, сохранён ли пароль в sessionStorage
-        var pwd = '';
-        try { pwd = sessionStorage.getItem('jetStoreAdminPassword') || ''; } catch (e) {}
-        
-        if (!pwd) {
-            // Пароль потерян (например, после перезагрузки страницы) — требуем повторный вход
-            console.log('Автовход: пароль не найден в sessionStorage, требуется вход');
-            localStorage.removeItem('jetStoreAdminLoggedIn');
-            showLoginPanel();
-        } else {
-            showAdminPanel();
-        }
+    if (getAdminAuth()) {
+        showAdminPanel();
     } else {
         showLoginPanel();
     }
     
-    // Настройка обработчиков событий
     setupEventListeners();
-    
-    // Загрузка начальных данных
     loadInitialData();
-    
     console.log('Админка готова');
 }
 
@@ -135,11 +153,12 @@ function login(password) {
     })
         .then(function(r) { return r.json().catch(function() { return { ok: false }; }); })
         .then(function(res) {
-            if (res.ok === true) {
+            if (res.ok === true && res.token && res.expires_at) {
                 localStorage.setItem('jetStoreAdminLoggedIn', 'true');
-                try { sessionStorage.setItem('jetStoreAdminPassword', password); } catch (e) {}
+                localStorage.setItem(ADMIN_SESSION_KEY, res.token);
+                localStorage.setItem(ADMIN_EXPIRES_KEY, String(res.expires_at));
                 showAdminPanel();
-                showNotification('Успешный вход', 'success');
+                showNotification('Вход выполнен. Сессия на 1 час.', 'success');
             } else {
                 showNotification(res.message || 'Неверный пароль', 'error');
             }
@@ -151,8 +170,7 @@ function login(password) {
 
 // Выход из админки
 function logout() {
-    localStorage.removeItem('jetStoreAdminLoggedIn');
-    try { sessionStorage.removeItem('jetStoreAdminPassword'); } catch (e) {}
+    clearAdminSession();
     showLoginPanel();
     const adminPasswordInput = document.getElementById('adminPassword');
     if (adminPasswordInput) adminPasswordInput.value = '';
@@ -268,10 +286,10 @@ function adminAdjustBalance() {
     }
 
     var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-    var pwd = '';
-    try { pwd = sessionStorage.getItem('jetStoreAdminPassword') || ''; } catch (e) {}
-    if (!apiBase || !pwd) {
-        showNotification('Нет доступа к API админки (войдите заново)', 'error');
+    var auth = getAdminAuth();
+    if (!apiBase || !auth) {
+        showNotification('Сессия истекла. Войдите снова.', 'error');
+        showLoginPanel();
         return;
     }
 
@@ -279,13 +297,17 @@ function adminAdjustBalance() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + pwd
+            'Authorization': 'Bearer ' + auth
         },
         body: JSON.stringify({ username: username, amount: amount })
     })
-        .then(function(r) { return r.json().catch(function() { return {}; }); })
+        .then(function(r) {
+            if (r.status === 401) { checkAdminAuthResponse(r); return null; }
+            return r.json().catch(function() { return {}; });
+        })
         .then(function(res) {
-            if (res && res.success) {
+            if (!res) return;
+            if (res.success) {
                 const newBal = typeof res.balance_rub === 'number' ? res.balance_rub.toFixed(2) : '—';
                 showNotification('Баланс обновлён. Новый баланс: ' + newBal + ' ₽', 'success');
                 try { refreshStatistics(); } catch (e) {}
@@ -308,20 +330,13 @@ function refreshStatistics() {
     }
     block.textContent = 'Загрузка...';
     var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
-    var pwd = '';
-    try { pwd = sessionStorage.getItem('jetStoreAdminPassword') || ''; } catch (e) {
-        console.warn('[refreshStatistics] Ошибка чтения пароля из sessionStorage:', e);
-    }
+    var auth = getAdminAuth();
     
-    console.log('[refreshStatistics] apiBase:', apiBase ? apiBase.substring(0, 30) + '...' : 'не задан');
-    console.log('[refreshStatistics] пароль:', pwd ? 'есть (' + pwd.length + ' символов)' : 'отсутствует');
-    
-    if (apiBase && pwd) {
-        const url = apiBase.replace(/\/$/, '') + '/api/admin/stats';
-        console.log('[refreshStatistics] Запрос к:', url);
+    if (apiBase && auth) {
+        var url = apiBase.replace(/\/$/, '') + '/api/admin/stats';
         fetch(url, {
             method: 'GET',
-            headers: { 'Authorization': 'Bearer ' + pwd }
+            headers: { 'Authorization': 'Bearer ' + auth }
         })
             .then(function(r) {
                 console.log('[refreshStatistics] Ответ сервера: status=', r.status, 'ok=', r.ok);
@@ -332,7 +347,7 @@ function refreshStatistics() {
                     });
                 }
                 if (r.status === 401) {
-                    console.error('[refreshStatistics] Ошибка авторизации (401). Проверьте пароль.');
+                    checkAdminAuthResponse(r);
                     return null;
                 }
                 return r.text().then(function(text) {
@@ -376,7 +391,7 @@ function refreshStatistics() {
         return;
     }
     
-    console.warn('[refreshStatistics] API или пароль не настроены. apiBase:', apiBase, 'pwd:', pwd ? 'есть' : 'нет');
+    console.warn('[refreshStatistics] API или сессия не настроены. apiBase:', apiBase, 'auth:', auth ? 'есть' : 'нет');
     try {
         if (typeof window.Database !== 'undefined' && typeof (window.Database || {}).getStatistics === 'function') {
             var s = (window.Database || {}).getStatistics();

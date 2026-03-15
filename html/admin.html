@@ -322,60 +322,6 @@
                     </div>
                     
         <div class="section">
-            <h3><i class="fas fa-exchange-alt"></i> Курсы валют</h3>
-            <div class="grid-2">
-                <div class="input-row"><label>1 USDT = ? RUB</label><input type="number" id="usdtInput" min="1" step="0.01" value="80"></div>
-                <div class="input-row"><label>1 USD = ? RUB</label><input type="number" id="usdInput" min="1" step="0.01" value="90"></div>
-                <div class="input-row"><label>1 EUR = ? RUB</label><input type="number" id="eurInput" min="1" step="0.01" value="100"></div>
-                <div class="input-row"><label>1 TON = ? RUB</label><input type="number" id="tonInput" min="1" step="0.01" value="600"></div>
-                <div class="input-row"><label>1 рубль на стим = ? ₽</label><input type="number" id="steamRateInput" min="0.01" step="0.01" value="1.06" title="Курс: 1 рубль на стим = сколько ₽ платит пользователь"></div>
-                <div class="input-row"><label>Platega СБП: комиссия %</label><input type="number" id="plategaSbpCommissionInput" min="0" max="100" step="0.5" value="10" title="Комиссия при оплате через СБП"></div>
-                <div class="input-row"><label>Platega Карты: комиссия %</label><input type="number" id="plategaCardsCommissionInput" min="0" max="100" step="0.5" value="14" title="Комиссия при оплате картами"></div>
-                        </div>
-            <div class="input-row full-width" style="margin-top:12px">
-                <label>CryptoBot: сумма счёта (USDT)</label>
-                <input type="number" id="cryptobotUsdtAmount" min="0.1" step="0.1" value="1">
-                <span class="hint">Сумма при оплате через CryptoBot</span>
-            </div>
-            <button onclick="saveCurrencyRates()" class="btn-save"><i class="fas fa-save"></i> Сохранить курсы</button>
-        </div>
-
-        <div class="section">
-            <h3><i class="fas fa-wallet"></i> Баланс пользователя (ручная корректировка)</h3>
-            <div class="grid-2">
-                <div class="input-row">
-                    <label>Username (без @)</label>
-                    <input type="text" id="adjustUsername" placeholder="username">
-                    <span class="hint">Будет найден по Telegram username в базе</span>
-                </div>
-                <div class="input-row">
-                    <label>Сумма (₽, можно отрицательную)</label>
-                    <input type="number" id="adjustAmount" step="0.01" placeholder="100 или -50">
-                    <span class="hint">Положительное — пополнить, отрицательное — списать</span>
-                </div>
-            </div>
-            <button type="button" class="btn-save" onclick="adminAdjustBalance()">
-                <i class="fas fa-check"></i> Применить
-            </button>
-        </div>
-        
-        <div class="section">
-            <h3><i class="fas fa-star"></i> Звёзды</h3>
-            <div class="grid-2">
-                <div class="input-row"><label>1 звезда = ? ₽</label><input type="number" id="starRateInput" min="0.01" step="0.01" value="1.37"></div>
-                <div class="input-row"><label>Курс скупки 1 звезда = ? ₽</label><input type="number" id="starBuyRateInput" min="0.01" step="0.01" value="0.65"></div>
-                </div>
-            <div class="grid-5" style="margin-top:12px">
-                <div class="input-row"><label>50 звёзд</label><input type="number" id="starsPrice50" min="1" step="0.01"></div>
-                <div class="input-row"><label>100 звёзд</label><input type="number" id="starsPrice100" min="1" step="0.01"></div>
-                <div class="input-row"><label>250 звёзд</label><input type="number" id="starsPrice250" min="1" step="0.01"></div>
-                <div class="input-row"><label>500 звёзд</label><input type="number" id="starsPrice500" min="1" step="0.01"></div>
-                <div class="input-row"><label>1000 звёзд</label><input type="number" id="starsPrice1000" min="1" step="0.01"></div>
-            </div>
-            <button onclick="saveStarRate(); saveStarBuyRate(); saveStarsPrices();" class="btn-save"><i class="fas fa-save"></i> Сохранить звёзды</button>
-        </div>
-        
-        <div class="section">
             <h3><i class="fas fa-crown"></i> Telegram Premium</h3>
             <div class="grid-2">
                 <div class="input-row"><label>3 мес. (₽)</label><input type="number" id="premiumPrice3" min="1" step="0.01"></div>
