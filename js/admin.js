@@ -321,6 +321,55 @@ function adminAdjustBalance() {
         });
 }
 
+// Начислить реферальный баланс пользователю
+function adminAddReferralBalance() {
+    var usernameEl = document.getElementById('refBalanceUsername');
+    var amountEl = document.getElementById('refBalanceAmount');
+    if (!usernameEl || !amountEl) return;
+    var username = (usernameEl.value || '').trim().replace(/^@/, '');
+    var amount = parseFloat((amountEl.value || '').replace(',', '.'));
+    if (!username) {
+        showNotification('Введите username (без @)', 'error');
+        return;
+    }
+    if (!amount || isNaN(amount) || amount <= 0) {
+        showNotification('Введите положительную сумму (₽)', 'error');
+        return;
+    }
+    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var auth = getAdminAuth();
+    if (!apiBase || !auth) {
+        showNotification('Сессия истекла. Войдите снова.', 'error');
+        showLoginPanel();
+        return;
+    }
+    fetch(apiBase.replace(/\/$/, '') + '/api/admin/referral-balance-adjust', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + auth
+        },
+        body: JSON.stringify({ username: username, amount: amount })
+    })
+    .then(function(r) {
+        if (r.status === 401) { checkAdminAuthResponse(r); return null; }
+        return r.json().catch(function() { return {}; });
+    })
+    .then(function(res) {
+        if (!res) return;
+        if (res.success) {
+            showNotification('Начислено ' + amount + ' ₽. Реферальный баланс: ' + (res.earned_rub != null ? res.earned_rub.toFixed(2) : '—') + ' ₽', 'success');
+            amountEl.value = '';
+        } else {
+            showNotification(res.message || res.error || 'Ошибка начисления', 'error');
+        }
+    })
+    .catch(function(err) {
+        console.error('[adminAddReferralBalance] error', err);
+        showNotification('Ошибка связи с сервером', 'error');
+    });
+}
+
 // Обновление статистики: с сервера (GET /api/admin/stats) или из локальной Database
 function refreshStatistics() {
     const block = document.getElementById('statBlock');
@@ -953,6 +1002,39 @@ function saveStarBuyRate() {
         console.error('Ошибка сохранения курса скупки 1 звезды:', error);
         showNotification('Ошибка сохранения курса скупки', 'error');
     }
+}
+
+// Сохранение курса Steam (1 рубль на стим = ? ₽)
+function saveSteamRate() {
+    var el = document.getElementById('steamRateInput');
+    if (!el) return;
+    var steamRate = parseFloat(el.value) || 1.06;
+    if (steamRate < 0.01) steamRate = 1.06;
+    try { localStorage.setItem('jetstore_steam_rate', steamRate.toString()); } catch (e) {}
+    var apiBase = (typeof getJetApiBase === 'function' && getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    if (apiBase) {
+        fetch(apiBase.replace(/\/$/, '') + '/api/steam-rate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ steam_rate_rub: steamRate })
+        })
+        .then(function(r) {
+            if (r.ok) { console.log('✓ Steam rate saved on server'); return r.json(); }
+            return r.text().then(function(t) { console.error('Steam rate save failed:', t); });
+        })
+        .catch(function(err) {
+            console.error('Steam rate save error:', err);
+            showNotification('Ошибка отправки курса Steam на сервер', 'error');
+        });
+    }
+}
+
+// Сохранить курсы (звёзды + Steam) — одна кнопка в админке
+function saveAdminRates() {
+    saveStarRate();
+    saveStarBuyRate();
+    saveSteamRate();
+    showNotification('Курсы звёзд и Steam сохранены (и в базу данных)', 'success');
 }
 
 // Сохранение цен на звёзды

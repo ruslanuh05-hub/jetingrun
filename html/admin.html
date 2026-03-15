@@ -320,6 +320,33 @@
                 <button type="submit" class="btn-save"><i class="fas fa-save"></i> Сохранить пароль</button>
             </form>
                     </div>
+
+        <div class="section">
+            <h3><i class="fas fa-star"></i> Курсы: звёзды и Steam</h3>
+            <div class="grid-2">
+                <div class="input-row"><label>1 звезда = ? ₽ (покупка)</label><input type="number" id="starRateInput" min="0.01" step="0.01" value="1.37"></div>
+                <div class="input-row"><label>Курс скупки 1 звезда = ? ₽</label><input type="number" id="starBuyRateInput" min="0.01" step="0.01" value="0.65"></div>
+                <div class="input-row"><label>1 рубль на стим = ? ₽</label><input type="number" id="steamRateInput" min="0.01" step="0.01" value="1.06" title="Сколько ₽ платит пользователь за 1 ₽ на Steam"></div>
+            </div>
+            <button type="button" onclick="saveAdminRates()" class="btn-save"><i class="fas fa-save"></i> Сохранить курсы</button>
+        </div>
+
+        <div class="section">
+            <h3><i class="fas fa-coins"></i> Реферальный баланс</h3>
+            <div class="grid-2">
+                <div class="input-row">
+                    <label>Username (без @)</label>
+                    <input type="text" id="refBalanceUsername" placeholder="username">
+                    <span class="hint">По Telegram username в базе</span>
+                </div>
+                <div class="input-row">
+                    <label>Сумма (₽)</label>
+                    <input type="number" id="refBalanceAmount" min="0.01" step="0.01" placeholder="100">
+                    <span class="hint">Начислить на реферальный баланс</span>
+                </div>
+            </div>
+            <button type="button" class="btn-save" onclick="adminAddReferralBalance()"><i class="fas fa-plus"></i> Начислить</button>
+        </div>
                     
         <div class="section">
             <h3><i class="fas fa-crown"></i> Telegram Premium</h3>
