@@ -6019,7 +6019,7 @@
                     </div>
                     <span>Заработать</span>
                 </button>
-                <button class="profile-nav-btn profile-nav-btn-disabled" data-nav-index="2" type="button" title="Скоро" onclick="return false;" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
+                <button class="profile-nav-btn" data-nav-index="2" type="button">
                     <div class="nav-icon-wrapper">
                         <i class="fas fa-star"></i>
                     </div>
@@ -6968,7 +6968,7 @@
                 btn.onclick = function() {
                     document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
                     this.classList.add('active');
-                    goToNavPage('assets.html');
+                    goToNavPage('pass.html');
                 };
             });
             document.querySelectorAll('.profile-nav-btn[data-nav-index="3"]').forEach(function(btn) {
@@ -6997,7 +6997,7 @@
                 if (e.state.navIndex === 0) {
                     showMainMenuView();
                 } else {
-                    var urls = { 1: 'referral.html', 2: 'assets.html', 3: 'profile.html' };
+                    var urls = { 1: 'referral.html', 2: 'pass.html', 3: 'profile.html' };
                     if (urls[e.state.navIndex]) loadPageWithoutRefresh(urls[e.state.navIndex], e.state.navIndex);
                 }
             }

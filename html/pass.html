@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JET Pass</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background:
+                radial-gradient(circle at 30% 0%, rgba(0, 212, 255, 0.22) 0, transparent 42%),
+                radial-gradient(circle at 70% 10%, rgba(120, 80, 255, 0.22) 0, transparent 46%),
+                radial-gradient(circle at 50% 100%, rgba(0, 0, 0, 0) 0, #05040a 65%);
+            color: #ffffff;
+        }
+
+        .pass-page {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 14px 14px 24px;
+        }
+
+        /* Top bar (logo + close) */
+        .pass-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 4px 10px;
+        }
+        .pass-brand {
+            font-size: 1.6rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            transform: skewX(-8deg);
+            color: #eaf7ff;
+            text-shadow: 0 10px 35px rgba(0, 212, 255, 0.25);
+        }
+        .pass-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(0, 0, 0, 0.35);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Main glass card */
+        .pass-main-card {
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            background: linear-gradient(180deg, rgba(8, 18, 40, 0.78), rgba(3, 8, 18, 0.92));
+            box-shadow: 0 20px 55px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+        }
+        .pass-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            padding: 10px 10px 0;
+        }
+        .pass-tab {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.75);
+            border: none;
+            padding: 12px 10px;
+            font-weight: 800;
+            border-radius: 16px 16px 0 0;
+            cursor: pointer;
+        }
+        .pass-tab.active {
+            color: #dffaff;
+            background: linear-gradient(180deg, rgba(0, 212, 255, 0.18), rgba(0, 212, 255, 0.06));
+            box-shadow: inset 0 -2px 0 rgba(0, 212, 255, 0.45);
+        }
+        .pass-main-body {
+            padding: 12px 12px 14px;
+        }
+        .pass-progress-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .pass-progress-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .pass-xp-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 900;
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+        .pass-xp-line i {
+            color: #00d4ff;
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.55));
+        }
+        .pass-xp-line span {
+            white-space: nowrap;
+        }
+        .pass-bar {
+            height: 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            overflow: hidden;
+            box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.55);
+        }
+        .pass-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #00d4ff 0%, #1aa7ff 45%, #6b4bff 100%);
+            box-shadow: 0 0 18px rgba(0, 212, 255, 0.55);
+            transition: width 0.35s ease;
+        }
+        .pass-level-pills {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .pass-pill {
+            min-width: 36px;
+            height: 30px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.9rem;
+        }
+        .pass-pill.active {
+            border-color: rgba(0, 212, 255, 0.55);
+            background: rgba(0, 212, 255, 0.16);
+            color: #dffaff;
+        }
+        .pass-trophy {
+            width: 92px;
+            height: 92px;
+            border-radius: 22px;
+            background: radial-gradient(circle at 30% 20%, rgba(0, 212, 255, 0.18), rgba(3, 8, 18, 0.0) 55%),
+                        rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(220, 245, 255, 0.95);
+            box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.12);
+        }
+        .pass-trophy i { font-size: 2.4rem; filter: drop-shadow(0 0 18px rgba(0, 212, 255, 0.25)); }
+
+        /* Reward cards list */
+        .pass-section-title {
+            margin: 14px 2px 8px;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+            color: rgba(220, 245, 255, 0.92);
+            font-size: 0.95rem;
+        }
+        .pass-rewards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .pass-rewards-window {
+            margin-top: 8px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.08);
+            max-height: 460px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .pass-rewards-window::-webkit-scrollbar { width: 8px; }
+        .pass-rewards-window::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.22);
+            border-radius: 999px;
+        }
+        .pass-rewards-window::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 999px; }
+
+        .pass-split-crown {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 2px;
+            color: rgba(220, 245, 255, 0.8);
+            user-select: none;
+        }
+        .pass-split-crown::before,
+        .pass-split-crown::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.35), transparent);
+        }
+        .pass-split-crown i {
+            color: rgba(0, 212, 255, 0.9);
+            filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.35));
+        }
+        .pass-mini-title { display: none; }
+        .pass-reward-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 12px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(10, 22, 55, 0.65), rgba(4, 10, 22, 0.92));
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65);
+        }
+        .pass-reward-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+        }
+        .pass-reward-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            background: radial-gradient(circle at 30% 20%, rgba(0, 212, 255, 0.18), rgba(120, 80, 255, 0.12) 55%),
+                        rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #dffaff;
+        }
+        .pass-reward-icon i { font-size: 1.6rem; }
+        .pass-reward-text { min-width: 0; }
+        .pass-reward-level {
+            font-weight: 900;
+            font-size: 1.05rem;
+            line-height: 1.1;
+        }
+        .pass-reward-sub {
+            margin-top: 4px;
+            font-size: 0.86rem;
+            color: rgba(255, 255, 255, 0.72);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pass-reward-status {
+            font-size: 0.86rem;
+            color: rgba(255, 255, 255, 0.75);
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            white-space: nowrap;
+        }
+        .pass-reward-btn {
+            min-width: 116px;
+            height: 40px;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            background: linear-gradient(180deg, rgba(0, 212, 255, 0.22), rgba(0, 212, 255, 0.10));
+            color: #dffaff;
+            font-weight: 900;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .pass-reward-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        /* Tasks */
+        .pass-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .pass-task {
+            padding: 12px 12px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .pass-task-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .pass-task-title { font-weight: 800; font-size: 0.95rem; }
+        .pass-task-xp { color: #00d4ff; font-weight: 900; }
+        .pass-task-sub { margin-top: 6px; font-size: 0.82rem; color: rgba(255,255,255,0.7); }
+
+        /* Modal (Ваш приз) */
+        .pass-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 999999;
+        }
+        .pass-modal.active { display: flex; }
+        .pass-modal-card {
+            width: 100%;
+            max-width: 360px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(10, 22, 55, 0.92), rgba(4, 10, 22, 0.96));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 55px rgba(0, 0, 0, 0.8);
+            padding: 14px 14px 12px;
+        }
+        .pass-modal-title { font-weight: 900; font-size: 1.05rem; }
+        .pass-modal-prize { margin-top: 10px; font-size: 1.0rem; font-weight: 800; color: #dffaff; }
+        .pass-modal-actions { margin-top: 14px; display: flex; justify-content: flex-end; }
+        .pass-modal-close {
+            height: 38px;
+            padding: 0 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            font-weight: 800;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="pass-page">
+        <div class="pass-topbar">
+            <div class="pass-brand">JET Pass</div>
+            <button class="pass-close" type="button" onclick="window.location.href='index.html'">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="pass-main-card">
+            <div class="pass-tabs">
+                <button class="pass-tab active" id="passTabRewards" type="button">Награды</button>
+                <button class="pass-tab" id="passTabTasks" type="button">Задания</button>
+            </div>
+
+            <div class="pass-main-body" id="passRewardsView">
+                <div class="pass-progress-head">
+                    <div class="pass-progress-left">
+                        <div class="pass-xp-line">
+                            <i class="fas fa-star"></i>
+                            <span id="passXpMainText">0 / 100</span>
+                        </div>
+                        <div class="pass-bar">
+                            <div class="pass-bar-fill" id="passBarFill"></div>
+                        </div>
+                        <div class="pass-level-pills" id="passPills">
+                            <div class="pass-pill active">1</div>
+                            <div class="pass-pill">2</div>
+                            <div class="pass-pill">3</div>
+                            <div class="pass-pill">4</div>
+                        </div>
+                    </div>
+                    <div class="pass-trophy" aria-hidden="true">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                </div>
+
+                <div class="pass-section-title">Награды PASS</div>
+                <div class="pass-rewards-window">
+                    <div class="pass-rewards" id="passRewardsOpen"></div>
+                    <div class="pass-split-crown" id="passCrownSplit" style="display:none;">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="pass-rewards" id="passRewardsLocked"></div>
+                </div>
+            </div>
+
+            <div class="pass-main-body" id="passTasksView" style="display:none;">
+                <div class="pass-section-title">Ежедневные</div>
+                <div class="pass-tasks" id="passDailyTasks"></div>
+                <div class="pass-section-title" style="margin-top:14px;">Еженедельные</div>
+                <div class="pass-tasks" id="passWeeklyTasks"></div>
+            </div>
+        </div>
+
+        <div class="pass-modal" id="passPrizeModal" onclick="(function(e){ if(e && e.target && e.target.id==='passPrizeModal'){ window.closePassPrizeModal && window.closePassPrizeModal(); } })(event)">
+            <div class="pass-modal-card" onclick="event.stopPropagation()">
+                <div class="pass-modal-title">Ваш приз:</div>
+                <div class="pass-modal-prize" id="passPrizeText">Приз</div>
+                <div class="pass-modal-actions">
+                    <button class="pass-modal-close" type="button" onclick="window.closePassPrizeModal && window.closePassPrizeModal()">Ок</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const LEVEL_THRESHOLDS = [100, 250, 360, 410, 550, 690, 850, 990, 1100, 1250]; // XP для уровней 1..10
+            const REWARDS = [
+                { level: 1, title: 'подарок 15⭐️', icon: 'fa-gift' },
+                { level: 2, title: 'рефка 20⭐️', icon: 'fa-user-friends' },
+                { level: 3, title: 'скидка 2%', icon: 'fa-percent' },
+                { level: 4, title: 'подарок 35⭐️', icon: 'fa-gift' },
+                { level: 5, title: 'рефка 35⭐️', icon: 'fa-user-friends' },
+                { level: 6, title: '+0.5% к рефке', icon: 'fa-chart-line' },
+                { level: 7, title: 'подарок 70⭐️', icon: 'fa-gift' },
+                { level: 8, title: 'рефка 70⭐️', icon: 'fa-user-friends' },
+                { level: 9, title: 'скидка 3%', icon: 'fa-percent' },
+                { level: 10, title: 'рефка 300⭐️', icon: 'fa-crown' }
+            ];
+
+            function safeJSONParse(s, fallback) {
+                try { return JSON.parse(s); } catch (e) { return fallback; }
+            }
+            function getPurchases() {
+                const raw = localStorage.getItem('jetstore_purchases') || '[]';
+                const arr = safeJSONParse(raw, []);
+                return Array.isArray(arr) ? arr : [];
+            }
+            function dateKey(d) {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return y + '-' + m + '-' + dd;
+            }
+            function weekKey(d) {
+                const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                const dayNum = dt.getUTCDay() || 7;
+                dt.setUTCDate(dt.getUTCDate() + 4 - dayNum);
+                const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1));
+                const weekNo = Math.ceil((((dt - yearStart) / 86400000) + 1) / 7);
+                return dt.getUTCFullYear() + '-W' + String(weekNo).padStart(2, '0');
+            }
+
+            function computeXPFromPurchases(purchases) {
+                let starsTotal = 0;
+                let premiumCount = 0;
+                let steamCount = 0;
+
+                purchases.forEach(p => {
+                    if (!p || typeof p !== 'object') return;
+                    const t = (p.type || p.product_type || '').toString().toLowerCase();
+                    const stars = Number(p.stars_amount || p.starsAmount || 0) || 0;
+                    if (stars > 0) starsTotal += stars;
+                    if (t.includes('premium')) premiumCount += 1;
+                    if (t.includes('steam')) steamCount += 1;
+                });
+
+                const starsXP = Math.floor(starsTotal / 1000) * 30;
+                const premiumXP = premiumCount * 40;
+                const steamXP = steamCount * 30;
+                return { starsTotal, premiumCount, steamCount, starsXP, premiumXP, steamXP, total: starsXP + premiumXP + steamXP };
+            }
+
+            function applyDailyLoginXP() {
+                // Начисление: вход в бота +3 XP (1 раз в день) + бонусы за серии (3 дня: +10, 7 дней: +25)
+                const today = new Date();
+                const todayK = dateKey(today);
+                const lastK = localStorage.getItem('jetstore_pass_last_login_day') || '';
+                let streak = parseInt(localStorage.getItem('jetstore_pass_login_streak') || '0', 10) || 0;
+                let extra = parseInt(localStorage.getItem('jetstore_pass_xp_extra') || '0', 10) || 0;
+
+                if (lastK !== todayK) {
+                    // проверяем последовательность
+                    let isConsecutive = false;
+                    if (lastK) {
+                        const last = new Date(lastK + 'T00:00:00');
+                        const diffDays = Math.round((today - last) / 86400000);
+                        isConsecutive = diffDays === 1;
+                    }
+                    streak = isConsecutive ? (streak + 1) : 1;
+                    extra += 3;
+                    if (streak === 3) extra += 10;
+                    if (streak === 7) extra += 25;
+                    localStorage.setItem('jetstore_pass_last_login_day', todayK);
+                    localStorage.setItem('jetstore_pass_login_streak', String(streak));
+                    localStorage.setItem('jetstore_pass_xp_extra', String(extra));
+                }
+                return { streak, extra };
+            }
+
+            // Ежедневный бонус за любую покупку (+8 XP раз в день)
+            function applyDailyPurchaseXP(purchases) {
+                const today = new Date();
+                const todayK = dateKey(today);
+                const markKey = 'jetstore_pass_purchase_xp_day';
+                const lastDay = localStorage.getItem(markKey) || '';
+                const anyPurchaseToday = purchases.some(p => {
+                    if (!p || typeof p !== 'object') return false;
+                    const t = p.created_at ? new Date(p.created_at) : null;
+                    if (!t || isNaN(t.getTime())) return false;
+                    return dateKey(t) === todayK;
+                });
+                let extra = parseInt(localStorage.getItem('jetstore_pass_xp_extra') || '0', 10) || 0;
+                let added = 0;
+                if (anyPurchaseToday && lastDay !== todayK) {
+                    extra += 8;
+                    added = 8;
+                    localStorage.setItem(markKey, todayK);
+                    localStorage.setItem('jetstore_pass_xp_extra', String(extra));
+                }
+                return { anyPurchaseToday, extra, added };
+            }
+
+            function getClaimedLevels() {
+                const raw = localStorage.getItem('jetstore_pass_claimed_levels') || '[]';
+                const arr = safeJSONParse(raw, []);
+                return Array.isArray(arr) ? arr.map(x => Number(x)).filter(Boolean) : [];
+            }
+            function setClaimedLevels(levels) {
+                localStorage.setItem('jetstore_pass_claimed_levels', JSON.stringify(levels));
+            }
+
+            function calcLevel(xp) {
+                let lvl = 0;
+                for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
+                    if (xp >= LEVEL_THRESHOLDS[i]) lvl = i + 1;
+                }
+                if (lvl < 1) lvl = 1; // считаем что есть уровень 1, но награды доступны по порогу 100 XP
+                if (lvl > 10) lvl = 10;
+                return lvl;
+            }
+            function xpForLevel(level) {
+                return LEVEL_THRESHOLDS[Math.max(0, Math.min(9, level - 1))];
+            }
+
+            function rewardTextForLevel(level) {
+                const r = REWARDS.find(x => x.level === level);
+                return r ? r.title : 'приз';
+            }
+            function iconForLevel(level) {
+                const r = REWARDS.find(x => x.level === level);
+                return r ? r.icon : 'fa-star';
+            }
+
+            function renderPills(currentLevel) {
+                const wrap = document.getElementById('passPills');
+                if (!wrap) return;
+                wrap.innerHTML = '';
+                // как на скрине — 1..3, но у нас 10 уровней. Покажем 1..min(10, 4) рядом и подсветим текущий.
+                for (let i = 1; i <= 4; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'pass-pill' + (currentLevel === i ? ' active' : '');
+                    el.textContent = String(i);
+                    wrap.appendChild(el);
+                }
+            }
+
+            function renderRewards(currentLevel, xp, nextXp, claimed) {
+                const openList = document.getElementById('passRewardsOpen');
+                const lockedList = document.getElementById('passRewardsLocked');
+                const split = document.getElementById('passCrownSplit');
+                if (!openList || !lockedList) return;
+                openList.innerHTML = '';
+                lockedList.innerHTML = '';
+
+                let openCount = 0;
+                let lockedCount = 0;
+
+                REWARDS.forEach(r => {
+                    const unlocked = xp >= xpForLevel(r.level);
+                    const isClaimed = claimed.includes(r.level);
+
+                    const card = document.createElement('div');
+                    card.className = 'pass-reward-card';
+
+                    const left = document.createElement('div');
+                    left.className = 'pass-reward-left';
+
+                    const icon = document.createElement('div');
+                    icon.className = 'pass-reward-icon';
+                    icon.innerHTML = `<i class="fas ${unlocked ? iconForLevel(r.level) : 'fa-lock'}"></i>`;
+
+                    const text = document.createElement('div');
+                    text.className = 'pass-reward-text';
+
+                    const title = document.createElement('div');
+                    title.className = 'pass-reward-level';
+                    title.textContent = `${r.level} уровень`;
+
+                    const sub = document.createElement('div');
+                    sub.className = 'pass-reward-sub';
+                    // показываем приз только если уровень открыт и награда получена
+                    if (unlocked && isClaimed) sub.textContent = `Ваш приз: ${rewardTextForLevel(r.level)}`;
+                    else if (unlocked && !isClaimed) sub.textContent = 'Приз';
+                    else sub.textContent = 'Закрыто';
+
+                    text.appendChild(title);
+                    text.appendChild(sub);
+
+                    left.appendChild(icon);
+                    left.appendChild(text);
+
+                    const rightWrap = document.createElement('div');
+                    rightWrap.style.display = 'flex';
+                    rightWrap.style.alignItems = 'center';
+                    rightWrap.style.gap = '10px';
+
+                    const status = document.createElement('div');
+                    status.className = 'pass-reward-status';
+                    status.textContent = unlocked ? (isClaimed ? 'Получено' : 'Доступно') : `${xpForLevel(r.level)} XP`;
+
+                    const btn = document.createElement('button');
+                    btn.className = 'pass-reward-btn';
+                    btn.type = 'button';
+                    btn.textContent = isClaimed ? 'Получено' : 'Получить';
+                    btn.disabled = !unlocked || isClaimed;
+                    btn.onclick = function() {
+                        // показать окно "Ваш приз"
+                        const prize = rewardTextForLevel(r.level);
+                        const modal = document.getElementById('passPrizeModal');
+                        const prizeText = document.getElementById('passPrizeText');
+                        if (prizeText) prizeText.textContent = prize;
+                        if (modal) modal.classList.add('active');
+
+                        const newClaimed = Array.from(new Set([].concat(claimed, [r.level]))).sort((a,b)=>a-b);
+                        setClaimedLevels(newClaimed);
+                        // перерендер
+                        claimed = newClaimed;
+                        renderRewards(currentLevel, xp, nextXp, claimed);
+                    };
+
+                    rightWrap.appendChild(status);
+                    rightWrap.appendChild(btn);
+
+                    card.appendChild(left);
+                    card.appendChild(rightWrap);
+
+                    if (unlocked) {
+                        openCount += 1;
+                        openList.appendChild(card);
+                    } else {
+                        lockedCount += 1;
+                        lockedList.appendChild(card);
+                    }
+                });
+
+                if (split) split.style.display = (openCount > 0 && lockedCount > 0) ? 'flex' : 'none';
+            }
+
+            function computeTasks(purchases) {
+                const today = new Date();
+                const todayK = dateKey(today);
+                const wk = weekKey(today);
+
+                const hasPurchaseToday = purchases.some(p => {
+                    const t = (p && p.created_at) ? new Date(p.created_at) : null;
+                    if (!t || isNaN(t.getTime())) return false;
+                    return dateKey(t) === todayK;
+                });
+
+                let starsThisWeek = 0;
+                let starsThisWeek3k = 0;
+                let hasPremiumOrSteamThisWeek = false;
+                let daysWithLoginThisWeek = 0;
+
+                const loginDays = safeJSONParse(localStorage.getItem('jetstore_pass_login_days') || '[]', []);
+                if (Array.isArray(loginDays)) {
+                    daysWithLoginThisWeek = loginDays.filter(dk => typeof dk === 'string' && dk.startsWith(wk.split('-W')[0])).length; // грубо, как заглушка
+                }
+
+                purchases.forEach(p => {
+                    if (!p || typeof p !== 'object') return;
+                    const dt = p.created_at ? new Date(p.created_at) : null;
+                    if (!dt || isNaN(dt.getTime())) return;
+                    // неделя грубо: по weekKey сравнение
+                    if (weekKey(dt) !== wk) return;
+                    const stars = Number(p.stars_amount || p.starsAmount || 0) || 0;
+                    starsThisWeek += stars;
+                    starsThisWeek3k += stars;
+                    const t = (p.type || p.product_type || '').toString().toLowerCase();
+                    if (t.includes('premium') || t.includes('steam')) hasPremiumOrSteamThisWeek = true;
+                });
+
+                const daily = [
+                    { id: 'daily_login', title: 'Зайти в бота', xp: 3, done: (localStorage.getItem('jetstore_pass_last_login_day') || '') === todayK },
+                    { id: 'daily_purchase', title: 'Совершить любую покупку', xp: 8, done: hasPurchaseToday }
+                ];
+                const weekly = [
+                    { id: 'wk_stars_1000', title: 'Купить суммарно 1000⭐️', xp: 20, done: starsThisWeek >= 1000, sub: `${starsThisWeek}/1000⭐️` },
+                    { id: 'wk_stars_3000', title: 'Купить суммарно 3000⭐️', xp: 35, done: starsThisWeek3k >= 3000, sub: `${starsThisWeek3k}/3000⭐️` },
+                    { id: 'wk_premium_steam', title: 'Купить Premium или пополнить Steam', xp: 25, done: hasPremiumOrSteamThisWeek },
+                    { id: 'wk_login_5', title: 'Зайти в бота 5 дней за неделю', xp: 15, done: daysWithLoginThisWeek >= 5, sub: `${daysWithLoginThisWeek}/5` }
+                ];
+                return { daily, weekly };
+            }
+
+            function renderTasks(tasks) {
+                const d = document.getElementById('passDailyTasks');
+                const w = document.getElementById('passWeeklyTasks');
+                if (d) d.innerHTML = '';
+                if (w) w.innerHTML = '';
+
+                const mk = (t) => {
+                    const el = document.createElement('div');
+                    el.className = 'pass-task';
+                    const top = document.createElement('div');
+                    top.className = 'pass-task-top';
+                    const title = document.createElement('div');
+                    title.className = 'pass-task-title';
+                    title.textContent = (t.done ? '✅ ' : '') + t.title;
+                    const xp = document.createElement('div');
+                    xp.className = 'pass-task-xp';
+                    xp.textContent = `+${t.xp} XP`;
+                    top.appendChild(title);
+                    top.appendChild(xp);
+                    el.appendChild(top);
+                    if (t.sub) {
+                        const sub = document.createElement('div');
+                        sub.className = 'pass-task-sub';
+                        sub.textContent = t.sub;
+                        el.appendChild(sub);
+                    }
+                    return el;
+                };
+
+                (tasks.daily || []).forEach(t => d && d.appendChild(mk(t)));
+                (tasks.weekly || []).forEach(t => w && w.appendChild(mk(t)));
+            }
+
+            function refreshAll() {
+                const purchases = getPurchases();
+                const purchaseXP = computeXPFromPurchases(purchases);
+                const daily = applyDailyLoginXP();
+                const purchaseBonus = applyDailyPurchaseXP(purchases);
+
+                // XP за приглашённых друзей (по кэшу referral stats, если уже был открыт раздел «Заработать»)
+                let invites = 0;
+                try {
+                    const refCache = safeJSONParse(localStorage.getItem('jetstore_referral_stats_cache') || '{}', {});
+                    invites = Number(refCache.totalRefs || refCache.total_refs || 0) || 0;
+                } catch (e) {}
+                const invitesXP = invites * 10;
+
+                const extraTotal = parseInt(localStorage.getItem('jetstore_pass_xp_extra') || '0', 10) || 0;
+                const xp = purchaseXP.total + extraTotal + invitesXP;
+
+                const currentLevel = calcLevel(xp);
+                const nextTarget = currentLevel >= 10 ? LEVEL_THRESHOLDS[9] : LEVEL_THRESHOLDS[currentLevel];
+                const prevTarget = currentLevel <= 1 ? 0 : LEVEL_THRESHOLDS[currentLevel - 2];
+                const inLevel = Math.max(0, xp - prevTarget);
+                const need = Math.max(1, nextTarget - prevTarget);
+                const pct = Math.max(0, Math.min(100, Math.round((inLevel / need) * 100)));
+
+                const main = document.getElementById('passXpMainText');
+                if (main) main.textContent = `${xp} / ${nextTarget}`;
+                const fill = document.getElementById('passBarFill');
+                if (fill) fill.style.width = pct + '%';
+                renderPills(Math.min(4, currentLevel));
+
+                const claimed = getClaimedLevels();
+                renderRewards(currentLevel, xp, nextTarget, claimed);
+
+                const tasks = computeTasks(purchases);
+                renderTasks(tasks);
+            }
+
+            // Tabs
+            function setTab(which) {
+                const btnR = document.getElementById('passTabRewards');
+                const btnT = document.getElementById('passTabTasks');
+                const viewR = document.getElementById('passRewardsView');
+                const viewT = document.getElementById('passTasksView');
+                const isRewards = which === 'rewards';
+                if (btnR) btnR.classList.toggle('active', isRewards);
+                if (btnT) btnT.classList.toggle('active', !isRewards);
+                if (viewR) viewR.style.display = isRewards ? '' : 'none';
+                if (viewT) viewT.style.display = isRewards ? 'none' : '';
+            }
+
+            window.closePassPrizeModal = function() {
+                const modal = document.getElementById('passPrizeModal');
+                if (modal) modal.classList.remove('active');
+            };
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const btnR = document.getElementById('passTabRewards');
+                const btnT = document.getElementById('passTabTasks');
+                if (btnR) btnR.onclick = () => setTab('rewards');
+                if (btnT) btnT.onclick = () => setTab('tasks');
+                refreshAll();
+            });
+        })();
+    </script>
+</body>
+</html>
+
