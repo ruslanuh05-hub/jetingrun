@@ -370,6 +370,58 @@ function adminAddReferralBalance() {
     });
 }
 
+// Вручную добавить пользователя в рейтинг (звёзды)
+function adminAddToRating() {
+    var usernameEl = document.getElementById('ratingUsername');
+    var starsEl = document.getElementById('ratingStars');
+    var amountEl = document.getElementById('ratingAmountRub');
+    if (!usernameEl || !starsEl) return;
+    var username = (usernameEl.value || '').trim().replace(/^@/, '');
+    var stars = parseInt((starsEl.value || '').replace(',', '.'), 10);
+    var amountRub = amountEl ? parseFloat((amountEl.value || '').replace(',', '.')) : NaN;
+    if (!username) { showNotification('Введите username (без @)', 'error'); return; }
+    if (!stars || isNaN(stars) || stars <= 0) { showNotification('Введите количество звёзд', 'error'); return; }
+
+    var apiBase = (window.getJetApiBase && window.getJetApiBase()) || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
+    var auth = getAdminAuth();
+    if (!apiBase || !auth) {
+        showNotification('Сессия истекла. Войдите снова.', 'error');
+        showLoginPanel();
+        return;
+    }
+    fetch(apiBase.replace(/\/$/, '') + '/api/admin/rating-add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + auth
+        },
+        body: JSON.stringify({
+            username: username,
+            stars_amount: stars,
+            amount_rub: (amountRub && !isNaN(amountRub) && amountRub > 0) ? amountRub : null
+        })
+    })
+    .then(function(r) {
+        if (r.status === 401) { checkAdminAuthResponse(r); return null; }
+        return r.json().catch(function() { return {}; });
+    })
+    .then(function(res) {
+        if (!res) return;
+        if (res.success) {
+            showNotification('Добавлено в рейтинг: ' + stars + '⭐️', 'success');
+            starsEl.value = '';
+            if (amountEl) amountEl.value = '';
+            try { refreshStatistics(); } catch (e) {}
+        } else {
+            showNotification(res.message || res.error || 'Ошибка', 'error');
+        }
+    })
+    .catch(function(err) {
+        console.error('[adminAddToRating] error', err);
+        showNotification('Ошибка связи с сервером', 'error');
+    });
+}
+
 // Обновление статистики: с сервера (GET /api/admin/stats) или из локальной Database
 function refreshStatistics() {
     const block = document.getElementById('statBlock');

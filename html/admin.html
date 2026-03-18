@@ -347,6 +347,28 @@
             </div>
             <button type="button" class="btn-save" onclick="adminAddReferralBalance()"><i class="fas fa-plus"></i> Начислить</button>
         </div>
+
+        <div class="section">
+            <h3><i class="fas fa-trophy"></i> Рейтинг (вручную)</h3>
+            <div class="grid-2">
+                <div class="input-row">
+                    <label>Username (без @)</label>
+                    <input type="text" id="ratingUsername" placeholder="username">
+                    <span class="hint">Пользователь будет найден по Telegram username в базе</span>
+                </div>
+                <div class="input-row">
+                    <label>Звёзд (⭐️)</label>
+                    <input type="number" id="ratingStars" min="1" step="1" placeholder="1000">
+                    <span class="hint">Сколько звёзд добавить в рейтинг</span>
+                </div>
+            </div>
+            <div class="input-row" style="margin-top:10px">
+                <label>Сумма покупки (₽) — опционально</label>
+                <input type="number" id="ratingAmountRub" min="0.01" step="0.01" placeholder="1370">
+                <span class="hint">Если не указать — посчитаем по текущему курсу 1⭐️</span>
+            </div>
+            <button type="button" class="btn-save" onclick="adminAddToRating()"><i class="fas fa-plus"></i> Добавить в рейтинг</button>
+        </div>
                     
         <div class="section">
             <h3><i class="fas fa-crown"></i> Telegram Premium</h3>
