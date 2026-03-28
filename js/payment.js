@@ -11,7 +11,7 @@ function confirmPayment() {
     var statusEl = document.getElementById('paymentDetailStatus');
     var apiBase = (window.getJetApiBase ? window.getJetApiBase() : '') || window.JET_API_BASE || localStorage.getItem('jet_api_base') || '';
     if (!apiBase) {
-        var url = typeof prompt !== 'undefined' ? prompt('Введите URL бота (Render):\n\nПример: https://isxrgtme4d.onrender.com') : '';
+        var url = typeof prompt !== 'undefined' ? prompt('Введите URL API бота:\n\nПример: https://bot.jetstoreapp.ru') : '';
         if (url && (url = url.trim().replace(/\/$/, ''))) {
             try { localStorage.setItem('jet_api_base', url); } catch (e) {}
             window.JET_API_BASE = url;

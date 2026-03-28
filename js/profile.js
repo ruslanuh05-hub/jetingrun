@@ -1301,7 +1301,7 @@ function getApiBaseSafe() {
         || String(localStorage.getItem('jet_bot_api_url') || '').trim()
         || String(localStorage.getItem('jet_api_base') || '').trim()
         || '';
-    if (!apiBase) apiBase = 'https://isxrgtme4d.onrender.com';
+    if (!apiBase) apiBase = 'https://bot.jetstoreapp.ru';
     apiBase = apiBase.replace(/\/$/, '');
     if (apiBase && !/^https?:\/\//i.test(apiBase)) apiBase = 'https://' + apiBase;
     return apiBase;

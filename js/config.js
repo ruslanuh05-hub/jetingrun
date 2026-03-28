@@ -1,4 +1,4 @@
-// Конфиг: сайт на GitHub Pages / jetstoreapp.ru, бот на Railway.
+// Конфиг: фронт jetstoreapp.ru; API бота — bot.jetstoreapp.ru (или из localStorage).
 // Уведомление: в браузере — alert, в Telegram — showAlert (showPopup в 6.0 не поддерживается)
 window.jetShowAlert = function(msg) {
     var msgStr = String(msg || '');
@@ -15,9 +15,9 @@ window.jetShowAlert = function(msg) {
     }
 };
 // URL бота — для API (CryptoBot, курс TON, Fragment и т.д.)
-window.JET_BOT_API_URL = 'https://isxrgtme4d.onrender.com';
+window.JET_BOT_API_URL = 'https://bot.jetstoreapp.ru';
 window.JET_API_BASE = '';
-window.JET_BOT_API_FALLBACK = 'https://isxrgtme4d.onrender.com';
+window.JET_BOT_API_FALLBACK = 'https://bot.jetstoreapp.ru';
 window.getJetApiBase = function() {
     var url = (window.JET_BOT_API_URL || window.JET_API_BASE || localStorage.getItem('jet_bot_api_url') || localStorage.getItem('jet_api_base') || '').trim();
     if (!url) {
