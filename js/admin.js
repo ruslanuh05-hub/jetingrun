@@ -1144,7 +1144,34 @@ function savePremiumPrices() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ premium_3: prices[3], premium_6: prices[6], premium_12: prices[12] })
-            }).then(function(r) { if (r.ok) console.log('Premium prices saved on server'); }).catch(function() {});
+            })
+            .then(function(r) {
+                if (!r.ok) {
+                    return r.text().then(function(t) {
+                        throw new Error('HTTP ' + r.status + ': ' + (t || 'save failed'));
+                    });
+                }
+                return r.json().catch(function() { return null; });
+            })
+            .then(function(data) {
+                // Фиксируем реальные значения, которые принял сервер
+                if (data && (data.premium_3 != null || data.premium_6 != null || data.premium_12 != null)) {
+                    var synced = {
+                        3: parseFloat(data.premium_3) || prices[3],
+                        6: parseFloat(data.premium_6) || prices[6],
+                        12: parseFloat(data.premium_12) || prices[12]
+                    };
+                    localStorage.setItem('jetstore_premium_prices', JSON.stringify(synced));
+                    if (document.getElementById('premiumPrice3')) document.getElementById('premiumPrice3').value = synced[3];
+                    if (document.getElementById('premiumPrice6')) document.getElementById('premiumPrice6').value = synced[6];
+                    if (document.getElementById('premiumPrice12')) document.getElementById('premiumPrice12').value = synced[12];
+                }
+                console.log('Premium prices saved on server');
+            })
+            .catch(function(err) {
+                console.error('Premium prices save failed:', err);
+                showNotification('Ошибка сохранения Premium на сервере: ' + (err.message || 'неизвестно'), 'error');
+            });
         }
         showNotification('Цены на Premium сохранены', 'success');
         console.log('Цены на Premium сохранены:', prices);
