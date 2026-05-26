@@ -2627,13 +2627,7 @@
                 </div>
                 <span>Заработать</span>
             </button>
-            <button class="profile-nav-btn active profile-nav-btn-disabled" data-nav-index="2" type="button" title="Скоро" style="opacity: 0.5; pointer-events: none; cursor: not-allowed;">
-                <div class="nav-icon-wrapper">
-                    <i class="fas fa-star"></i>
-                </div>
-                <span>PASS</span>
-            </button>
-            <button class="profile-nav-btn" data-nav-index="3" type="button">
+            <button class="profile-nav-btn" data-nav-index="2" type="button">
                 <div class="nav-icon-wrapper">
                     <i class="fas fa-user"></i>
                 </div>
@@ -3925,18 +3919,6 @@
                 btn.onclick = function() {
                     document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
                     this.classList.add('active');
-                    requestAnimationFrame(function() {
-                        requestAnimationFrame(function() {
-                            if (typeof updateNavIndicator === 'function') updateNavIndicator();
-                        });
-                    });
-                    showCurrentPage(2);
-                };
-            });
-            document.querySelectorAll('.profile-nav-btn[data-nav-index="3"]').forEach(function(btn) {
-                btn.onclick = function() {
-                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
-                    this.classList.add('active');
                     goToNavPage('profile.html');
                 };
             });
@@ -3944,9 +3926,8 @@
         
         window.addEventListener('popstate', function(e) {
             if (e.state && e.state.navIndex !== undefined) {
-                if (e.state.navIndex === 2) showCurrentPage(2);
-                else if (e.state.navIndex === 1) loadPageWithoutRefresh('referral.html', 1);
-                else if (e.state.navIndex === 3) loadPageWithoutRefresh('profile.html', 3);
+                if (e.state.navIndex === 1) loadPageWithoutRefresh('referral.html', 1);
+                else if (e.state.navIndex === 2) loadPageWithoutRefresh('profile.html', 2);
             }
         });
         

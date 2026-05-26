@@ -5251,14 +5251,7 @@
                     </div>
                 </div>
                 
-                <!-- Steam — только фон без текста -->
-                <div class="main-menu-card steam-card page-block-enter" onclick="if (typeof showSteamTopup === 'function') showSteamTopup();">
-                    <div class="steam-logo-bg">
-                        <i class="fab fa-steam" style="font-size: 100px; color: rgba(0, 212, 255, 0.2);"></i>
-                    </div>
-                </div>
-
-                <!-- Наш VPN -->
+                <!-- Наш VPN (на месте Steam) -->
                 <a
                     href="https://t.me/jetvpnpro_bot"
                     target="_blank"
@@ -6059,12 +6052,6 @@
                     <span>Заработать</span>
                 </button>
                 <button class="profile-nav-btn" data-nav-index="2" type="button">
-                    <div class="nav-icon-wrapper">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <span>PASS</span>
-                </button>
-                <button class="profile-nav-btn" data-nav-index="3" type="button">
                     <div class="nav-icon-wrapper">
                         <i class="fas fa-user"></i>
                     </div>
@@ -7007,13 +6994,6 @@
                 btn.onclick = function() {
                     document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
                     this.classList.add('active');
-                    goToNavPage('pass.html');
-                };
-            });
-            document.querySelectorAll('.profile-nav-btn[data-nav-index="3"]').forEach(function(btn) {
-                btn.onclick = function() {
-                    document.querySelectorAll('.profile-nav-btn').forEach(function(b) { b.classList.remove('active'); });
-                    this.classList.add('active');
                     goToNavPage('profile.html');
                 };
             });
@@ -7036,7 +7016,7 @@
                 if (e.state.navIndex === 0) {
                     showMainMenuView();
                 } else {
-                    var urls = { 1: 'referral.html', 2: 'pass.html', 3: 'profile.html' };
+                    var urls = { 1: 'referral.html', 2: 'profile.html' };
                     if (urls[e.state.navIndex]) loadPageWithoutRefresh(urls[e.state.navIndex], e.state.navIndex);
                 }
             }
